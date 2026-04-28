@@ -1,0 +1,454 @@
+{
+  "nextProductId": 9,
+  "nextOrderNumber": 1054,
+  "categories": [
+    {
+      "id": "coffee",
+      "name": "Кава",
+      "active": true,
+      "subcategories": [
+        {
+          "id": "beans",
+          "name": "Кава в зернах",
+          "active": true
+        },
+        {
+          "id": "ground",
+          "name": "Мелена кава",
+          "active": true
+        }
+      ]
+    },
+    {
+      "id": "milk",
+      "name": "Молоко",
+      "active": true,
+      "subcategories": [
+        {
+          "id": "lactose_free",
+          "name": "Безлактозне молоко",
+          "active": true
+        },
+        {
+          "id": "regular",
+          "name": "Звичайне молоко",
+          "active": true
+        }
+      ]
+    },
+    {
+      "id": "alt-milk",
+      "name": "Альтернативне молоко",
+      "active": true,
+      "subcategories": [
+        {
+          "id": "oat",
+          "name": "Вівсяне молоко",
+          "active": true
+        },
+        {
+          "id": "coconut",
+          "name": "Кокосове молоко",
+          "active": true
+        }
+      ]
+    },
+    {
+      "id": "syrups",
+      "name": "Сиропи",
+      "active": true,
+      "subcategories": [
+        {
+          "id": "coffee_syrups",
+          "name": "Сиропи для кави",
+          "active": true
+        }
+      ]
+    },
+    {
+      "id": "sweets",
+      "name": "Солодощі",
+      "active": true,
+      "subcategories": [
+        {
+          "id": "bars",
+          "name": "Батончики",
+          "active": true
+        }
+      ]
+    },
+    {
+      "id": "snacks",
+      "name": "Снеки",
+      "active": true,
+      "subcategories": []
+    },
+    {
+      "id": "drinks",
+      "name": "Напої",
+      "active": true,
+      "subcategories": [
+        {
+          "id": "water",
+          "name": "Вода",
+          "active": true
+        }
+      ]
+    },
+    {
+      "id": "милфа",
+      "name": "Милфа",
+      "active": true,
+      "subcategories": []
+    }
+  ],
+  "products": [
+    {
+      "id": 8,
+      "name": "Милфа",
+      "category": "милфа",
+      "subcategory": "",
+      "description": "11111111111",
+      "details": "1111111111111",
+      "unit": "1 шт",
+      "packageInfo": "продається поштучно",
+      "price": 11,
+      "oldPrice": null,
+      "image": "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1200&auto=format&fit=crop",
+      "popular": false,
+      "active": true,
+      "composition": "1111111111",
+      "statusLabel": "111111111111",
+      "purchaseCount": 3
+    },
+    {
+      "id": 1,
+      "name": "Молоко безлактозне 1 л",
+      "category": "milk",
+      "subcategory": "lactose_free",
+      "description": "Зручний базовий товар для дому та кави.",
+      "details": "Безлактозне молоко для кави, какао та щоденного використання. Підійде для дому, офісу або приготування напоїв.",
+      "unit": "1 л",
+      "packageInfo": "продається поштучно",
+      "price": 48,
+      "oldPrice": null,
+      "image": "https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=1200&auto=format&fit=crop",
+      "popular": true,
+      "active": true,
+      "purchaseCount": 4
+    },
+    {
+      "id": 3,
+      "name": "Сироп ванільний 250 мл",
+      "category": "syrups",
+      "subcategory": "coffee_syrups",
+      "description": "Класичний сироп для кавових напоїв.",
+      "details": "Ванільний сироп для кави, какао, лимонадів та десертів. Добре підходить для домашнього використання та невеликих кавових точок.",
+      "unit": "250 мл",
+      "packageInfo": "пляшка 250 мл",
+      "price": 185,
+      "oldPrice": null,
+      "image": "https://images.unsplash.com/photo-1600271886742-f049cd451bba?q=80&w=1200&auto=format&fit=crop",
+      "popular": true,
+      "active": true,
+      "purchaseCount": 5
+    },
+    {
+      "id": 4,
+      "name": "Кава в зернах 250 г",
+      "category": "coffee",
+      "subcategory": "beans",
+      "description": "Для тих, хто хоче готувати каву вдома.",
+      "details": "Кава в зернах для домашнього приготування. Підійде для автоматичної кавомашини, ручного заварювання або помелу під потрібний спосіб приготування.",
+      "unit": "250 г",
+      "packageInfo": "пакет 250 г",
+      "price": 210,
+      "oldPrice": null,
+      "image": "https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=1200&auto=format&fit=crop",
+      "popular": true,
+      "active": true,
+      "purchaseCount": 0
+    },
+    {
+      "id": 5,
+      "name": "Батончик шоколадний",
+      "category": "sweets",
+      "subcategory": "bars",
+      "description": "Швидкий солодкий перекус поруч з домом.",
+      "details": "Шоколадний батончик для швидкого перекусу. Зручно взяти до кави або дитині після прогулянки.",
+      "unit": "1 шт",
+      "packageInfo": "продається поштучно",
+      "price": 32,
+      "oldPrice": null,
+      "image": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?q=80&w=1200&auto=format&fit=crop",
+      "popular": false,
+      "active": true,
+      "purchaseCount": 0
+    },
+    {
+      "id": 6,
+      "name": "Вода негазована 0.5 л",
+      "category": "drinks",
+      "subcategory": "water",
+      "description": "Базовий напій на кожен день.",
+      "details": "Негазована вода 0.5 л для щоденного використання, прогулянки або швидкої покупки біля дому.",
+      "unit": "0.5 л",
+      "packageInfo": "пляшка 0.5 л",
+      "price": 25,
+      "oldPrice": null,
+      "image": "https://images.unsplash.com/photo-1523362628745-0c100150b504?q=80&w=1200&auto=format&fit=crop",
+      "popular": false,
+      "active": true,
+      "purchaseCount": 0
+    }
+  ],
+  "orders": [
+    {
+      "id": "1777303043649",
+      "orderNumber": 1053,
+      "createdAt": "2026-04-27T15:17:23.649Z",
+      "customerName": "11111111",
+      "customerPhone": "11111",
+      "customerTelegram": "1111111",
+      "deliveryType": "pickup",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Не оплачено",
+      "comment": "1111111111",
+      "status": "Новий",
+      "items": [
+        {
+          "productId": 8,
+          "name": "Милфа",
+          "price": 11,
+          "quantity": 3,
+          "total": 33
+        }
+      ],
+      "total": 33
+    },
+    {
+      "id": "1777302504013",
+      "orderNumber": 1052,
+      "createdAt": "2026-04-27T15:08:24.013Z",
+      "customerName": "111111",
+      "customerPhone": "111111",
+      "customerTelegram": "111111111",
+      "deliveryType": "pickup",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Не оплачено",
+      "comment": "1111111",
+      "status": "Скасовано",
+      "items": [
+        {
+          "productId": 1,
+          "name": "Молоко безлактозне 1 л",
+          "price": 48,
+          "quantity": 4,
+          "total": 192
+        },
+        {
+          "productId": 3,
+          "name": "Сироп ванільний 250 мл",
+          "price": 185,
+          "quantity": 5,
+          "total": 925
+        }
+      ],
+      "total": 1117,
+      "updatedAt": "2026-04-27T15:09:58.766Z"
+    },
+    {
+      "id": "1777301643009",
+      "orderNumber": 1051,
+      "createdAt": "2026-04-27T14:54:03.009Z",
+      "customerName": "Савелий",
+      "customerPhone": "+380506891648",
+      "customerTelegram": "",
+      "deliveryType": "pickup",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Не оплачено",
+      "comment": "Жаль не милфу(",
+      "status": "Новий",
+      "items": [
+        {
+          "productId": 8,
+          "name": "Милфа",
+          "price": 11,
+          "quantity": 2,
+          "total": 22
+        },
+        {
+          "productId": 1,
+          "name": "Молоко безлактозне 1 л",
+          "price": 48,
+          "quantity": 2,
+          "total": 96
+        },
+        {
+          "productId": 3,
+          "name": "Сироп ванільний 250 мл",
+          "price": 185,
+          "quantity": 6,
+          "total": 1110
+        }
+      ],
+      "total": 1228
+    },
+    {
+      "id": "1777294558148",
+      "orderNumber": 1050,
+      "createdAt": "2026-04-27T12:55:58.148Z",
+      "customerName": "1111",
+      "customerPhone": "1111",
+      "customerTelegram": "11111",
+      "deliveryType": "Самовивіз з кав’ярні",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Не оплачено",
+      "comment": "11111111111111",
+      "status": "Новий",
+      "items": [
+        {
+          "productId": 8,
+          "name": "Милфа",
+          "price": 11,
+          "quantity": 1,
+          "total": 11
+        },
+        {
+          "productId": 1,
+          "name": "Молоко безлактозне 1 л",
+          "price": 48,
+          "quantity": 1,
+          "total": 48
+        },
+        {
+          "productId": 4,
+          "name": "Кава в зернах 250 г",
+          "price": 210,
+          "quantity": 1,
+          "total": 210
+        }
+      ],
+      "total": 269
+    },
+    {
+      "id": "1777292913853",
+      "orderNumber": 1049,
+      "createdAt": "2026-04-27T12:28:33.853Z",
+      "customerName": "ввв",
+      "customerPhone": "ввв",
+      "customerTelegram": "ввв",
+      "deliveryType": "Самовивіз з кав’ярні",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Не оплачено",
+      "comment": "111",
+      "status": "Новий",
+      "items": [
+        {
+          "productId": 1,
+          "name": "Молоко безлактозне 1 л",
+          "price": 48,
+          "quantity": 3,
+          "total": 144
+        }
+      ],
+      "total": 144
+    },
+    {
+      "id": "1777219872078",
+      "orderNumber": 1048,
+      "createdAt": "2026-04-26T16:11:12.078Z",
+      "customerName": "Тарас",
+      "customerPhone": "11111",
+      "customerTelegram": "11111111111",
+      "deliveryType": "Самовивіз з кав’ярні",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Не оплачено",
+      "comment": "",
+      "status": "Новий",
+      "items": [
+        {
+          "productId": 3,
+          "name": "Сироп ванільний 250 мл",
+          "price": 185,
+          "quantity": 1,
+          "total": 185
+        },
+        {
+          "productId": 4,
+          "name": "Кава в зернах 250 г",
+          "price": 210,
+          "quantity": 1,
+          "total": 210
+        },
+        {
+          "productId": 1,
+          "name": "Молоко безлактозне 1 л",
+          "price": 48,
+          "quantity": 1,
+          "total": 48
+        },
+        {
+          "productId": 5,
+          "name": "Батончик шоколадний",
+          "price": 32,
+          "quantity": 1,
+          "total": 32
+        }
+      ],
+      "total": 475
+    },
+    {
+      "id": "1777210269176",
+      "orderNumber": 1047,
+      "createdAt": "2026-04-26T13:31:09.176Z",
+      "customerName": "Тестовий клієнт",
+      "customerPhone": "",
+      "customerTelegram": "@test",
+      "deliveryType": "Самовивіз з кав’ярні",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Не оплачено",
+      "comment": "Тестове замовлення",
+      "status": "Підтверджено",
+      "items": [
+        {
+          "productId": 3,
+          "name": "Сироп ванільний 250 мл",
+          "price": 185,
+          "quantity": 1,
+          "total": 185
+        }
+      ],
+      "total": 185,
+      "updatedAt": "2026-04-26T14:01:35.967Z"
+    }
+  ]
+}
