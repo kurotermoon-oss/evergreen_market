@@ -1,6 +1,6 @@
 import Icon from "./Icon.jsx";
 
-export default function Header({ view, setView, cartCount, isAdmin }) {
+export default function Header({ view, setView, cartCount, isAdmin, customer,}) {
   return (
     <header className="sticky top-0 z-30 border-b border-stone-200 bg-stone-50/90 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
@@ -39,7 +39,21 @@ export default function Header({ view, setView, cartCount, isAdmin }) {
           >
             Товари
           </button>
+            
 
+            <button
+              type="button"
+              onClick={() => setView(customer ? "account" : "customer-auth")}
+              className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
+                view === "account" || view === "customer-auth"
+                  ? "bg-emerald-900 text-white"
+                  : "text-stone-700 hover:bg-stone-100"
+              }`}
+            >
+              {customer ? "Кабінет" : "Увійти"}
+            </button>
+
+            
             {isAdmin && (
               <button
                 onClick={() => setView("admin")}

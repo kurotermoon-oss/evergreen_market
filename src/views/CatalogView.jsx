@@ -30,7 +30,10 @@ export default function CatalogView({
   const subcategories = activeCategory?.subcategories || [];
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <main
+        id="catalog"
+        className="scroll-mt-24 mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8"
+      >
       
       {/* HEADER */}
       <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -152,6 +155,30 @@ export default function CatalogView({
               />
             ))}
           </div>
+
+
+          {totalProductPages > 1 && (
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+              {Array.from({ length: totalProductPages }, (_, index) => {
+                const page = index + 1;
+
+                return (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-10 min-w-10 rounded-xl px-3 text-sm font-bold transition ${
+                      currentPage === page
+                        ? "bg-emerald-900 text-white"
+                        : "bg-white text-stone-700 shadow-sm hover:bg-stone-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </section>
       </div>
     </main>

@@ -5,12 +5,14 @@ export default function CartView({
   cartItems,
   total,
   form,
+  customer,
   updateForm,
   changeQuantity,
   removeFromCart,
   setCart,
   setView,
   submitOrder,
+
 }) {
   const needsDelivery = form.deliveryType === "building";
   const canSubmit = cartItems.length > 0 && form.name && (form.phone || form.telegram);
@@ -133,6 +135,28 @@ export default function CartView({
         <h2 className="mt-2 text-3xl font-black text-stone-950">
           Куди надіслати замовлення
         </h2>
+          
+         {/*Блок подсказки к регистрации*/}
+        
+          {!customer && (
+            <div className="mt-5 rounded-3xl bg-emerald-50 p-5 text-sm text-emerald-900">
+              <p className="font-black">Можна замовити без реєстрації</p>
+
+              <p className="mt-1 leading-6">
+                Але після входу сайт запамʼятає ваше імʼя, контакти, адресу доставки
+                та покаже історію замовлень.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setView("customer-auth")}
+                className="mt-4 rounded-2xl bg-white px-4 py-2 font-bold text-emerald-900 shadow-sm hover:bg-emerald-100"
+              >
+                Увійти або зареєструватися
+              </button>
+            </div>
+          )}
+
 
         <div className="mt-6 space-y-4">
           <label className="block">

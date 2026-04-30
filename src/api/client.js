@@ -39,6 +39,35 @@ export const api = {
     });
   },
 
+  customerRegister(payload) {
+    return request("/api/customer/register", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  customerLogin(payload) {
+    return request("/api/customer/login", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  customerLogout() {
+    return request("/api/customer/logout", {
+      method: "POST",
+    });
+  },
+
+  customerMe() {
+    return request("/api/customer/me");
+  },
+
+  getCustomerOrders() {
+    return request("/api/customer/orders");
+  },
+
+  
   adminLogin(payload) {
     return request("/api/admin/login", {
       method: "POST",
@@ -78,14 +107,23 @@ export const api = {
     return request("/api/admin/orders");
   },
 
-  updateAdminOrder(id, payload) {
-    return request(`/api/admin/orders/${id}`, {
+  updateAdminOrderAction(id, payload) {
+    return request(`/api/admin/orders/${id}/action`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
   },
-  getAdminAnalytics() {
-  return request("/api/admin/analytics");
-  },
+
+
+getAdminAnalytics(params = {}) {
+  const searchParams = new URLSearchParams();
+
+  if (params.from) searchParams.set("from", params.from);
+  if (params.to) searchParams.set("to", params.to);
+
+  const query = searchParams.toString();
+
+  return request(`/api/admin/analytics${query ? `?${query}` : ""}`);
+},
 
 };

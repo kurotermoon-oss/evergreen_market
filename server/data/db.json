@@ -1,6 +1,6 @@
 {
-  "nextProductId": 9,
-  "nextOrderNumber": 1054,
+  "nextProductId": 16,
+  "nextOrderNumber": 1064,
   "categories": [
     {
       "id": "coffee",
@@ -99,75 +99,42 @@
       "id": "милфа",
       "name": "Милфа",
       "active": true,
+      "subcategories": [
+        {
+          "id": "милфа_1",
+          "name": "Милфа 1",
+          "active": true
+        }
+      ]
+    },
+    {
+      "id": "китайская_медицина",
+      "name": "Китайская медицина",
+      "active": true,
       "subcategories": []
     }
   ],
   "products": [
     {
-      "id": 8,
-      "name": "Милфа",
-      "category": "милфа",
+      "id": 15,
+      "name": "Солона карамель",
+      "category": "syrups",
       "subcategory": "",
-      "description": "11111111111",
-      "details": "1111111111111",
+      "description": "Ну это соленая карамеь",
+      "details": "",
       "unit": "1 шт",
       "packageInfo": "продається поштучно",
-      "price": 11,
-      "oldPrice": null,
-      "image": "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1200&auto=format&fit=crop",
-      "popular": false,
-      "active": true,
-      "composition": "1111111111",
-      "statusLabel": "111111111111",
-      "purchaseCount": 3
-    },
-    {
-      "id": 1,
-      "name": "Молоко безлактозне 1 л",
-      "category": "milk",
-      "subcategory": "lactose_free",
-      "description": "Зручний базовий товар для дому та кави.",
-      "details": "Безлактозне молоко для кави, какао та щоденного використання. Підійде для дому, офісу або приготування напоїв.",
-      "unit": "1 л",
-      "packageInfo": "продається поштучно",
-      "price": 48,
-      "oldPrice": null,
-      "image": "https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=1200&auto=format&fit=crop",
+      "price": 700,
+      "costPrice": 200,
+      "oldPrice": 800,
+      "image": "https://home-tort.com.ua/wp-content/uploads/2020/08/118648037_756184998510590_2724541790256458868_n.jpg",
       "popular": true,
       "active": true,
-      "purchaseCount": 4
-    },
-    {
-      "id": 3,
-      "name": "Сироп ванільний 250 мл",
-      "category": "syrups",
-      "subcategory": "coffee_syrups",
-      "description": "Класичний сироп для кавових напоїв.",
-      "details": "Ванільний сироп для кави, какао, лимонадів та десертів. Добре підходить для домашнього використання та невеликих кавових точок.",
-      "unit": "250 мл",
-      "packageInfo": "пляшка 250 мл",
-      "price": 185,
-      "oldPrice": null,
-      "image": "https://images.unsplash.com/photo-1600271886742-f049cd451bba?q=80&w=1200&auto=format&fit=crop",
-      "popular": true,
-      "active": true,
-      "purchaseCount": 5
-    },
-    {
-      "id": 4,
-      "name": "Кава в зернах 250 г",
-      "category": "coffee",
-      "subcategory": "beans",
-      "description": "Для тих, хто хоче готувати каву вдома.",
-      "details": "Кава в зернах для домашнього приготування. Підійде для автоматичної кавомашини, ручного заварювання або помелу під потрібний спосіб приготування.",
-      "unit": "250 г",
-      "packageInfo": "пакет 250 г",
-      "price": 210,
-      "oldPrice": null,
-      "image": "https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=1200&auto=format&fit=crop",
-      "popular": true,
-      "active": true,
-      "purchaseCount": 0
+      "composition": "111",
+      "statusLabel": "В наявності",
+      "purchaseCount": 3,
+      "stockStatus": "in_stock",
+      "stockQuantity": null
     },
     {
       "id": 5,
@@ -183,7 +150,10 @@
       "image": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?q=80&w=1200&auto=format&fit=crop",
       "popular": false,
       "active": true,
-      "purchaseCount": 0
+      "purchaseCount": 6,
+      "costPrice": 0,
+      "stockStatus": "in_stock",
+      "stockQuantity": null
     },
     {
       "id": 6,
@@ -199,10 +169,755 @@
       "image": "https://images.unsplash.com/photo-1523362628745-0c100150b504?q=80&w=1200&auto=format&fit=crop",
       "popular": false,
       "active": true,
-      "purchaseCount": 0
+      "purchaseCount": 0,
+      "costPrice": 0,
+      "stockStatus": "in_stock",
+      "stockQuantity": null
     }
   ],
   "orders": [
+    {
+      "id": "1777547842964",
+      "orderNumber": 1063,
+      "createdAt": "2026-04-30T11:17:22.964Z",
+      "customerId": 1,
+      "customerName": "Savelii",
+      "customerPhone": "+380506891648",
+      "customerTelegram": "@trap_k_m",
+      "deliveryType": "pickup",
+      "building": "20",
+      "entrance": "2",
+      "floor": "1",
+      "apartment": "333",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Не оплачено",
+      "comment": "",
+      "status": "Новий",
+      "isFinal": false,
+      "finalType": null,
+      "finalizedAt": null,
+      "cancelReason": "",
+      "stockRestoredAt": null,
+      "statusHistory": [
+        {
+          "at": "2026-04-30T11:17:22.964Z",
+          "type": "created",
+          "label": "Замовлення створено"
+        }
+      ],
+      "items": [
+        {
+          "productId": 15,
+          "name": "Солона карамель",
+          "price": 700,
+          "costPrice": 200,
+          "quantity": 3,
+          "total": 2100,
+          "costTotal": 600,
+          "profit": 1500
+        },
+        {
+          "productId": 5,
+          "name": "Батончик шоколадний",
+          "price": 32,
+          "costPrice": 0,
+          "quantity": 2,
+          "total": 64,
+          "costTotal": 0,
+          "profit": 64
+        }
+      ],
+      "total": 2164
+    },
+    {
+      "id": "1777494585811",
+      "orderNumber": 1062,
+      "createdAt": "2026-04-29T20:29:45.811Z",
+      "customerId": 1,
+      "customerName": "Savelii",
+      "customerPhone": "+380506891648",
+      "customerTelegram": "@trap_k_m",
+      "deliveryType": "pickup",
+      "building": "20",
+      "entrance": "2",
+      "floor": "1",
+      "apartment": "333",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Оплачено",
+      "comment": "",
+      "status": "Завершено",
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T20:31:34.758Z",
+      "cancelReason": "",
+      "stockRestoredAt": null,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T20:29:45.811Z",
+          "type": "created",
+          "label": "Замовлення створено"
+        },
+        {
+          "at": "2026-04-29T20:30:34.882Z",
+          "type": "payment_changed",
+          "label": "Замовлення позначено як оплачене",
+          "from": "Не оплачено",
+          "to": "Оплачено"
+        },
+        {
+          "at": "2026-04-29T20:31:20.589Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T20:31:29.387Z",
+          "type": "status_changed",
+          "label": "Замовлення готове до видачі",
+          "from": "Підтверджено",
+          "to": "Готово до видачі"
+        },
+        {
+          "at": "2026-04-29T20:31:34.758Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Готово до видачі",
+          "to": "Завершено",
+          "paymentFrom": "Оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "items": [
+        {
+          "productId": 5,
+          "name": "Батончик шоколадний",
+          "price": 32,
+          "costPrice": 0,
+          "quantity": 4,
+          "total": 128,
+          "costTotal": 0,
+          "profit": 128
+        }
+      ],
+      "total": 128,
+      "updatedAt": "2026-04-29T20:31:34.758Z",
+      "readyTelegramNotification": {
+        "ok": false,
+        "skipped": true,
+        "reason": "Customer Telegram chat is not linked",
+        "at": "2026-04-29T20:31:29.388Z"
+      }
+    },
+    {
+      "id": "1777492671928",
+      "orderNumber": 1061,
+      "createdAt": "2026-04-29T19:57:51.928Z",
+      "customerId": null,
+      "customerName": "sdrg",
+      "customerPhone": "seg",
+      "customerTelegram": "",
+      "deliveryType": "pickup",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Оплачено",
+      "comment": "",
+      "status": "Завершено",
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T19:58:10.901Z",
+      "cancelReason": "",
+      "stockRestoredAt": null,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T19:57:51.928Z",
+          "type": "created",
+          "label": "Замовлення створено"
+        },
+        {
+          "at": "2026-04-29T19:58:07.073Z",
+          "type": "payment_changed",
+          "label": "Замовлення позначено як оплачене",
+          "from": "Не оплачено",
+          "to": "Оплачено"
+        },
+        {
+          "at": "2026-04-29T19:58:07.562Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T19:58:09.060Z",
+          "type": "status_changed",
+          "label": "Замовлення готове до видачі",
+          "from": "Підтверджено",
+          "to": "Готово до видачі"
+        },
+        {
+          "at": "2026-04-29T19:58:10.901Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Готово до видачі",
+          "to": "Завершено",
+          "paymentFrom": "Оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "items": [
+        {
+          "productId": 11,
+          "name": "ХУЙ мамонта",
+          "price": 5000,
+          "costPrice": 3000,
+          "quantity": 4,
+          "total": 20000,
+          "costTotal": 12000,
+          "profit": 8000
+        }
+      ],
+      "total": 20000,
+      "updatedAt": "2026-04-29T19:58:10.901Z",
+      "readyTelegramNotification": {
+        "ok": false,
+        "skipped": true,
+        "reason": "Customer Telegram chat is not linked",
+        "at": "2026-04-29T19:58:09.060Z"
+      }
+    },
+    {
+      "id": "1777492605938",
+      "orderNumber": 1060,
+      "createdAt": "2026-04-29T19:56:45.938Z",
+      "customerId": null,
+      "customerName": "Тарас",
+      "customerPhone": "0951678541",
+      "customerTelegram": "@airupi",
+      "deliveryType": "pickup",
+      "building": "20",
+      "entrance": "2",
+      "floor": "5",
+      "apartment": "117",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Оплачено",
+      "comment": "Я ваш рот ЕБАЛ",
+      "status": "Скасовано",
+      "isFinal": true,
+      "finalType": "cancelled",
+      "finalizedAt": "2026-04-29T20:31:40.485Z",
+      "cancelReason": "1",
+      "stockRestoredAt": "2026-04-29T20:31:40.485Z",
+      "statusHistory": [
+        {
+          "at": "2026-04-29T19:56:45.938Z",
+          "type": "created",
+          "label": "Замовлення створено"
+        },
+        {
+          "at": "2026-04-29T20:30:22.496Z",
+          "type": "payment_changed",
+          "label": "Замовлення позначено як оплачене",
+          "from": "Не оплачено",
+          "to": "Оплачено"
+        },
+        {
+          "at": "2026-04-29T20:31:36.823Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T20:31:40.485Z",
+          "type": "cancelled",
+          "label": "Замовлення скасовано",
+          "from": "Підтверджено",
+          "to": "Скасовано",
+          "reason": "1"
+        }
+      ],
+      "items": [
+        {
+          "productId": 11,
+          "name": "ХУЙ мамонта",
+          "price": 5000,
+          "costPrice": 3000,
+          "quantity": 1,
+          "total": 5000,
+          "costTotal": 3000,
+          "profit": 2000
+        }
+      ],
+      "total": 5000,
+      "updatedAt": "2026-04-29T20:31:40.485Z"
+    },
+    {
+      "id": "1777491822262",
+      "orderNumber": 1059,
+      "createdAt": "2026-04-29T19:43:42.262Z",
+      "customerId": 2,
+      "customerName": "Тарас",
+      "customerPhone": "0951678541",
+      "customerTelegram": "@airupi",
+      "deliveryType": "pickup",
+      "building": "20",
+      "entrance": "2",
+      "floor": "5",
+      "apartment": "117",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Оплачено",
+      "comment": "Я ваш рот ЕБАЛ",
+      "status": "Завершено",
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T19:46:46.691Z",
+      "cancelReason": "",
+      "stockRestoredAt": null,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T19:43:42.262Z",
+          "type": "created",
+          "label": "Замовлення створено"
+        },
+        {
+          "at": "2026-04-29T19:45:41.738Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T19:46:00.075Z",
+          "type": "status_changed",
+          "label": "Замовлення передано в приготування",
+          "from": "Підтверджено",
+          "to": "Готується"
+        },
+        {
+          "at": "2026-04-29T19:46:36.230Z",
+          "type": "payment_changed",
+          "label": "Замовлення позначено як оплачене",
+          "from": "Не оплачено",
+          "to": "Оплачено"
+        },
+        {
+          "at": "2026-04-29T19:46:39.544Z",
+          "type": "status_changed",
+          "label": "Замовлення готове до видачі",
+          "from": "Готується",
+          "to": "Готово до видачі"
+        },
+        {
+          "at": "2026-04-29T19:46:46.691Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Готово до видачі",
+          "to": "Завершено",
+          "paymentFrom": "Оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "items": [
+        {
+          "productId": 8,
+          "name": "Милфа",
+          "price": 11,
+          "costPrice": 0,
+          "quantity": 1,
+          "total": 11,
+          "costTotal": 0,
+          "profit": 11
+        }
+      ],
+      "total": 11,
+      "updatedAt": "2026-04-29T19:46:46.691Z",
+      "readyTelegramNotification": {
+        "ok": false,
+        "skipped": true,
+        "reason": "Customer Telegram chat is not linked",
+        "at": "2026-04-29T19:46:39.545Z"
+      }
+    },
+    {
+      "id": "1777491788969",
+      "orderNumber": 1058,
+      "createdAt": "2026-04-29T19:43:08.969Z",
+      "customerId": 2,
+      "customerName": "Тарас",
+      "customerPhone": "0951678541",
+      "customerTelegram": "@airupi",
+      "deliveryType": "pickup",
+      "building": "20",
+      "entrance": "2",
+      "floor": "5",
+      "apartment": "117",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Оплачено",
+      "comment": "Я ваш рот ЕБАЛ",
+      "status": "Скасовано",
+      "isFinal": true,
+      "finalType": "cancelled",
+      "finalizedAt": "2026-04-29T19:48:57.069Z",
+      "cancelReason": "грубость",
+      "stockRestoredAt": "2026-04-29T19:48:57.069Z",
+      "statusHistory": [
+        {
+          "at": "2026-04-29T19:43:08.969Z",
+          "type": "created",
+          "label": "Замовлення створено"
+        },
+        {
+          "at": "2026-04-29T19:45:58.581Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T19:46:03.703Z",
+          "type": "payment_changed",
+          "label": "Замовлення позначено як оплачене",
+          "from": "Не оплачено",
+          "to": "Оплачено"
+        },
+        {
+          "at": "2026-04-29T19:46:15.995Z",
+          "type": "status_changed",
+          "label": "Замовлення передано в приготування",
+          "from": "Підтверджено",
+          "to": "Готується"
+        },
+        {
+          "at": "2026-04-29T19:48:57.069Z",
+          "type": "cancelled",
+          "label": "Замовлення скасовано",
+          "from": "Готується",
+          "to": "Скасовано",
+          "reason": "грубость"
+        }
+      ],
+      "items": [
+        {
+          "productId": 10,
+          "name": "Milfa",
+          "price": 1111,
+          "costPrice": 11,
+          "quantity": 4,
+          "total": 4444,
+          "costTotal": 44,
+          "profit": 4400
+        }
+      ],
+      "total": 4444,
+      "updatedAt": "2026-04-29T19:48:57.069Z"
+    },
+    {
+      "id": "1777467760059",
+      "orderNumber": 1057,
+      "createdAt": "2026-04-29T13:02:40.059Z",
+      "customerId": null,
+      "customerName": "ddddd",
+      "customerPhone": "ddddd",
+      "customerTelegram": "ddddd",
+      "deliveryType": "pickup",
+      "building": "",
+      "entrance": "",
+      "floor": "",
+      "apartment": "",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Оплачено",
+      "comment": "",
+      "status": "Завершено",
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T13:02:52.823Z",
+      "cancelReason": "",
+      "stockRestoredAt": null,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T13:02:40.059Z",
+          "type": "created",
+          "label": "Замовлення створено"
+        },
+        {
+          "at": "2026-04-29T13:02:49.335Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T13:02:50.253Z",
+          "type": "status_changed",
+          "label": "Замовлення готове до видачі",
+          "from": "Підтверджено",
+          "to": "Готово до видачі"
+        },
+        {
+          "at": "2026-04-29T13:02:52.823Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Готово до видачі",
+          "to": "Завершено",
+          "paymentFrom": "Не оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "items": [
+        {
+          "productId": 8,
+          "name": "Милфа",
+          "price": 11,
+          "costPrice": 0,
+          "quantity": 5,
+          "total": 55,
+          "costTotal": 0,
+          "profit": 55
+        },
+        {
+          "productId": 1,
+          "name": "Молоко безлактозне 1 л",
+          "price": 48,
+          "costPrice": 0,
+          "quantity": 4,
+          "total": 192,
+          "costTotal": 0,
+          "profit": 192
+        }
+      ],
+      "total": 247,
+      "updatedAt": "2026-04-29T13:02:52.823Z",
+      "readyTelegramNotification": {
+        "ok": false,
+        "skipped": true,
+        "reason": "Customer Telegram chat is not linked",
+        "at": "2026-04-29T13:02:50.253Z"
+      }
+    },
+    {
+      "id": "1777462707258",
+      "orderNumber": 1056,
+      "createdAt": "2026-04-29T11:38:27.258Z",
+      "customerId": 1,
+      "customerName": "Savelii",
+      "customerPhone": "+380506891648",
+      "customerTelegram": "@trap_k_m",
+      "deliveryType": "pickup",
+      "building": "20",
+      "entrance": "2",
+      "floor": "1",
+      "apartment": "333",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Оплачено",
+      "comment": "",
+      "status": "Завершено",
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T11:39:51.832Z",
+      "cancelReason": "",
+      "stockRestoredAt": null,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T11:38:27.258Z",
+          "type": "created",
+          "label": "Замовлення створено"
+        },
+        {
+          "at": "2026-04-29T11:39:29.927Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T11:39:31.093Z",
+          "type": "status_changed",
+          "label": "Замовлення готове до видачі",
+          "from": "Підтверджено",
+          "to": "Готово до видачі"
+        },
+        {
+          "at": "2026-04-29T11:39:49.172Z",
+          "type": "payment_changed",
+          "label": "Замовлення позначено як оплачене",
+          "from": "Не оплачено",
+          "to": "Оплачено"
+        },
+        {
+          "at": "2026-04-29T11:39:51.832Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Готово до видачі",
+          "to": "Завершено",
+          "paymentFrom": "Оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "items": [
+        {
+          "productId": 8,
+          "name": "Милфа",
+          "price": 11,
+          "quantity": 2,
+          "total": 22
+        }
+      ],
+      "total": 22,
+      "updatedAt": "2026-04-29T11:39:51.832Z"
+    },
+    {
+      "id": "1777458470284",
+      "orderNumber": 1055,
+      "createdAt": "2026-04-29T10:27:50.284Z",
+      "customerId": 1,
+      "customerName": "Savelii",
+      "customerPhone": "+380506891648",
+      "customerTelegram": "@trap_k_m",
+      "deliveryType": "pickup",
+      "building": "20",
+      "entrance": "2",
+      "floor": "1",
+      "apartment": "333",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Оплачено",
+      "comment": "",
+      "status": "Завершено",
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T14:49:51.735Z",
+      "cancelReason": "",
+      "stockRestoredAt": null,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T10:27:50.284Z",
+          "type": "created",
+          "label": "Замовлення створено"
+        },
+        {
+          "at": "2026-04-29T10:28:36.791Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T10:28:44.692Z",
+          "type": "payment_changed",
+          "label": "Замовлення позначено як оплачене",
+          "from": "Не оплачено",
+          "to": "Оплачено"
+        },
+        {
+          "at": "2026-04-29T10:28:47.546Z",
+          "type": "status_changed",
+          "label": "Замовлення передано в приготування",
+          "from": "Підтверджено",
+          "to": "Готується"
+        },
+        {
+          "at": "2026-04-29T10:28:48.201Z",
+          "type": "status_changed",
+          "label": "Замовлення готове до видачі",
+          "from": "Готується",
+          "to": "Готово до видачі"
+        },
+        {
+          "at": "2026-04-29T14:49:51.735Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Готово до видачі",
+          "to": "Завершено",
+          "paymentFrom": "Оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "items": [
+        {
+          "productId": 4,
+          "name": "Кава в зернах 250 г",
+          "price": 210,
+          "quantity": 4,
+          "total": 840
+        }
+      ],
+      "total": 840,
+      "updatedAt": "2026-04-29T14:49:51.735Z"
+    },
+    {
+      "id": "1777456715043",
+      "orderNumber": 1054,
+      "createdAt": "2026-04-29T09:58:35.043Z",
+      "customerId": 1,
+      "customerName": "Savelii",
+      "customerPhone": "+380506891648",
+      "customerTelegram": "@Trap_k_m",
+      "deliveryType": "pickup",
+      "building": "20",
+      "entrance": "2",
+      "floor": "1",
+      "apartment": "333",
+      "paymentMethod": "Після підтвердження",
+      "paymentStatus": "Оплачено",
+      "comment": "",
+      "status": "Завершено",
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T10:15:51.442Z",
+      "cancelReason": "",
+      "stockRestoredAt": null,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T09:58:35.043Z",
+          "type": "created",
+          "label": "Замовлення створено"
+        },
+        {
+          "at": "2026-04-29T10:12:43.927Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T10:15:27.728Z",
+          "type": "payment_changed",
+          "label": "Замовлення позначено як оплачене",
+          "from": "Не оплачено",
+          "to": "Оплачено"
+        },
+        {
+          "at": "2026-04-29T10:15:41.473Z",
+          "type": "status_changed",
+          "label": "Замовлення готове до видачі",
+          "from": "Підтверджено",
+          "to": "Готово до видачі"
+        },
+        {
+          "at": "2026-04-29T10:15:51.442Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Готово до видачі",
+          "to": "Завершено",
+          "paymentFrom": "Оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "items": [
+        {
+          "productId": 4,
+          "name": "Кава в зернах 250 г",
+          "price": 210,
+          "quantity": 2,
+          "total": 420
+        }
+      ],
+      "total": 420,
+      "updatedAt": "2026-04-29T10:15:51.442Z"
+    },
     {
       "id": "1777303043649",
       "orderNumber": 1053,
@@ -216,9 +931,9 @@
       "floor": "",
       "apartment": "",
       "paymentMethod": "Після підтвердження",
-      "paymentStatus": "Не оплачено",
+      "paymentStatus": "Оплачено",
       "comment": "1111111111",
-      "status": "Новий",
+      "status": "Завершено",
       "items": [
         {
           "productId": 8,
@@ -228,7 +943,43 @@
           "total": 33
         }
       ],
-      "total": 33
+      "total": 33,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T08:25:53.234Z",
+          "type": "payment_changed",
+          "label": "Замовлення позначено як оплачене",
+          "from": "Не оплачено",
+          "to": "Оплачено"
+        },
+        {
+          "at": "2026-04-29T08:28:50.194Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T08:28:59.197Z",
+          "type": "status_changed",
+          "label": "Замовлення готове до видачі",
+          "from": "Підтверджено",
+          "to": "Готово до видачі"
+        },
+        {
+          "at": "2026-04-29T08:29:10.341Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Готово до видачі",
+          "to": "Завершено",
+          "paymentFrom": "Оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "updatedAt": "2026-04-29T08:29:10.341Z",
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T08:29:10.341Z"
     },
     {
       "id": "1777302504013",
@@ -280,7 +1031,7 @@
       "paymentMethod": "Після підтвердження",
       "paymentStatus": "Не оплачено",
       "comment": "Жаль не милфу(",
-      "status": "Новий",
+      "status": "Оплачено",
       "items": [
         {
           "productId": 8,
@@ -304,7 +1055,8 @@
           "total": 1110
         }
       ],
-      "total": 1228
+      "total": 1228,
+      "updatedAt": "2026-04-29T07:00:54.164Z"
     },
     {
       "id": "1777294558148",
@@ -321,7 +1073,7 @@
       "paymentMethod": "Після підтвердження",
       "paymentStatus": "Не оплачено",
       "comment": "11111111111111",
-      "status": "Новий",
+      "status": "Скасовано",
       "items": [
         {
           "productId": 8,
@@ -345,7 +1097,30 @@
           "total": 210
         }
       ],
-      "total": 269
+      "total": 269,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T08:27:16.723Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T08:27:30.050Z",
+          "type": "cancelled",
+          "label": "Замовлення скасовано",
+          "from": "Підтверджено",
+          "to": "Скасовано",
+          "reason": "1"
+        }
+      ],
+      "updatedAt": "2026-04-29T08:27:30.050Z",
+      "isFinal": true,
+      "finalType": "cancelled",
+      "finalizedAt": "2026-04-29T08:27:30.050Z",
+      "cancelReason": "1",
+      "stockRestoredAt": "2026-04-29T08:27:30.050Z"
     },
     {
       "id": "1777292913853",
@@ -360,9 +1135,9 @@
       "floor": "",
       "apartment": "",
       "paymentMethod": "Після підтвердження",
-      "paymentStatus": "Не оплачено",
+      "paymentStatus": "Оплачено",
       "comment": "111",
-      "status": "Новий",
+      "status": "Завершено",
       "items": [
         {
           "productId": 1,
@@ -372,7 +1147,50 @@
           "total": 144
         }
       ],
-      "total": 144
+      "total": 144,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T08:29:30.552Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T08:29:34.038Z",
+          "type": "status_changed",
+          "label": "Замовлення передано в приготування",
+          "from": "Підтверджено",
+          "to": "Готується"
+        },
+        {
+          "at": "2026-04-29T08:29:44.530Z",
+          "type": "status_changed",
+          "label": "Замовлення готове до видачі",
+          "from": "Готується",
+          "to": "Готово до видачі"
+        },
+        {
+          "at": "2026-04-29T08:29:50.528Z",
+          "type": "payment_changed",
+          "label": "Замовлення позначено як оплачене",
+          "from": "Не оплачено",
+          "to": "Оплачено"
+        },
+        {
+          "at": "2026-04-29T08:29:52.747Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Готово до видачі",
+          "to": "Завершено",
+          "paymentFrom": "Оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "updatedAt": "2026-04-29T08:29:52.747Z",
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T08:29:52.747Z"
     },
     {
       "id": "1777219872078",
@@ -387,9 +1205,9 @@
       "floor": "",
       "apartment": "",
       "paymentMethod": "Після підтвердження",
-      "paymentStatus": "Не оплачено",
+      "paymentStatus": "Оплачено",
       "comment": "",
-      "status": "Новий",
+      "status": "Завершено",
       "items": [
         {
           "productId": 3,
@@ -420,7 +1238,29 @@
           "total": 32
         }
       ],
-      "total": 475
+      "total": 475,
+      "statusHistory": [
+        {
+          "at": "2026-04-29T10:17:04.070Z",
+          "type": "status_changed",
+          "label": "Замовлення підтверджено",
+          "from": "Новий",
+          "to": "Підтверджено"
+        },
+        {
+          "at": "2026-04-29T14:50:03.248Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Підтверджено",
+          "to": "Завершено",
+          "paymentFrom": "Не оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "updatedAt": "2026-04-29T14:50:03.248Z",
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T14:50:03.248Z"
     },
     {
       "id": "1777210269176",
@@ -435,9 +1275,9 @@
       "floor": "",
       "apartment": "",
       "paymentMethod": "Після підтвердження",
-      "paymentStatus": "Не оплачено",
+      "paymentStatus": "Оплачено",
       "comment": "Тестове замовлення",
-      "status": "Підтверджено",
+      "status": "Завершено",
       "items": [
         {
           "productId": 3,
@@ -448,7 +1288,57 @@
         }
       ],
       "total": 185,
-      "updatedAt": "2026-04-26T14:01:35.967Z"
+      "updatedAt": "2026-04-29T08:26:45.734Z",
+      "statusHistory": [
+        {
+          "at": "2026-04-29T08:26:22.668Z",
+          "type": "status_changed",
+          "label": "Замовлення готове до видачі",
+          "from": "Підтверджено",
+          "to": "Готово до видачі"
+        },
+        {
+          "at": "2026-04-29T08:26:45.734Z",
+          "type": "finalized",
+          "label": "Замовлення завершено як оплачене",
+          "from": "Готово до видачі",
+          "to": "Завершено",
+          "paymentFrom": "Не оплачено",
+          "paymentTo": "Оплачено"
+        }
+      ],
+      "isFinal": true,
+      "finalType": "paid",
+      "finalizedAt": "2026-04-29T08:26:45.734Z"
     }
-  ]
+  ],
+  "customers": [
+    {
+      "id": 1,
+      "name": "Savelii",
+      "phone": "+380506891648",
+      "telegram": "trap_k_m",
+      "building": "20",
+      "entrance": "2",
+      "floor": "1",
+      "apartment": "333",
+      "passwordHash": "11eb592b944028351b230c7bb3de9253:43ccbbcc059f530d749e271e6071a941ef89e87b0e3575a2c28b0c7ca0d7587f58f8c1f9082daebbaf1e232d3c870db0af4711b098e1625d27443d79e10bb085",
+      "createdAt": "2026-04-29T09:57:44.378Z",
+      "updatedAt": "2026-04-29T09:57:44.378Z"
+    },
+    {
+      "id": 2,
+      "name": "Тарас",
+      "phone": "0951678541",
+      "telegram": "airupi",
+      "building": "20",
+      "entrance": "2",
+      "floor": "5",
+      "apartment": "117",
+      "passwordHash": "8b8473c02de36f7d70bb8fe14a9f99c0:58c99b0cfda040a3f4e0b251618565a5cd6afb0b7ced732e3385147c8edf97d1cf6d5a3b6b0b43b440b857566f4e6d8b692cbc41d326589e69d29cf1414c3a10",
+      "createdAt": "2026-04-29T19:40:44.662Z",
+      "updatedAt": "2026-04-29T19:40:44.662Z"
+    }
+  ],
+  "nextCustomerId": 3
 }

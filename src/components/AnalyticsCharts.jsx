@@ -28,7 +28,7 @@ export default function AnalyticsCharts({ analytics }) {
     <div className="mt-8 grid gap-6 xl:grid-cols-2">
       <div className="rounded-3xl border border-stone-200 p-5">
         <h3 className="text-xl font-black text-stone-950">
-          Динаміка виручки
+          Динаміка прибутку
         </h3>
 
         <div className="mt-5 h-80">
@@ -40,7 +40,7 @@ export default function AnalyticsCharts({ analytics }) {
               <Tooltip formatter={(value) => formatUAH(value)} />
               <Line
                 type="monotone"
-                dataKey="revenue"
+                dataKey="profit"
                 strokeWidth={3}
                 dot={{ r: 4 }}
               />
