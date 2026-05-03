@@ -1,135 +1,150 @@
 import { useMemo, useRef } from "react";
 
-import Icon from "../components/Icon.jsx";
 import ProductCard from "../components/ProductCard.jsx";
-import HeroSection from "../components/HeroSection.jsx";
 import { getRandomItems } from "../utils/products.js";
 
+const CATEGORY_ICONS = {
+  coffee: "☕",
+  milk: "🥛",
+  "alt-milk": "🌱",
+  syrups: "🍯",
+  sweets: "🍫",
+  snacks: "🥨",
+  drinks: "🥤",
+};
 
 export default function HomeView({
   setView,
   popularProducts = [],
-  categories,
+  categories = [],
+  cartItems = [],
   addToCart,
+  changeQuantity,
+  removeFromCart,
   openProduct,
 }) {
   const popularCarouselRef = useRef(null);
 
-const shownPopularProducts = useMemo(() => {
-  return getRandomItems(popularProducts, 6);
-}, [popularProducts]);
+  const shownPopularProducts = useMemo(() => {
+    const activePopularProducts = popularProducts.filter((product) => {
+      return product.active !== false;
+    });
 
-  const scrollToLocation = () => {
-    document.getElementById("location")?.scrollIntoView({
+    return getRandomItems(activePopularProducts, 6);
+  }, [popularProducts]);
+
+  const shownCategories = useMemo(() => {
+    return categories
+      .filter((category) => category.id !== "all")
+      .filter((category) => category.active !== false)
+      .slice(0, 6);
+  }, [categories]);
+
+  function scrollToContacts() {
+    document.getElementById("contacts")?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
-  };
+  }
 
-  const scrollPopularCarousel = (direction) => {
+  function scrollPopularCarousel(direction) {
     if (!popularCarouselRef.current) return;
 
     popularCarouselRef.current.scrollBy({
       left: direction === "next" ? 360 : -360,
       behavior: "smooth",
     });
-  };
+  }
 
   return (
     <main>
       {/* HERO */}
-      <section className="relative overflow-hidden border-b border-stone-200 bg-gradient-to-br from-stone-50 via-white to-emerald-50">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-20">
-          <div className="flex flex-col justify-center">
-            <p className="text-sm font-black uppercase tracking-[0.24em] text-emerald-700">
-              Кава та смаколики поруч
+      <section className="border-b border-emerald-100 bg-gradient-to-b from-emerald-50/70 to-white">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-20">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.24em] text-emerald-800">
+              Кава та товари поруч
             </p>
 
-            <h1 className="mt-5 max-w-3xl text-5xl font-black leading-tight text-stone-950 sm:text-6xl">
+            <h1 className="mt-5 max-w-3xl text-5xl font-black leading-tight text-stone-950 lg:text-6xl">
               Evergreen coffee
             </h1>
 
-            <p className="mt-5 max-w-2xl text-xl leading-8 text-stone-700">
+            <p className="mt-5 max-w-2xl text-base leading-8 text-stone-600">
               Свіжа кава, напої та товари для дому. Замовляйте онлайн —
-              забирайте самостійно або отримуйте доставку.
+              забирайте самостійно або оформлюйте доставку по ЖК.
             </p>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-3xl bg-white/80 p-4 shadow-sm ring-1 ring-stone-200">
+              <div className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="text-2xl">☕</p>
-                <p className="mt-2 font-black text-stone-950">
-                  Самовивіз
-                </p>
-                <p className="mt-1 text-sm text-stone-500">
+                <p className="mt-3 font-black text-stone-950">Самовивіз</p>
+                <p className="mt-1 text-sm leading-6 text-stone-500">
                   Замовте заздалегідь і заберіть без черги.
                 </p>
               </div>
 
-              <div className="rounded-3xl bg-white/80 p-4 shadow-sm ring-1 ring-stone-200">
+              <div className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="text-2xl">🏡</p>
-                <p className="mt-2 font-black text-stone-950">
+                <p className="mt-3 font-black text-stone-950">
                   Локальна доставка
                 </p>
-                <p className="mt-1 text-sm text-stone-500">
-                  Привеземо замовлення просто до вас.
+                <p className="mt-1 text-sm leading-6 text-stone-500">
+                  Привеземо замовлення просто до вас у межах ЖК.
                 </p>
               </div>
 
-              <div className="rounded-3xl bg-white/80 p-4 shadow-sm ring-1 ring-stone-200">
+              <div className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="text-2xl">💳</p>
-                <p className="mt-2 font-black text-stone-950">
+                <p className="mt-3 font-black text-stone-950">
                   Оплата після підтвердження
                 </p>
-                <p className="mt-1 text-sm text-stone-500">
-                  Спочатку підтверджуємо замовлення, потім — оплата.
+                <p className="mt-1 text-sm leading-6 text-stone-500">
+                  Спочатку підтвердимо замовлення, потім — оплата.
                 </p>
               </div>
 
-              <div className="rounded-3xl bg-white/80 p-4 shadow-sm ring-1 ring-stone-200">
+              <div className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="text-2xl">✨</p>
-                <p className="mt-2 font-black text-stone-950">
+                <p className="mt-3 font-black text-stone-950">
                   Без обовʼязкової реєстрації
                 </p>
-                <p className="mt-1 text-sm text-stone-500">
-                  Замовляйте як гість або збережіть історію в кабінеті.
+                <p className="mt-1 text-sm leading-6 text-stone-500">
+                  Можна замовити як гість або зберегти історію в кабінеті.
                 </p>
               </div>
             </div>
 
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
                 onClick={() => setView("catalog")}
-                className="rounded-2xl bg-emerald-900 px-7 py-4 text-base font-black text-white shadow-sm transition hover:bg-emerald-800"
+                className="rounded-2xl bg-emerald-900 px-6 py-4 text-sm font-black text-white transition hover:bg-emerald-800"
               >
                 Перейти до каталогу
               </button>
 
               <button
                 type="button"
-                onClick={scrollToLocation}
-                className="rounded-2xl border border-stone-300 bg-white px-7 py-4 text-base font-black text-stone-900 transition hover:bg-stone-100"
+                onClick={scrollToContacts}
+                className="rounded-2xl border border-stone-300 bg-white px-6 py-4 text-sm font-black text-stone-950 transition hover:bg-stone-100"
               >
                 Як нас знайти
               </button>
             </div>
           </div>
 
-          <div className="relative hidden items-center justify-center lg:flex">
-            <div className="absolute h-80 w-80 rounded-full bg-emerald-200/40 blur-3xl" />
+          <div className="lg:justify-self-end">
+            <div className="rounded-[2rem] bg-white p-4 shadow-xl shadow-emerald-900/10">
+              <img
+                src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop"
+                alt="Evergreen coffee"
+                className="h-[340px] w-full rounded-[1.5rem] object-cover lg:h-[420px]"
+              />
 
-            <div className="relative w-full max-w-md rounded-[2rem] bg-white p-5 shadow-xl ring-1 ring-stone-200">
-              <div className="overflow-hidden rounded-[1.5rem] bg-stone-100">
-                <img
-                  src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80"
-                  alt="Evergreen coffee"
-                  className="h-80 w-full object-cover"
-                />
-              </div>
-
-              <div className="mt-5 rounded-3xl bg-emerald-950 p-5 text-white">
-                <p className="text-sm text-emerald-100">
-                  Місце, де час зупиняється на один ковток.
+              <div className="mt-4 rounded-[1.5rem] bg-emerald-900 p-6 text-white">
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-100">
+                  Місце, де час зупиняється на один ковток
                 </p>
 
                 <p className="mt-3 text-2xl font-black">
@@ -142,158 +157,218 @@ const shownPopularProducts = useMemo(() => {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="rounded-[2rem] bg-white p-6 shadow-sm">
-          <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-700">
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm lg:p-8">
+          <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
             Як це працює
           </p>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-3xl bg-stone-50 p-5">
+            <div className="rounded-[1.5rem] bg-stone-50 p-5">
               <p className="text-3xl font-black text-emerald-900">1</p>
-              <h3 className="mt-3 text-lg font-black text-stone-950">
+              <h3 className="mt-3 font-black text-stone-950">
                 Оберіть товари
               </h3>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
+              <p className="mt-2 text-sm leading-6 text-stone-500">
                 Додайте каву, напої або продукти до кошика.
               </p>
             </div>
 
-            <div className="rounded-3xl bg-stone-50 p-5">
+            <div className="rounded-[1.5rem] bg-stone-50 p-5">
               <p className="text-3xl font-black text-emerald-900">2</p>
-              <h3 className="mt-3 text-lg font-black text-stone-950">
+              <h3 className="mt-3 font-black text-stone-950">
                 Залиште контакти
               </h3>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                Реєстрація необовʼязкова, але кабінет збереже вашу історію.
+              <p className="mt-2 text-sm leading-6 text-stone-500">
+                Вкажіть телефон або Telegram, щоб ми підтвердили замовлення.
               </p>
             </div>
 
-            <div className="rounded-3xl bg-stone-50 p-5">
+            <div className="rounded-[1.5rem] bg-stone-50 p-5">
               <p className="text-3xl font-black text-emerald-900">3</p>
-              <h3 className="mt-3 text-lg font-black text-stone-950">
+              <h3 className="mt-3 font-black text-stone-950">
                 Отримайте замовлення
               </h3>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                Заберіть самостійно або чекайте на доставку.
+              <p className="mt-2 text-sm leading-6 text-stone-500">
+                Заберіть самостійно або замовте доставку по ЖК.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* POPULAR PRODUCTS */}
-      <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-700">
-              Популярне
-            </p>
+      {/* CATEGORIES */}
+      {shownCategories.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
+                Категорії
+              </p>
 
-            <h2 className="mt-3 text-4xl font-black text-stone-950">
-              Товари, які швидко додати в кошик
-            </h2>
-
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500">
-              Добірка може змінюватися при наступному переході на головну або
-              після оновлення сторінки.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => scrollPopularCarousel("prev")}
-              className="rounded-2xl border border-stone-300 bg-white px-4 py-3 font-black text-stone-900 transition hover:bg-stone-100"
-              aria-label="Попередні популярні товари"
-            >
-              ←
-            </button>
-
-            <button
-              type="button"
-              onClick={() => scrollPopularCarousel("next")}
-              className="rounded-2xl border border-stone-300 bg-white px-4 py-3 font-black text-stone-900 transition hover:bg-stone-100"
-              aria-label="Наступні популярні товари"
-            >
-              →
-            </button>
+              <h2 className="mt-2 text-3xl font-black text-stone-950">
+                Що можна замовити
+              </h2>
+            </div>
 
             <button
               type="button"
               onClick={() => setView("catalog")}
-              className="rounded-2xl border border-stone-300 bg-white px-6 py-3 font-black text-stone-900 transition hover:bg-stone-100"
+              className="w-fit rounded-2xl bg-emerald-900 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-800"
+            >
+              Весь каталог
+            </button>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {shownCategories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => setView("catalog")}
+                className="group rounded-[1.5rem] border border-stone-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:shadow-md"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-50 text-xl group-hover:bg-white">
+                    {CATEGORY_ICONS[category.id] || "📦"}
+                  </span>
+
+                  <span className="text-stone-300 group-hover:text-emerald-800">
+                    →
+                  </span>
+                </div>
+
+                <p className="mt-4 text-sm font-black uppercase tracking-wide text-emerald-800">
+                  {category.name}
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-stone-500">
+                  Переглянути товари категорії
+                </p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* POPULAR PRODUCTS */}
+      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
+              Популярне
+            </p>
+
+            <h2 className="mt-2 text-3xl font-black text-stone-950">
+              Часто замовляють
+            </h2>
+
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500">
+              Товари, які найчастіше додають у замовлення або які ми
+              рекомендуємо гостям Evergreen coffee.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {shownPopularProducts.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => scrollPopularCarousel("prev")}
+                  className="h-11 w-11 rounded-2xl border border-stone-300 bg-white text-lg font-black text-stone-900 transition hover:bg-stone-100"
+                  aria-label="Попередні товари"
+                >
+                  ←
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => scrollPopularCarousel("next")}
+                  className="h-11 w-11 rounded-2xl border border-stone-300 bg-white text-lg font-black text-stone-900 transition hover:bg-stone-100"
+                  aria-label="Наступні товари"
+                >
+                  →
+                </button>
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setView("catalog")}
+              className="rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-black text-stone-900 transition hover:bg-stone-100"
             >
               Увесь каталог
             </button>
           </div>
         </div>
 
-        {shownPopularProducts.length === 0 ? (
-          <div className="rounded-3xl bg-white p-8 text-center text-stone-500 shadow-sm">
-            Популярні товари ще не додані.
-          </div>
-        ) : (
+        {shownPopularProducts.length > 0 ? (
           <div
             ref={popularCarouselRef}
-            className="flex snap-x gap-6 overflow-x-auto pb-4"
+            className="flex snap-x gap-6 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {shownPopularProducts.map((product) => (
               <div
                 key={product.id}
-                className="min-w-[280px] snap-start sm:min-w-[320px] lg:min-w-[300px]"
+                className="min-w-[280px] max-w-[330px] snap-start sm:min-w-[300px]"
               >
                 <ProductCard
                   product={product}
                   categories={categories}
+                  cartItems={cartItems}
                   addToCart={addToCart}
+                  changeQuantity={changeQuantity}
+                  removeFromCart={removeFromCart}
                   openProduct={openProduct}
                 />
               </div>
             ))}
           </div>
+        ) : (
+          <div className="rounded-[2rem] bg-white p-8 text-center text-stone-500 shadow-sm">
+            Популярні товари поки не визначені.
+          </div>
         )}
       </section>
 
-      {/* LOCATION */}
-      <section
-        id="location"
-        className="scroll-mt-24 border-t border-stone-200 bg-white"
-      >
-        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-12 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.2em] text-emerald-700">
-              Де ми
-            </p>
+      {/* CONTACT CTA */}
+      <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+        <div className="rounded-[2rem] bg-emerald-900 p-8 text-white shadow-sm lg:p-10">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-100">
+                Завітайте до нас
+              </p>
 
-            <h2 className="mt-3 text-3xl font-black text-stone-950">
-              Evergreen coffee на Білицькій
-            </h2>
+              <h2 className="mt-3 text-3xl font-black">
+                Evergreen coffee на Білицькій
+              </h2>
 
-            <p className="mt-4 leading-7 text-stone-600">
-              Київ, Подільський район, вул. Білицька 20. Зупиніться на каву
-              по дорозі або замовте доставку — ми поруч.
-            </p>
-
-            <div className="mt-6 rounded-3xl bg-stone-50 p-5">
-              <p className="font-black text-stone-950">Контакти</p>
-              <p className="mt-2 text-stone-600">Telegram: @EvergreeenCofee</p>
-              <p className="mt-2 text-stone-600">Номер телефону: +380 99 759 23 67</p>
-              <p className="mt-1 text-stone-600">
-                Instagram: Evergreen coffee
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50">
+                Заберіть замовлення самостійно в кавʼярні або оформіть
+                локальну доставку по ЖК. Карта, графік роботи та контакти —
+                внизу сторінки.
               </p>
             </div>
-          </div>
 
-          <div className="rounded-[2rem] bg-stone-100 p-6">
-            <p className="text-sm font-bold text-stone-500">Орієнтир</p>
-            <p className="mt-2 text-2xl font-black text-stone-950">
-              Затишна кавʼярня у вашому районі
-            </p>
-            <p className="mt-3 leading-7 text-stone-600">
-              Тут можна буде додати карту, фото входу або коротку інструкцію,
-              як знайти нас.
-            </p>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={scrollToContacts}
+                className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-emerald-950 transition hover:bg-emerald-50"
+              >
+                Адреса та контакти
+              </button>
+
+              <a
+                href="https://t.me/EvergreeenCofee"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-2xl border border-white/30 px-5 py-3 text-center text-sm font-black text-white transition hover:bg-white/10"
+              >
+                Написати в Telegram
+              </a>
+            </div>
           </div>
         </div>
       </section>
