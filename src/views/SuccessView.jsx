@@ -44,7 +44,7 @@ export default function SuccessView({
           <p className="font-bold text-stone-950">Що далі?</p>
 
           <ol className="mt-3 space-y-2 text-sm text-stone-600">
-            <li>1. Ми побачимо ваше замовлення в адмін-панелі.</li>
+            <li>1. Ми побачимо ваше замовлення.</li>
             <li>2. Перевіримо наявність товарів.</li>
             <li>3. Напишемо вам у Telegram або зателефонуємо.</li>
             <li>4. Після підтвердження узгодимо оплату та видачу.</li>
@@ -60,7 +60,7 @@ export default function SuccessView({
           </button>
 
           <a
-            href="https://t.me/"
+            href="https://t.me/EvergreeenCofee"
             target="_blank"
             rel="noreferrer"
             className="rounded-2xl border border-stone-300 px-6 py-4 font-bold text-stone-900 hover:bg-stone-100"

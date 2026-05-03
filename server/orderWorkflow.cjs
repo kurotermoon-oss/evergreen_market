@@ -1,148 +1,271 @@
-const FINAL_STATUSES = ["Завершено", "Скасовано", "Видано"];
+const ORDER_STATUS = {
+  NEW: "new",
+  CONFIRMED: "confirmed",
+  PREPARING: "preparing",
+  READY: "ready",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+};
 
-function isFinalOrder(order) {
-  return Boolean(order.isFinal) || FINAL_STATUSES.includes(order.status);
+const PAYMENT_STATUS = {
+  UNPAID: "unpaid",
+  PAID: "paid",
+  REFUNDED: "refunded",
+};
+
+const ORDER_STATUS_LABELS = {
+  [ORDER_STATUS.NEW]: "Нове",
+  [ORDER_STATUS.CONFIRMED]: "Підтверджено",
+  [ORDER_STATUS.PREPARING]: "Готується",
+  [ORDER_STATUS.READY]: "Готово до видачі",
+  [ORDER_STATUS.COMPLETED]: "Завершено",
+  [ORDER_STATUS.CANCELLED]: "Скасовано",
+};
+
+const PAYMENT_STATUS_LABELS = {
+  [PAYMENT_STATUS.UNPAID]: "Не оплачено",
+  [PAYMENT_STATUS.PAID]: "Оплачено",
+  [PAYMENT_STATUS.REFUNDED]: "Повернення",
+};
+
+const STATUS_ALIASES = {
+  Новий: ORDER_STATUS.NEW,
+  Нове: ORDER_STATUS.NEW,
+  Підтверджено: ORDER_STATUS.CONFIRMED,
+  "Готується": ORDER_STATUS.PREPARING,
+  "Готово до видачі": ORDER_STATUS.READY,
+  Завершено: ORDER_STATUS.COMPLETED,
+  Скасовано: ORDER_STATUS.CANCELLED,
+};
+
+const PAYMENT_ALIASES = {
+  "Не оплачено": PAYMENT_STATUS.UNPAID,
+  Оплачено: PAYMENT_STATUS.PAID,
+  Повернення: PAYMENT_STATUS.REFUNDED,
+};
+
+function nowIso() {
+  return new Date().toISOString();
 }
 
-function addHistory(order, type, label, extra = {}) {
+function normalizeOrderStatus(status) {
+  return STATUS_ALIASES[status] || status || ORDER_STATUS.NEW;
+}
+
+function normalizePaymentStatus(status) {
+  return PAYMENT_ALIASES[status] || status || PAYMENT_STATUS.UNPAID;
+}
+
+function getOrderStatusLabel(status) {
+  return ORDER_STATUS_LABELS[normalizeOrderStatus(status)] || "Нове";
+}
+
+function getPaymentStatusLabel(status) {
+  return PAYMENT_STATUS_LABELS[normalizePaymentStatus(status)] || "Не оплачено";
+}
+
+function pushHistory(order, event) {
   if (!Array.isArray(order.statusHistory)) {
     order.statusHistory = [];
   }
 
   order.statusHistory.push({
-    at: new Date().toISOString(),
-    type,
-    label,
-    ...extra,
+    at: nowIso(),
+    ...event,
   });
+}
+
+function changeOrderStatus(order, nextStatus, label, extra = {}) {
+  const previousStatus = normalizeOrderStatus(order.status);
+  const normalizedNextStatus = normalizeOrderStatus(nextStatus);
+
+  if (previousStatus === normalizedNextStatus) {
+    return order;
+  }
+
+  order.status = normalizedNextStatus;
+
+  if (normalizedNextStatus === ORDER_STATUS.COMPLETED) {
+    order.isFinal = true;
+    order.finalType = "completed";
+    order.finalizedAt = nowIso();
+  }
+
+  if (normalizedNextStatus === ORDER_STATUS.CANCELLED) {
+    order.isFinal = true;
+    order.finalType = "cancelled";
+    order.finalizedAt = nowIso();
+    order.cancelReason = extra.reason || order.cancelReason || "";
+  }
+
+  pushHistory(order, {
+    type: "status_changed",
+    from: previousStatus,
+    to: normalizedNextStatus,
+    label: label || getOrderStatusLabel(normalizedNextStatus),
+  });
+
+  return order;
+}
+
+function changePaymentStatus(order, nextPaymentStatus, label) {
+  const previousPaymentStatus = normalizePaymentStatus(order.paymentStatus);
+  const normalizedNextPaymentStatus = normalizePaymentStatus(nextPaymentStatus);
+
+  if (previousPaymentStatus === normalizedNextPaymentStatus) {
+    return order;
+  }
+
+  order.paymentStatus = normalizedNextPaymentStatus;
+
+  pushHistory(order, {
+    type: "payment_changed",
+    from: previousPaymentStatus,
+    to: normalizedNextPaymentStatus,
+    label: label || `Оплата: ${getPaymentStatusLabel(normalizedNextPaymentStatus)}`,
+  });
+
+  return order;
 }
 
 function restoreStockForCancelledOrder(db, order) {
   if (order.stockRestoredAt) return;
 
-  (order.items || []).forEach((orderItem) => {
-    const product = db.products.find(
-      (item) => item.id === Number(orderItem.productId || orderItem.id)
-    );
+  for (const orderItem of order.items || []) {
+    const product = db.products.find((item) => {
+      return Number(item.id) === Number(orderItem.productId);
+    });
 
-    if (!product) return;
+    if (!product) continue;
 
-    const quantity = Number(orderItem.quantity || 0);
-
-    if (product.stockStatus === "limited" || product.stockStatus === "out_of_stock") {
-      product.stockQuantity = Number(product.stockQuantity || 0) + quantity;
-
-      if (product.stockQuantity > 0 && product.stockStatus === "out_of_stock") {
-        product.stockStatus = "limited";
-      }
+    if (product.stockStatus === "out_of_stock") {
+      product.stockStatus = "limited";
     }
-  });
 
-  order.stockRestoredAt = new Date().toISOString();
+    if (product.stockStatus === "limited") {
+      product.stockQuantity =
+        Number(product.stockQuantity || 0) + Number(orderItem.quantity || 0);
+    }
+  }
+
+  order.stockRestoredAt = nowIso();
 }
 
-function assertActionAllowed(order, action) {
-  if (isFinalOrder(order)) {
-    const error = new Error("Finalized orders cannot be changed");
-    error.statusCode = 400;
-    throw error;
+function normalizeExistingOrder(order) {
+  order.status = normalizeOrderStatus(order.status);
+  order.paymentStatus = normalizePaymentStatus(order.paymentStatus);
+
+  if (!Array.isArray(order.statusHistory)) {
+    order.statusHistory = [];
   }
-
-  const allowedByStatus = {
-    Новий: ["confirm", "mark_paid", "cancel"],
-    Підтверджено: ["start_preparing", "mark_ready", "mark_paid", "complete_paid", "cancel"],
-    Готується: ["mark_ready", "mark_paid", "complete_paid", "cancel"],
-    "Готово до видачі": ["mark_paid", "complete_paid", "cancel"],
-  };
-
-  const allowedActions = allowedByStatus[order.status] || [];
-
-  if (!allowedActions.includes(action)) {
-    const error = new Error(`Action "${action}" is not allowed for status "${order.status}"`);
-    error.statusCode = 400;
-    throw error;
-  }
-}
-
-function applyOrderAction(db, order, action, payload = {}) {
-  assertActionAllowed(order, action);
-
-  const previousStatus = order.status;
-  const previousPaymentStatus = order.paymentStatus;
-
-  if (action === "confirm") {
-    order.status = "Підтверджено";
-
-    addHistory(order, "status_changed", "Замовлення підтверджено", {
-      from: previousStatus,
-      to: order.status,
-    });
-  }
-
-  if (action === "start_preparing") {
-    order.status = "Готується";
-
-    addHistory(order, "status_changed", "Замовлення передано в приготування", {
-      from: previousStatus,
-      to: order.status,
-    });
-  }
-
-  if (action === "mark_ready") {
-    order.status = "Готово до видачі";
-
-    addHistory(order, "status_changed", "Замовлення готове до видачі", {
-      from: previousStatus,
-      to: order.status,
-    });
-  }
-
-  if (action === "mark_paid") {
-    order.paymentStatus = "Оплачено";
-
-    addHistory(order, "payment_changed", "Замовлення позначено як оплачене", {
-      from: previousPaymentStatus,
-      to: order.paymentStatus,
-    });
-  }
-
-  if (action === "complete_paid") {
-    order.status = "Завершено";
-    order.paymentStatus = "Оплачено";
-    order.isFinal = true;
-    order.finalType = "paid";
-    order.finalizedAt = new Date().toISOString();
-
-    addHistory(order, "finalized", "Замовлення завершено як оплачене", {
-      from: previousStatus,
-      to: order.status,
-      paymentFrom: previousPaymentStatus,
-      paymentTo: order.paymentStatus,
-    });
-  }
-
-  if (action === "cancel") {
-    order.status = "Скасовано";
-    order.isFinal = true;
-    order.finalType = "cancelled";
-    order.finalizedAt = new Date().toISOString();
-    order.cancelReason = String(payload.reason || "").trim();
-
-    restoreStockForCancelledOrder(db, order);
-
-    addHistory(order, "cancelled", "Замовлення скасовано", {
-      from: previousStatus,
-      to: order.status,
-      reason: order.cancelReason,
-    });
-  }
-
-  order.updatedAt = new Date().toISOString();
 
   return order;
 }
 
+function applyOrderAction(db, order, action, options = {}) {
+  normalizeExistingOrder(order);
+
+  switch (action) {
+    case "confirm":
+    case "mark_confirmed":
+      return changeOrderStatus(
+        order,
+        ORDER_STATUS.CONFIRMED,
+        "Замовлення підтверджено"
+      );
+
+    case "start_preparing":
+    case "preparing":
+    case "mark_preparing":
+      return changeOrderStatus(
+        order,
+        ORDER_STATUS.PREPARING,
+        "Замовлення готується"
+      );
+
+    case "mark_ready":
+    case "ready":
+      return changeOrderStatus(
+        order,
+        ORDER_STATUS.READY,
+        "Замовлення готове до видачі"
+      );
+
+    case "complete":
+    case "mark_completed":
+    case "close":
+      return changeOrderStatus(
+        order,
+        ORDER_STATUS.COMPLETED,
+        "Замовлення завершено"
+      );
+
+    case "cancel":
+    case "mark_cancelled":
+      restoreStockForCancelledOrder(db, order);
+
+      return changeOrderStatus(
+        order,
+        ORDER_STATUS.CANCELLED,
+        "Замовлення скасовано",
+        {
+          reason: options.reason,
+        }
+      );
+
+    case "mark_paid":
+    case "paid":
+      return changePaymentStatus(
+        order,
+        PAYMENT_STATUS.PAID,
+        "Оплату підтверджено"
+      );
+
+    case "mark_unpaid":
+    case "unpaid":
+      return changePaymentStatus(
+        order,
+        PAYMENT_STATUS.UNPAID,
+        "Оплату позначено як неоплачену"
+      );
+
+    case "refund":
+    case "mark_refunded":
+      return changePaymentStatus(
+        order,
+        PAYMENT_STATUS.REFUNDED,
+        "Оплату повернено"
+      );
+
+    /*
+      Сумісність зі старими кнопками, якщо вони ще є в адмінці.
+      Потім краще прибрати ці action з UI.
+    */
+    case "complete_paid":
+    case "mark_completed_paid":
+    case "close_paid":
+      changePaymentStatus(order, PAYMENT_STATUS.PAID, "Оплату підтверджено");
+      return changeOrderStatus(
+        order,
+        ORDER_STATUS.COMPLETED,
+        "Замовлення завершено"
+      );
+
+    default:
+      const error = new Error(`Unknown order action: ${action}`);
+      error.statusCode = 400;
+      throw error;
+  }
+}
+
 module.exports = {
+  ORDER_STATUS,
+  PAYMENT_STATUS,
+  ORDER_STATUS_LABELS,
+  PAYMENT_STATUS_LABELS,
+  normalizeOrderStatus,
+  normalizePaymentStatus,
+  getOrderStatusLabel,
+  getPaymentStatusLabel,
   applyOrderAction,
-  isFinalOrder,
 };

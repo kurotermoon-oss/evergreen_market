@@ -353,7 +353,10 @@ useEffect(() => {
           currentPage={currentPage}
           totalProductPages={totalProductPages}
           setCurrentPage={setCurrentPage}
+          cartItems={cartItems}
           addToCart={addToCart}
+          changeQuantity={changeQuantity}
+          removeFromCart={removeFromCart}
           openProduct={openProduct}
         />
       )}
@@ -363,7 +366,10 @@ useEffect(() => {
           product={selectedProduct}
           categories={categories}
           products={products}
+          cartItems={cartItems}
           addToCart={addToCart}
+          changeQuantity={changeQuantity}
+          removeFromCart={removeFromCart}
           setView={setView}
           setSelectedProduct={setSelectedProduct}
         />

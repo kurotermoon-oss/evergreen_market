@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  markPopularProducts,
+  getPopularProducts,
+} from "../utils/products.js";
 
 export function useCatalogFilters({
-  products,
-  categories,
+  products = [],
+  categories = [],
   productsPerPage = 9,
 }) {
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -29,22 +33,37 @@ export function useCatalogFilters({
     sortBy,
   ]);
 
+  const productsWithPopularity = useMemo(() => {
+    return markPopularProducts(products, 6);
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.toLowerCase().trim();
 
-    const filtered = products.filter((product) => {
+    const filtered = productsWithPopularity.filter((product) => {
       const categoryName =
         categories.find((category) => category.id === product.category)?.name ||
         "";
 
+      const subcategoryName =
+        categories
+          .find((category) => category.id === product.category)
+          ?.subcategories?.find(
+            (subcategory) => subcategory.id === product.subcategory
+          )?.name || "";
+
       const searchableText = [
         product.name,
+        product.brand,
         product.description,
         product.details,
         product.unit,
         product.packageInfo,
+        product.productType,
+        product.countryOfOrigin,
         product.price,
         categoryName,
+        subcategoryName,
       ]
         .filter(Boolean)
         .join(" ")
@@ -67,7 +86,7 @@ export function useCatalogFilters({
         maxPrice === "" || Number(product.price) <= Number(maxPrice);
 
       return (
-        product.active &&
+        product.active !== false &&
         categoryMatch &&
         subcategoryMatch &&
         queryMatch &&
@@ -89,10 +108,19 @@ export function useCatalogFilters({
         return a.name.localeCompare(b.name, "uk");
       }
 
+      if (sortBy === "popular") {
+        const popularityDiff =
+          Number(Boolean(b.isPopular)) - Number(Boolean(a.isPopular));
+
+        if (popularityDiff !== 0) return popularityDiff;
+
+        return Number(b.purchaseCount || 0) - Number(a.purchaseCount || 0);
+      }
+
       return 0;
     });
   }, [
-    products,
+    productsWithPopularity,
     categories,
     selectedCategory,
     selectedSubcategory,
@@ -111,17 +139,7 @@ export function useCatalogFilters({
   );
 
   const popularProducts = useMemo(() => {
-    return [...products]
-      .filter((product) => product.active)
-      .sort((a, b) => {
-        const purchasesDiff =
-          Number(b.purchaseCount || 0) - Number(a.purchaseCount || 0);
-
-        if (purchasesDiff !== 0) return purchasesDiff;
-
-        return Number(b.popular) - Number(a.popular);
-      })
-      .slice(0, 6);
+    return getPopularProducts(products, 6);
   }, [products]);
 
   return {

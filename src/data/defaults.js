@@ -13,22 +13,36 @@ export const DEFAULT_FORM = {
 
 export const EMPTY_DRAFT_PRODUCT = {
   name: "",
+
   category: "coffee",
   subcategory: "",
   newCategoryName: "",
   newSubcategoryName: "",
+
+  brand: "",
+  productType: "",
+  countryOfOrigin: "",
+
   description: "",
   details: "",
+  benefits: "",
+
   unit: "1 шт",
   packageInfo: "продається поштучно",
+
   composition: "",
-  statusLabel: "В наявності",
+  allergens: "",
+  storageConditions: "",
+
   price: "",
   costPrice: "",
   oldPrice: "",
+
   image: "",
+
   popular: false,
   active: true,
+
   stockStatus: "in_stock",
   stockQuantity: "",
 };

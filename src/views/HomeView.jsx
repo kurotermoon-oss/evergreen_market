@@ -15,9 +15,9 @@ export default function HomeView({
 }) {
   const popularCarouselRef = useRef(null);
 
-  const shownPopularProducts = useMemo(() => {
-    return getRandomItems(popularProducts, 6);
-  }, [popularProducts]);
+const shownPopularProducts = useMemo(() => {
+  return getRandomItems(popularProducts, 6);
+}, [popularProducts]);
 
   const scrollToLocation = () => {
     document.getElementById("location")?.scrollIntoView({
@@ -42,7 +42,7 @@ export default function HomeView({
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-20">
           <div className="flex flex-col justify-center">
             <p className="text-sm font-black uppercase tracking-[0.24em] text-emerald-700">
-              Кава та товари поруч з домом
+              Кава та смаколики поруч
             </p>
 
             <h1 className="mt-5 max-w-3xl text-5xl font-black leading-tight text-stone-950 sm:text-6xl">
@@ -50,28 +50,28 @@ export default function HomeView({
             </h1>
 
             <p className="mt-5 max-w-2xl text-xl leading-8 text-stone-700">
-              Кава, напої та смаколики у вашому ЖК. Замовляйте онлайн —
-              забирайте у кавʼярні або отримуйте доставку по комплексу.
+              Свіжа кава, напої та товари для дому. Замовляйте онлайн —
+              забирайте самостійно або отримуйте доставку.
             </p>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
               <div className="rounded-3xl bg-white/80 p-4 shadow-sm ring-1 ring-stone-200">
                 <p className="text-2xl">☕</p>
                 <p className="mt-2 font-black text-stone-950">
-                  Самовивіз з кавʼярні
+                  Самовивіз
                 </p>
                 <p className="mt-1 text-sm text-stone-500">
-                  Зручно забрати замовлення поруч з домом.
+                  Замовте заздалегідь і заберіть без черги.
                 </p>
               </div>
 
               <div className="rounded-3xl bg-white/80 p-4 shadow-sm ring-1 ring-stone-200">
                 <p className="text-2xl">🏡</p>
                 <p className="mt-2 font-black text-stone-950">
-                  Доставка по ЖК
+                  Локальна доставка
                 </p>
                 <p className="mt-1 text-sm text-stone-500">
-                  Передамо замовлення прямо в межах комплексу.
+                  Привеземо замовлення просто до вас.
                 </p>
               </div>
 
@@ -81,7 +81,7 @@ export default function HomeView({
                   Оплата після підтвердження
                 </p>
                 <p className="mt-1 text-sm text-stone-500">
-                  Спочатку підтверджуємо замовлення, потім оплата.
+                  Спочатку підтверджуємо замовлення, потім — оплата.
                 </p>
               </div>
 
@@ -91,7 +91,7 @@ export default function HomeView({
                   Без обовʼязкової реєстрації
                 </p>
                 <p className="mt-1 text-sm text-stone-500">
-                  Можна замовити як гість або створити кабінет.
+                  Замовляйте як гість або збережіть історію в кабінеті.
                 </p>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function HomeView({
                 Залиште контакти
               </h3>
               <p className="mt-2 text-sm leading-6 text-stone-600">
-                Реєстрація необовʼязкова, але кабінет збереже історію.
+                Реєстрація необовʼязкова, але кабінет збереже вашу історію.
               </p>
             </div>
 
@@ -175,7 +175,7 @@ export default function HomeView({
                 Отримайте замовлення
               </h3>
               <p className="mt-2 text-sm leading-6 text-stone-600">
-                Самовивіз з кавʼярні або локальна доставка по ЖК.
+                Заберіть самостійно або чекайте на доставку.
               </p>
             </div>
           </div>
@@ -195,8 +195,8 @@ export default function HomeView({
             </h2>
 
             <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500">
-              Показуємо декілька популярних позицій. Добірка може змінюватися
-              при наступному переході на головну або після оновлення сторінки.
+              Добірка може змінюватися при наступному переході на головну або
+              після оновлення сторінки.
             </p>
           </div>
 
@@ -267,17 +267,18 @@ export default function HomeView({
             </p>
 
             <h2 className="mt-3 text-3xl font-black text-stone-950">
-              Evergreen coffee у вашому ЖК
+              Evergreen coffee на Білицькій
             </h2>
 
             <p className="mt-4 leading-7 text-stone-600">
-              Київ, Подільський район, вул. Білицька 20. Ми знаходимося поруч,
-              щоб можна було швидко забрати каву або замовити доставку по ЖК.
+              Київ, Подільський район, вул. Білицька 20. Зупиніться на каву
+              по дорозі або замовте доставку — ми поруч.
             </p>
 
             <div className="mt-6 rounded-3xl bg-stone-50 p-5">
               <p className="font-black text-stone-950">Контакти</p>
-              <p className="mt-2 text-stone-600">Telegram / Phone</p>
+              <p className="mt-2 text-stone-600">Telegram: @EvergreeenCofee</p>
+              <p className="mt-2 text-stone-600">Номер телефону: +380 99 759 23 67</p>
               <p className="mt-1 text-stone-600">
                 Instagram: Evergreen coffee
               </p>
@@ -287,11 +288,11 @@ export default function HomeView({
           <div className="rounded-[2rem] bg-stone-100 p-6">
             <p className="text-sm font-bold text-stone-500">Орієнтир</p>
             <p className="mt-2 text-2xl font-black text-stone-950">
-              Кавʼярня всередині ЖК
+              Затишна кавʼярня у вашому районі
             </p>
             <p className="mt-3 leading-7 text-stone-600">
               Тут можна буде додати карту, фото входу або коротку інструкцію,
-              як знайти кавʼярню після шлагбаума.
+              як знайти нас.
             </p>
           </div>
         </div>

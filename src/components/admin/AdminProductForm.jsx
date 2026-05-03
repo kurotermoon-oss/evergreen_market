@@ -1,3 +1,51 @@
+function FormSection({ title, description, children }) {
+  return (
+    <div className="rounded-3xl bg-stone-50 p-4">
+      <div className="mb-4">
+        <p className="font-black text-stone-900">{title}</p>
+
+        {description && (
+          <p className="mt-1 text-sm leading-6 text-stone-500">
+            {description}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function TextInput({
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  className = "",
+}) {
+  return (
+    <input
+      value={value || ""}
+      onChange={onChange}
+      type={type}
+      placeholder={placeholder}
+      className={`w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700 ${className}`}
+    />
+  );
+}
+
+function TextArea({ value, onChange, placeholder, rows = 4 }) {
+  return (
+    <textarea
+      value={value || ""}
+      onChange={onChange}
+      rows={rows}
+      placeholder={placeholder}
+      className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700"
+    />
+  );
+}
+
 export default function AdminProductForm({
   categories,
   draftProduct,
@@ -16,20 +64,62 @@ export default function AdminProductForm({
   );
 
   return (
-    <section className="mx-auto max-w-3xl rounded-3xl bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-black text-stone-950">Новий товар</h2>
+    <section className="mx-auto max-w-4xl rounded-3xl bg-white p-6 shadow-sm">
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+          Каталог
+        </p>
 
-      <div className="mt-6 space-y-4">
-        <input
-          value={draftProduct.name}
-          onChange={(event) => updateField("name", event.target.value)}
-          className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-          placeholder="Назва товару"
-        />
+        <h2 className="mt-1 text-2xl font-black text-stone-950">
+          Новий товар
+        </h2>
 
-        <div className="rounded-3xl bg-stone-50 p-4">
-          <p className="mb-2 font-bold text-stone-800">Категорія</p>
+        <p className="mt-2 text-sm leading-6 text-stone-500">
+          Заповніть основні дані товару. Поля з описом, складом та умовами
+          зберігання будуть використані на сторінці товару.
+        </p>
+      </div>
 
+      <div className="mt-6 space-y-5">
+        <FormSection
+          title="Основна інформація"
+          description="Назва, бренд, тип товару та походження."
+        >
+          <TextInput
+            value={draftProduct.name}
+            onChange={(event) => updateField("name", event.target.value)}
+            placeholder="Назва товару"
+          />
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <TextInput
+              value={draftProduct.brand || ""}
+              onChange={(event) => updateField("brand", event.target.value)}
+              placeholder="Бренд / торгова марка"
+            />
+
+            <TextInput
+              value={draftProduct.productType || ""}
+              onChange={(event) =>
+                updateField("productType", event.target.value)
+              }
+              placeholder="Тип товару: сироп, напій, батончик"
+            />
+
+            <TextInput
+              value={draftProduct.countryOfOrigin || ""}
+              onChange={(event) =>
+                updateField("countryOfOrigin", event.target.value)
+              }
+              placeholder="Країна виробництва"
+            />
+          </div>
+        </FormSection>
+
+        <FormSection
+          title="Категорія"
+          description="Оберіть існуючу категорію або створіть нову."
+        >
           <select
             value={draftProduct.category}
             onChange={(event) =>
@@ -40,7 +130,7 @@ export default function AdminProductForm({
                 newCategoryName: "",
               })
             }
-            className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+            className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700"
           >
             <option value="">Оберіть категорію</option>
 
@@ -53,19 +143,19 @@ export default function AdminProductForm({
               ))}
           </select>
 
-          <input
+          <TextInput
             value={draftProduct.newCategoryName || ""}
             onChange={(event) =>
               updateField("newCategoryName", event.target.value)
             }
             placeholder="Або нова категорія"
-            className="mt-3 w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
           />
-        </div>
+        </FormSection>
 
-        <div className="rounded-3xl bg-stone-50 p-4">
-          <p className="mb-2 font-bold text-stone-800">Підкатегорія</p>
-
+        <FormSection
+          title="Підкатегорія"
+          description="Необовʼязково. Можна залишити товар без підкатегорії."
+        >
           <select
             value={draftProduct.subcategory || ""}
             onChange={(event) =>
@@ -75,7 +165,7 @@ export default function AdminProductForm({
                 newSubcategoryName: "",
               })
             }
-            className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+            className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700"
           >
             <option value="">Без підкатегорії</option>
 
@@ -86,46 +176,48 @@ export default function AdminProductForm({
             ))}
           </select>
 
-          <input
+          <TextInput
             value={draftProduct.newSubcategoryName || ""}
             onChange={(event) =>
               updateField("newSubcategoryName", event.target.value)
             }
             placeholder="Або нова підкатегорія"
-            className="mt-3 w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
           />
-        </div>
+        </FormSection>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <input
-            value={draftProduct.price}
-            onChange={(event) => updateField("price", event.target.value)}
-            className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-            placeholder="Ціна, грн"
-            type="number"
-          />
+        <FormSection
+          title="Ціна"
+          description="Стара ціна використовується для автоматичного бейджа знижки."
+        >
+          <div className="grid gap-3 sm:grid-cols-3">
+            <TextInput
+              value={draftProduct.price}
+              onChange={(event) => updateField("price", event.target.value)}
+              placeholder="Ціна, грн"
+              type="number"
+            />
 
-          <input
-            value={draftProduct.costPrice || ""}
-            onChange={(event) => updateField("costPrice", event.target.value)}
-            className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-            placeholder="Собівартість, грн"
-            type="number"
-          />
+            <TextInput
+              value={draftProduct.costPrice || ""}
+              onChange={(event) => updateField("costPrice", event.target.value)}
+              placeholder="Собівартість, грн"
+              type="number"
+            />
 
-          <input
-            value={draftProduct.oldPrice || ""}
-            onChange={(event) => updateField("oldPrice", event.target.value)}
-            className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-            placeholder="Стара ціна, якщо є"
-            type="number"
-          />
-        </div>
+            <TextInput
+              value={draftProduct.oldPrice || ""}
+              onChange={(event) => updateField("oldPrice", event.target.value)}
+              placeholder="Стара ціна, якщо є"
+              type="number"
+            />
+          </div>
+        </FormSection>
 
-        <div className="rounded-3xl bg-stone-50 p-4">
-          <p className="mb-3 font-bold text-stone-800">Наявність</p>
-
-          <div className="grid gap-4 sm:grid-cols-2">
+        <FormSection
+          title="Наявність"
+          description="Точну кількість бачить тільки адмінка. На сайті клієнт бачить лише статус."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
             <select
               value={draftProduct.stockStatus || "in_stock"}
               onChange={(event) =>
@@ -138,105 +230,137 @@ export default function AdminProductForm({
                       : "",
                 })
               }
-              className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+              className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700"
             >
-              <option value="in_stock">В наявності</option>
-              <option value="limited">Обмежена кількість</option>
+              <option value="in_stock">У наявності</option>
+              <option value="limited">Мало в наявності</option>
               <option value="preorder">Під замовлення</option>
               <option value="out_of_stock">Немає в наявності</option>
             </select>
 
             {draftProduct.stockStatus === "limited" && (
-              <input
+              <TextInput
                 value={draftProduct.stockQuantity || ""}
                 onChange={(event) =>
                   updateField("stockQuantity", event.target.value)
                 }
-                className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
                 placeholder="Кількість на складі"
                 type="number"
               />
             )}
           </div>
-        </div>
+        </FormSection>
 
-        <input
-          value={draftProduct.image || ""}
-          onChange={(event) => updateField("image", event.target.value)}
-          placeholder="Посилання на фото"
-          className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-        />
+        <FormSection
+          title="Зображення"
+          description="Поки використовуємо одне основне фото товару."
+        >
+          <TextInput
+            value={draftProduct.image || ""}
+            onChange={(event) => updateField("image", event.target.value)}
+            placeholder="Посилання на фото"
+          />
+        </FormSection>
 
-        <textarea
-          value={draftProduct.description || ""}
-          onChange={(event) => updateField("description", event.target.value)}
-          rows={3}
-          placeholder="Короткий опис для карточки"
-          className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <input
-            value={draftProduct.unit || ""}
-            onChange={(event) => updateField("unit", event.target.value)}
-            placeholder="Обʼєм / кількість: 1 л, 250 г, 1 шт"
-            className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+        <FormSection
+          title="Опис товару"
+          description="Короткий опис можна використовувати в адмінці та майбутніх превʼю, детальний — на сторінці товару."
+        >
+          <TextArea
+            value={draftProduct.description || ""}
+            onChange={(event) => updateField("description", event.target.value)}
+            rows={3}
+            placeholder="Короткий опис товару"
           />
 
-          <input
-            value={draftProduct.packageInfo || ""}
-            onChange={(event) => updateField("packageInfo", event.target.value)}
-            placeholder="Упаковка: пляшка 1 л, пакет 250 г"
-            className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+          <TextArea
+            value={draftProduct.details || ""}
+            onChange={(event) => updateField("details", event.target.value)}
+            rows={6}
+            placeholder="Детальний опис товару"
           />
-        </div>
 
-        <textarea
-          value={draftProduct.details || ""}
-          onChange={(event) => updateField("details", event.target.value)}
-          rows={6}
-          placeholder="Детальний опис товару"
-          className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-        />
+          <TextArea
+            value={draftProduct.benefits || ""}
+            onChange={(event) => updateField("benefits", event.target.value)}
+            rows={4}
+            placeholder="Переваги товару. Кожну перевагу краще писати з нового рядка"
+          />
+        </FormSection>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <input
+        <FormSection
+          title="Обʼєм, вага та упаковка"
+          description="Ці поля показуються в карточці каталогу та на сторінці товару."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <TextInput
+              value={draftProduct.unit || ""}
+              onChange={(event) => updateField("unit", event.target.value)}
+              placeholder="Обʼєм / кількість: 1 л, 250 г, 1 шт"
+            />
+
+            <TextInput
+              value={draftProduct.packageInfo || ""}
+              onChange={(event) =>
+                updateField("packageInfo", event.target.value)
+              }
+              placeholder="Упаковка: пляшка, пакет, 1 батончик"
+            />
+          </div>
+        </FormSection>
+
+        <FormSection
+          title="Склад, алергени та зберігання"
+          description="Поля необовʼязкові. Якщо залишити порожніми, блок не буде показаний на сторінці товару."
+        >
+          <TextArea
             value={draftProduct.composition || ""}
             onChange={(event) => updateField("composition", event.target.value)}
+            rows={3}
             placeholder="Склад"
-            className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
           />
 
-          <input
-            value={draftProduct.statusLabel || ""}
-            onChange={(event) => updateField("statusLabel", event.target.value)}
-            placeholder="Статус: В наявності / Під замовлення"
-            className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+          <TextArea
+            value={draftProduct.allergens || ""}
+            onChange={(event) => updateField("allergens", event.target.value)}
+            rows={3}
+            placeholder="Алергени"
           />
-        </div>
 
-        <label className="flex items-center gap-3 rounded-2xl bg-stone-50 p-4 text-sm font-semibold text-stone-700">
-          <input
-            type="checkbox"
-            checked={Boolean(draftProduct.popular)}
-            onChange={(event) => updateField("popular", event.target.checked)}
+          <TextArea
+            value={draftProduct.storageConditions || ""}
+            onChange={(event) =>
+              updateField("storageConditions", event.target.value)
+            }
+            rows={3}
+            placeholder="Умови зберігання"
           />
-          Показувати як популярний товар
-        </label>
+        </FormSection>
 
-        <label className="flex items-center gap-3 rounded-2xl bg-stone-50 p-4 text-sm font-semibold text-stone-700">
-          <input
-            type="checkbox"
-            checked={draftProduct.active !== false}
-            onChange={(event) => updateField("active", event.target.checked)}
-          />
-          Товар активний
-        </label>
+        <FormSection title="Відображення">
+          <label className="flex items-center gap-3 rounded-2xl bg-white p-4 text-sm font-semibold text-stone-700">
+            <input
+              type="checkbox"
+              checked={Boolean(draftProduct.popular)}
+              onChange={(event) => updateField("popular", event.target.checked)}
+            />
+            Показувати як популярний товар
+          </label>
+
+          <label className="flex items-center gap-3 rounded-2xl bg-white p-4 text-sm font-semibold text-stone-700">
+            <input
+              type="checkbox"
+              checked={draftProduct.active !== false}
+              onChange={(event) => updateField("active", event.target.checked)}
+            />
+            Товар активний
+          </label>
+        </FormSection>
 
         <button
           type="button"
           onClick={addDraftProduct}
-          className="w-full rounded-2xl bg-emerald-900 py-4 font-bold text-white hover:bg-emerald-800"
+          className="w-full rounded-2xl bg-emerald-900 py-4 font-black text-white transition hover:bg-emerald-800"
         >
           Додати товар
         </button>

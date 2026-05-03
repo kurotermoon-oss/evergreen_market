@@ -2,7 +2,6 @@ import { useState } from "react";
 import { api } from "../api/client.js";
 
 export function useOrderSubmit({
-  cart,
   cartItems,
   form,
   customer,
@@ -17,22 +16,21 @@ export function useOrderSubmit({
   async function submitOrder() {
     const hasName = Boolean(form.name || customer?.name);
     const hasContact = Boolean(
-      form.phone ||
-        form.telegram ||
-        customer?.phone ||
-        customer?.telegram
+      form.phone || form.telegram || customer?.phone || customer?.telegram
     );
 
     if (!cartItems.length || !hasName || !hasContact) {
       return;
     }
 
+    const items = cartItems.map((item) => ({
+      id: item.productId || item.id,
+      quantity: Number(item.quantity || 1),
+    }));
+
     try {
       const result = await api.createOrder({
-        items: cart.map((item) => ({
-          id: item.id,
-          quantity: item.quantity,
-        })),
+        items,
         form,
       });
 
@@ -41,11 +39,11 @@ export function useOrderSubmit({
       setView("success");
 
       if (isAdmin) {
-        await loadAdminData();
+        await loadAdminData?.();
       }
 
       if (customer) {
-        await loadCustomerOrders();
+        await loadCustomerOrders?.();
       }
     } catch (error) {
       console.error("Create order error:", error);
