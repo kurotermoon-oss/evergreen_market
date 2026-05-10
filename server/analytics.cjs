@@ -15,15 +15,32 @@ function getOrderItemCost(item, db) {
 }
 
 function normalizeOrderStatus(status) {
+  const clean = String(status || "").trim();
+
   const aliases = {
     Завершено: "completed",
+    Видано: "completed",
     completed: "completed",
+
     Скасовано: "canceled",
+    Скасоване: "canceled",
     canceled: "canceled",
     cancelled: "canceled",
+
+    Новий: "new",
+    new: "new",
+
+    Підтверджено: "confirmed",
+    confirmed: "confirmed",
+
+    Готується: "preparing",
+    preparing: "preparing",
+
+    Готово: "ready",
+    ready: "ready",
   };
 
-  return aliases[status] || String(status || "").toLowerCase();
+  return aliases[clean] || clean.toLowerCase();
 }
 
 function isCompletedOrder(order) {

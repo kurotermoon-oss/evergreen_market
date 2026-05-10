@@ -193,8 +193,6 @@ updateAdminSubcategory(categoryId, subcategoryId, payload) {
 },
 
 
-
-
 deleteAdminSubcategory(categoryId, subcategoryId) {
   return request(
     `/api/admin/categories/${categoryId}/subcategories/${subcategoryId}`,
@@ -216,7 +214,36 @@ getAdminAnalytics(params = {}) {
   return request(`/api/admin/analytics${query ? `?${query}` : ""}`);
 },
 
+getAdminCustomers(params = {}) {
+  const searchParams = new URLSearchParams();
 
+  if (params.search) searchParams.set("search", params.search);
+
+  const query = searchParams.toString();
+
+  return request(`/api/admin/customers${query ? `?${query}` : ""}`);
+},
+
+getAdminCustomerOrders(id) {
+  return request(`/api/admin/customers/${id}/orders`);
+},
+
+getBlockedCustomers() {
+  return request("/api/admin/customers/security/blocked");
+},
+
+createBlockedCustomer(payload) {
+  return request("/api/admin/customers/security/blocked", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+},
+
+deleteBlockedCustomer(id) {
+  return request(`/api/admin/customers/security/blocked/${id}`, {
+    method: "DELETE",
+  });
+},
 
 
 };

@@ -14,10 +14,14 @@ const {
   checkTelegramVerification,
 } = require("./telegramVerification.cjs");
 
+
 const settingsRepository = require("./repositories/settingsRepository.cjs");
 const productsRepository = require("./repositories/productsRepository.cjs");
 const categoriesRepository = require("./repositories/categoriesRepository.cjs");
 const ordersRepository = require("./repositories/ordersRepository.cjs");
+const orderLimitsRepository = require("./repositories/orderLimitsRepository.cjs");
+const blockedCustomersRepository = require("./repositories/blockedCustomersRepository.cjs");
+
 
 const {
   ORDER_STATUS,
@@ -32,6 +36,8 @@ const {
 
 const adminAuthRoutes = require("./routes/adminAuth.routes.cjs");
 const adminAnalyticsRoutes = require("./routes/adminAnalytics.routes.cjs");
+const adminCustomersRoutes = require("./routes/adminCustomers.routes.cjs");
+
 
 const { requireAdmin } = require("./middleware/adminAuth.cjs");
 
@@ -653,6 +659,9 @@ app.use(cookieParser());
 
 app.use("/api/admin", adminAuthRoutes);
 app.use("/api/admin/analytics", adminAnalyticsRoutes);
+app.use("/api/admin/customers", adminCustomersRoutes);
+
+
 
 console.log("[debug] adminAuthRoutes mounted");
 
@@ -1677,6 +1686,47 @@ app.post("/api/orders", async (req, res) => {
       orderForm.name = contactValidation.data.name;
       orderForm.phone = contactValidation.data.phone;
       orderForm.telegram = contactValidation.data.telegram;
+
+
+      const blockedResult =
+        await blockedCustomersRepository.assertCustomerNotBlocked({
+          customerId: customer ? customer.id : "",
+          guestId,
+          phone: orderForm.phone,
+          telegram: orderForm.telegram,
+          ip: clientIp,
+        });
+
+      if (!blockedResult.ok) {
+        return res.status(blockedResult.status || 403).json({
+          error: blockedResult.error || "CUSTOMER_BLOCKED",
+          message:
+            blockedResult.message ||
+            "Замовлення тимчасово недоступне для цього контакту.",
+          hint: blockedResult.hint || "",
+        });
+      }
+
+      const rateLimitResult =
+        await orderLimitsRepository.checkPostgresOrderRateLimit(
+          {
+            customerId: customer ? customer.id : "",
+            guestId,
+            phone: orderForm.phone,
+            telegram: orderForm.telegram,
+            ip: clientIp,
+          },
+          orderLimits
+        );
+
+      if (!rateLimitResult.ok) {
+        return res.status(rateLimitResult.status || 429).json({
+          error: rateLimitResult.error || "ORDER_LIMIT",
+          message:
+            rateLimitResult.message || "Замовлення тимчасово обмежено.",
+          hint: rateLimitResult.hint || "",
+        });
+      }
 
       const orderProducts = await ordersRepository.getProductsForOrder(
         rawItemsValidation.items

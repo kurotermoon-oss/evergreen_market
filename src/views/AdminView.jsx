@@ -4,6 +4,7 @@ import AdminOrdersPanel from "../components/admin/AdminOrdersPanel.jsx";
 import AdminAnalyticsPanel from "../components/admin/AdminAnalyticsPanel.jsx";
 import AdminProductEditModal from "../components/admin/AdminProductEditModal.jsx";
 import AdminCatalogPanel from "../components/admin/AdminCatalogPanel.jsx";
+import AdminCustomersPanel from "../components/admin/AdminCustomersPanel.jsx";
 
 export default function AdminView({
   categories,
@@ -54,7 +55,7 @@ export default function AdminView({
           </h1>
 
           <p className="mt-3 max-w-3xl text-stone-600">
-            Керуйте замовленнями, каталогом товарів, категоріями та аналітикою.
+            Керуйте замовленнями, каталогом товарів, клієнтами та аналітикою.
           </p>
         </div>
 
@@ -71,6 +72,7 @@ export default function AdminView({
         {[
           { id: "orders", label: "Замовлення" },
           { id: "catalog", label: "Каталог" },
+          { id: "customers", label: "Клієнти" },
           { id: "analytics", label: "Аналітика" },
         ].map((tab) => (
           <button
@@ -113,6 +115,8 @@ export default function AdminView({
           deleteSubcategory={deleteSubcategory}
         />
       )}
+
+      {adminTab === "customers" && <AdminCustomersPanel />}
 
       {adminTab === "analytics" && (
         <AdminAnalyticsPanel
