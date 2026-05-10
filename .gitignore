@@ -6,3 +6,6 @@ server/db.json
 server/backups/
 server/data/
 /src/generated/prisma
+server/backups/*.dump
+server/backups/*.sql
+server/backups/*.backup

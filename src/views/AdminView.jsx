@@ -5,6 +5,7 @@ import AdminAnalyticsPanel from "../components/admin/AdminAnalyticsPanel.jsx";
 import AdminProductEditModal from "../components/admin/AdminProductEditModal.jsx";
 import AdminCatalogPanel from "../components/admin/AdminCatalogPanel.jsx";
 import AdminCustomersPanel from "../components/admin/AdminCustomersPanel.jsx";
+import AdminSecurityPanel from "../components/admin/AdminSecurityPanel.jsx";
 
 export default function AdminView({
   categories,
@@ -73,6 +74,7 @@ export default function AdminView({
           { id: "orders", label: "Замовлення" },
           { id: "catalog", label: "Каталог" },
           { id: "customers", label: "Клієнти" },
+          { id: "security", label: "Безпека" },
           { id: "analytics", label: "Аналітика" },
         ].map((tab) => (
           <button
@@ -125,6 +127,8 @@ export default function AdminView({
           updateAnalyticsFilters={updateAnalyticsFilters}
         />
       )}
+
+      {adminTab === "security" && <AdminSecurityPanel />}
 
       {editingProduct && (
         <AdminProductEditModal

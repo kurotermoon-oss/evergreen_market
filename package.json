@@ -3,20 +3,28 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "server": "node server/index.cjs",
-    "build": "vite build",
-    "start": "node server/index.cjs",
-    "preview": "vite preview",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
-    "db:studio": "prisma studio",
-    "db:import-json": "node server/scripts/migrateJsonToPostgres.cjs"
-  },
+"scripts": {
+  "dev": "vite",
+  "server": "node server/index.cjs",
+  "build": "vite build",
+  "preview": "vite preview",
+
+  "db:generate": "prisma generate",
+  "db:migrate": "prisma migrate dev",
+  "db:deploy": "prisma migrate deploy",
+  "db:studio": "prisma studio",
+
+  "railway:start": "prisma migrate deploy && node server/index.cjs",
+
+
+  "db:backup:local": "powershell -ExecutionPolicy Bypass -File server/scripts/backup-postgres-local.ps1",
+  "db:restore:local": "powershell -ExecutionPolicy Bypass -File server/scripts/restore-postgres-local.ps1",
+  "db:backup:remote": "powershell -ExecutionPolicy Bypass -File server/scripts/backup-postgres-remote.ps1",
+  "db:restore:remote": "powershell -ExecutionPolicy Bypass -File server/scripts/restore-postgres-remote.ps1"
+
+},
   "dependencies": {
-    "@prisma/client": "^6.19.3",
+    "@prisma/client": "^7.8.0",
     "@tailwindcss/vite": "latest",
     "@vitejs/plugin-react": "latest",
     "cookie-parser": "^1.4.7",
@@ -33,6 +41,6 @@
     "vite": "latest"
   },
   "devDependencies": {
-    "prisma": "^6.19.3"
+    "prisma": "^7.8.0"
   }
 }

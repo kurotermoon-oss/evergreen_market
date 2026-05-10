@@ -37,6 +37,8 @@ const {
 const adminAuthRoutes = require("./routes/adminAuth.routes.cjs");
 const adminAnalyticsRoutes = require("./routes/adminAnalytics.routes.cjs");
 const adminCustomersRoutes = require("./routes/adminCustomers.routes.cjs");
+const adminSecurityRoutes = require("./routes/adminSecurity.routes.cjs");
+
 
 
 const { requireAdmin } = require("./middleware/adminAuth.cjs");
@@ -95,7 +97,6 @@ const {
 
 const app = express();
 
-const PORT = Number(process.env.PORT || 3001);
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 const USE_POSTGRES = process.env.USE_POSTGRES === "true";
 
@@ -660,7 +661,7 @@ app.use(cookieParser());
 app.use("/api/admin", adminAuthRoutes);
 app.use("/api/admin/analytics", adminAnalyticsRoutes);
 app.use("/api/admin/customers", adminCustomersRoutes);
-
+app.use("/api/admin/security", adminSecurityRoutes);
 
 
 console.log("[debug] adminAuthRoutes mounted");
@@ -2603,6 +2604,8 @@ if (fs.existsSync(clientDistPath)) {
   });
 }
 
-app.listen(PORT, "0.0.0.0", () => {
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
   console.log(`Evergreen backend running on port ${PORT}`);
 });

@@ -245,5 +245,27 @@ deleteBlockedCustomer(id) {
   });
 },
 
+getAdminGuestActivity() {
+  return request("/api/admin/security/guests");
+},
+
+getAdminSecurityBlockedCustomers() {
+  return request("/api/admin/security/blocked");
+},
+
+createAdminSecurityBlockedCustomer(payload) {
+  return request("/api/admin/security/blocked", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+},
+
+deleteAdminSecurityBlockedCustomer(id) {
+  return request(`/api/admin/security/blocked/${id}`, {
+    method: "DELETE",
+  });
+},
+
+
 
 };
