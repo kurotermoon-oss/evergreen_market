@@ -70,6 +70,15 @@ export function useCustomerSession({ applyCustomerToForm } = {}) {
     return response.customer;
   }
 
+  async function updateCustomerProfile(payload) {
+    const response = await api.updateCustomerProfile(payload);
+
+    setCustomer(response.customer);
+    applyCustomerToForm?.(response.customer);
+
+    return response.customer;
+  }
+
   async function customerLogout() {
     await api.customerLogout();
 
@@ -82,10 +91,13 @@ export function useCustomerSession({ applyCustomerToForm } = {}) {
     customerOrders,
     setCustomer,
     setCustomerOrders,
+
     checkCustomerSession,
     loadCustomerOrders,
+
     customerLogin,
     customerRegister,
+    updateCustomerProfile,
     customerLogout,
   };
 }

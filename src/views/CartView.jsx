@@ -1,5 +1,57 @@
+import { useState } from "react";
+
 import Icon from "../components/Icon.jsx";
+import OrderRulesModal from "../components/OrderRulesModal.jsx";
 import { formatUAH } from "../utils/formatUAH.js";
+
+function normalizePhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+
+  if (!digits) return "";
+
+  if (digits.length === 10 && digits.startsWith("0")) {
+    return `+38${digits}`;
+  }
+
+  if (digits.length === 12 && digits.startsWith("380")) {
+    return `+${digits}`;
+  }
+
+  return "";
+}
+
+function isValidPhone(value) {
+  return /^\+380\d{9}$/.test(normalizePhone(value));
+}
+
+function normalizeTelegram(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^@/, "")
+    .toLowerCase();
+}
+
+function isValidTelegram(value) {
+  const telegram = normalizeTelegram(value);
+
+  if (!telegram) return false;
+
+  return /^[a-zA-Z][a-zA-Z0-9_]{4,31}$/.test(telegram);
+}
+
+function getInputClass(hasError, extraClass = "") {
+  return `w-full rounded-2xl border px-4 py-3 outline-none transition ${
+    hasError
+      ? "border-red-300 focus:border-red-500"
+      : "border-stone-300 focus:border-emerald-700"
+  } ${extraClass}`;
+}
+
+function FieldError({ children }) {
+  if (!children) return null;
+
+  return <p className="mt-1 text-sm font-semibold text-red-600">{children}</p>;
+}
 
 export default function CartView({
   cartItems,
@@ -13,10 +65,18 @@ export default function CartView({
   setView,
   submitOrder,
 }) {
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState("");
+
   const needsDelivery = form.deliveryType === "building";
-  const canSubmit =
-    cartItems.length > 0 && form.name && (form.phone || form.telegram);
   const isEmpty = cartItems.length === 0;
+
+  const hasBasicRequiredFields =
+    cartItems.length > 0 &&
+    String(form.name || "").trim() &&
+    (String(form.phone || "").trim() || String(form.telegram || "").trim());
+
+  const canSubmit = Boolean(hasBasicRequiredFields);
 
   function getItemId(item) {
     return item.productId || item.id;
@@ -34,6 +94,82 @@ export default function CartView({
     const nextQuantity = Number(item.quantity || 0) + 1;
 
     changeQuantity(productId, nextQuantity);
+  }
+
+  function updateFormAndClearError(field, value) {
+    updateForm(field, value);
+
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: "",
+      contact: "",
+      cart: "",
+    }));
+
+    setFormError("");
+  }
+
+  function validateOrderForm() {
+    const errors = {};
+
+    if (!cartItems.length) {
+      errors.cart = "Кошик порожній";
+    }
+
+    const name = String(form.name || "").trim();
+    const phone = String(form.phone || "").trim();
+    const telegram = String(form.telegram || "").trim();
+
+    if (!name) {
+      errors.name = "Вкажіть імʼя";
+    } else if (name.length < 2) {
+      errors.name = "Імʼя має містити щонайменше 2 символи";
+    }
+
+    if (!phone && !telegram) {
+      errors.contact = "Вкажіть телефон або Telegram";
+    }
+
+    if (phone && !isValidPhone(phone)) {
+      errors.phone = "Телефон має бути у форматі +380XXXXXXXXX";
+    }
+
+    if (telegram && !isValidTelegram(telegram)) {
+      errors.telegram =
+        "Telegram має бути у форматі @username, мінімум 5 символів";
+    }
+
+    if (needsDelivery) {
+      if (!String(form.building || "").trim()) {
+        errors.building = "Вкажіть будинок";
+      }
+
+      if (!String(form.apartment || "").trim()) {
+        errors.apartment = "Вкажіть квартиру";
+      }
+    }
+
+    return errors;
+  }
+
+  async function handleSubmitOrder() {
+    const errors = validateOrderForm();
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setFormError("Перевірте правильність заповнення форми.");
+      return;
+    }
+
+    setFieldErrors({});
+    setFormError("");
+
+    const result = await submitOrder();
+
+    if (result?.ok === false) {
+      setFieldErrors(result.errors || {});
+      setFormError(result.message || "Не вдалося створити замовлення.");
+    }
   }
 
   return (
@@ -74,7 +210,11 @@ export default function CartView({
 
               <button
                 type="button"
-                onClick={() => setCart({})}
+                onClick={() => {
+                  setCart({});
+                  setFieldErrors({});
+                  setFormError("");
+                }}
                 className="rounded-2xl border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-700 hover:bg-stone-100"
               >
                 Очистити
@@ -161,6 +301,8 @@ export default function CartView({
               })}
             </div>
 
+            <FieldError>{fieldErrors.cart}</FieldError>
+
             <div className="mt-6 rounded-3xl bg-stone-950 p-6 text-white">
               <div className="flex items-center justify-between">
                 <span className="text-stone-300">Разом</span>
@@ -177,7 +319,7 @@ export default function CartView({
             <h2 className="mt-2 text-3xl font-black text-stone-950">
               Куди надіслати замовлення
             </h2>
-
+              <OrderRulesModal />
             {!customer && (
               <div className="mt-5 rounded-3xl bg-emerald-50 p-5 text-sm text-emerald-900">
                 <p className="font-black">Можна замовити без реєстрації</p>
@@ -205,39 +347,73 @@ export default function CartView({
 
                 <input
                   value={form.name}
-                  onChange={(event) => updateForm("name", event.target.value)}
-                  className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+                  onChange={(event) =>
+                    updateFormAndClearError("name", event.target.value)
+                  }
+                  className={getInputClass(Boolean(fieldErrors.name))}
                   placeholder="Ваше імʼя"
                 />
+
+                <FieldError>{fieldErrors.name}</FieldError>
               </label>
 
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-stone-700">
-                  Телефон
-                </span>
+          <div>
+            <p className="mb-2 text-sm font-semibold text-stone-700">
+              Контакт для звʼязку
+            </p>
 
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
+              <div>
                 <input
                   value={form.phone}
-                  onChange={(event) => updateForm("phone", event.target.value)}
-                  className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-                  placeholder="+380..."
+                  onChange={(event) =>
+                    updateFormAndClearError("phone", event.target.value)
+                  }
+                  onBlur={() => {
+                    if (form.phone && isValidPhone(form.phone)) {
+                      updateForm("phone", normalizePhone(form.phone));
+                    }
+                  }}
+                  className={getInputClass(Boolean(fieldErrors.phone))}
+                  placeholder="+380XXXXXXXXX"
                 />
-              </label>
 
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-stone-700">
-                  Telegram username
-                </span>
+                <FieldError>{fieldErrors.phone}</FieldError>
+              </div>
 
+              <div className="flex h-12 items-center justify-center text-sm font-black uppercase tracking-wide text-stone-400">
+                або
+              </div>
+
+              <div>
                 <input
                   value={form.telegram}
                   onChange={(event) =>
-                    updateForm("telegram", event.target.value)
+                    updateFormAndClearError("telegram", event.target.value)
                   }
-                  className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+                  onBlur={() => {
+                    if (form.telegram && isValidTelegram(form.telegram)) {
+                      updateForm(
+                        "telegram",
+                        `@${normalizeTelegram(form.telegram)}`
+                      );
+                    }
+                  }}
+                  className={getInputClass(Boolean(fieldErrors.telegram))}
                   placeholder="@username"
                 />
-              </label>
+
+                <FieldError>{fieldErrors.telegram}</FieldError>
+              </div>
+            </div>
+
+            <p className="mt-2 text-sm leading-6 text-stone-500">
+              Для оформлення замовлення достатньо вказати{" "}
+              <span className="font-semibold">телефон або Telegram</span>.
+            </p>
+
+            <FieldError>{fieldErrors.contact}</FieldError>
+          </div>
 
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-stone-700">
@@ -249,16 +425,24 @@ export default function CartView({
                   onChange={(event) => {
                     const nextDeliveryType = event.target.value;
 
-                    updateForm("deliveryType", nextDeliveryType);
+                    updateFormAndClearError("deliveryType", nextDeliveryType);
 
                     if (nextDeliveryType === "pickup") {
                       updateForm("building", "");
                       updateForm("entrance", "");
                       updateForm("floor", "");
                       updateForm("apartment", "");
+
+                      setFieldErrors((current) => ({
+                        ...current,
+                        building: "",
+                        entrance: "",
+                        floor: "",
+                        apartment: "",
+                      }));
                     }
                   }}
-                  className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+                  className={getInputClass(false)}
                 >
                   <option value="pickup">Самовивіз з кавʼярні</option>
                   <option value="building">Доставка</option>
@@ -267,41 +451,57 @@ export default function CartView({
 
               {needsDelivery && (
                 <div className="grid gap-3 rounded-3xl bg-stone-50 p-4 sm:grid-cols-2">
-                  <input
-                    value={form.building}
-                    onChange={(event) =>
-                      updateForm("building", event.target.value)
-                    }
-                    className="rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-                    placeholder="Корпус / будинок"
-                  />
+                  <label>
+                    <input
+                      value={form.building}
+                      onChange={(event) =>
+                        updateFormAndClearError("building", event.target.value)
+                      }
+                      className={getInputClass(Boolean(fieldErrors.building))}
+                      placeholder="Корпус / будинок"
+                    />
 
-                  <input
-                    value={form.entrance}
-                    onChange={(event) =>
-                      updateForm("entrance", event.target.value)
-                    }
-                    className="rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-                    placeholder="Підʼїзд"
-                  />
+                    <FieldError>{fieldErrors.building}</FieldError>
+                  </label>
 
-                  <input
-                    value={form.floor}
-                    onChange={(event) =>
-                      updateForm("floor", event.target.value)
-                    }
-                    className="rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-                    placeholder="Поверх"
-                  />
+                  <label>
+                    <input
+                      value={form.entrance}
+                      onChange={(event) =>
+                        updateFormAndClearError("entrance", event.target.value)
+                      }
+                      className={getInputClass(Boolean(fieldErrors.entrance))}
+                      placeholder="Підʼїзд"
+                    />
 
-                  <input
-                    value={form.apartment}
-                    onChange={(event) =>
-                      updateForm("apartment", event.target.value)
-                    }
-                    className="rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
-                    placeholder="Квартира"
-                  />
+                    <FieldError>{fieldErrors.entrance}</FieldError>
+                  </label>
+
+                  <label>
+                    <input
+                      value={form.floor}
+                      onChange={(event) =>
+                        updateFormAndClearError("floor", event.target.value)
+                      }
+                      className={getInputClass(Boolean(fieldErrors.floor))}
+                      placeholder="Поверх"
+                    />
+
+                    <FieldError>{fieldErrors.floor}</FieldError>
+                  </label>
+
+                  <label>
+                    <input
+                      value={form.apartment}
+                      onChange={(event) =>
+                        updateFormAndClearError("apartment", event.target.value)
+                      }
+                      className={getInputClass(Boolean(fieldErrors.apartment))}
+                      placeholder="Квартира"
+                    />
+
+                    <FieldError>{fieldErrors.apartment}</FieldError>
+                  </label>
                 </div>
               )}
 
@@ -313,17 +513,23 @@ export default function CartView({
                 <textarea
                   value={form.comment}
                   onChange={(event) =>
-                    updateForm("comment", event.target.value)
+                    updateFormAndClearError("comment", event.target.value)
                   }
                   rows={4}
-                  className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+                  className={getInputClass(false)}
                   placeholder="Побажання до замовлення"
                 />
               </label>
 
+              {formError && (
+                <div className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">
+                  {formError}
+                </div>
+              )}
+
               <button
                 type="button"
-                onClick={submitOrder}
+                onClick={handleSubmitOrder}
                 disabled={!canSubmit}
                 className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-900 px-6 py-4 font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-300"
               >

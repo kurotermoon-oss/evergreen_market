@@ -6,3 +6,83 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+
+
+
+@keyframes brandLogoFloat {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(-1deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+.brand-logo-float {
+  animation: brandLogoFloat 3.6s ease-in-out infinite;
+}
+
+.brand-logo-float:hover {
+  animation-play-state: paused;
+}
+
+
+.brand-logo-float img {
+  transition: transform 0.3s ease;
+}
+
+.brand-logo-float:hover img {
+  transform: scale(1.04);
+}
+
+
+@keyframes brandLogoFloat {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-3px) rotate(-1deg);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+.brand-logo-float {
+  animation: brandLogoFloat 4s ease-in-out infinite;
+}
+
+.brand-logo-float:hover {
+  animation-play-state: paused;
+}
+
+
+.modal-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #166534 #f1f5f9;
+}
+
+.modal-scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 999px;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #166534;
+  border-radius: 999px;
+  border: 2px solid #f3f4f6;
+}
+
+.modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #14532d;
+}

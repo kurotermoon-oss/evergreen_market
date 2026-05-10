@@ -16,12 +16,10 @@ function readStoredCart() {
       return {};
     }
 
-    // Новый формат: { "1": 2, "5": 1 }
     if (!Array.isArray(parsedCart)) {
       return parsedCart;
     }
 
-    // Запасной вариант, если раньше корзина вдруг хранилась массивом
     return parsedCart.reduce((result, item) => {
       const productId = item.id ?? item.productId;
       const quantity = Number(item.quantity || 0);
@@ -46,8 +44,20 @@ function saveStoredCart(cart) {
   }
 }
 
+function normalizeCart(cart) {
+  return Object.entries(cart || {}).reduce((result, [productId, quantity]) => {
+    const normalizedQuantity = Number(quantity || 0);
+
+    if (productId && normalizedQuantity > 0) {
+      result[String(productId)] = normalizedQuantity;
+    }
+
+    return result;
+  }, {});
+}
+
 export function useCart(products = []) {
-  const [cart, setCartState] = useState(readStoredCart);
+  const [cart, setCartState] = useState(() => normalizeCart(readStoredCart()));
 
   function setCart(nextCartOrUpdater) {
     setCartState((currentCart) => {
@@ -56,13 +66,44 @@ export function useCart(products = []) {
           ? nextCartOrUpdater(currentCart)
           : nextCartOrUpdater;
 
-      return nextCart && typeof nextCart === "object" ? nextCart : {};
+      return normalizeCart(nextCart);
     });
   }
 
   useEffect(() => {
     saveStoredCart(cart);
   }, [cart]);
+
+  // Чистим корзину от товаров, которых уже нет в каталоге
+  useEffect(() => {
+    if (!products.length) return;
+
+    setCartState((currentCart) => {
+      const existingProductIds = new Set(
+        products.map((product) => String(product.id))
+      );
+
+      const cleanedCart = Object.entries(currentCart).reduce(
+        (result, [productId, quantity]) => {
+          if (existingProductIds.has(String(productId))) {
+            result[String(productId)] = Number(quantity || 0);
+          }
+
+          return result;
+        },
+        {}
+      );
+
+      const currentKeys = Object.keys(currentCart);
+      const cleanedKeys = Object.keys(cleanedCart);
+
+      const isSame =
+        currentKeys.length === cleanedKeys.length &&
+        currentKeys.every((key) => cleanedCart[key] === currentCart[key]);
+
+      return isSame ? currentCart : cleanedCart;
+    });
+  }, [products]);
 
   const cartItems = useMemo(() => {
     return Object.entries(cart)
@@ -95,11 +136,12 @@ export function useCart(products = []) {
     }, 0);
   }, [cartItems]);
 
+  // Важно: считаем badge только по реально существующим товарам
   const cartCount = useMemo(() => {
-    return Object.values(cart).reduce((sum, quantity) => {
-      return sum + Number(quantity || 0);
+    return cartItems.reduce((sum, item) => {
+      return sum + Number(item.quantity || 0);
     }, 0);
-  }, [cart]);
+  }, [cartItems]);
 
   function addToCart(product) {
     if (!product?.id) return;
@@ -142,6 +184,10 @@ export function useCart(products = []) {
     });
   }
 
+  function clearCart() {
+    setCart({});
+  }
+
   return {
     cart,
     setCart,
@@ -151,5 +197,6 @@ export function useCart(products = []) {
     addToCart,
     changeQuantity,
     removeFromCart,
+    clearCart,
   };
 }

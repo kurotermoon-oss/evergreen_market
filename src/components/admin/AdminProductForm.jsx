@@ -143,12 +143,18 @@ export default function AdminProductForm({
               ))}
           </select>
 
-          <TextInput
+          <input
             value={draftProduct.newCategoryName || ""}
             onChange={(event) =>
-              updateField("newCategoryName", event.target.value)
+              setDraftProduct((current) => ({
+                ...current,
+                newCategoryName: event.target.value,
+                category: event.target.value.trim() ? "" : current.category,
+                subcategory: event.target.value.trim() ? "" : current.subcategory,
+              }))
             }
-            placeholder="Або нова категорія"
+            className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-4 outline-none transition focus:border-emerald-700"
+            placeholder="Або введіть нову категорію"
           />
         </FormSection>
 
@@ -176,13 +182,19 @@ export default function AdminProductForm({
             ))}
           </select>
 
-          <TextInput
+          <input
             value={draftProduct.newSubcategoryName || ""}
             onChange={(event) =>
-              updateField("newSubcategoryName", event.target.value)
+              setDraftProduct((current) => ({
+                ...current,
+                newSubcategoryName: event.target.value,
+                subcategory: event.target.value.trim() ? "" : current.subcategory,
+              }))
             }
-            placeholder="Або нова підкатегорія"
+            className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-4 outline-none transition focus:border-emerald-700"
+            placeholder="Або введіть нову підкатегорію"
           />
+          
         </FormSection>
 
         <FormSection

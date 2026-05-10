@@ -18,20 +18,30 @@ export function useAdminData({ loadPublicData, setView }) {
   const [draftProduct, setDraftProduct] = useState(EMPTY_DRAFT_PRODUCT);
   const [editingProduct, setEditingProduct] = useState(null);
 
-  async function loadAdminData(nextAnalyticsFilters = analyticsFilters) {
-    const analyticsDateRange = getAnalyticsDateRange(nextAnalyticsFilters);
 
-    const [productsResponse, ordersResponse, analyticsResponse] =
-      await Promise.all([
-        api.getAdminProducts(),
-        api.getAdminOrders(),
-        api.getAdminAnalytics(analyticsDateRange),
-      ]);
+  const [adminCategories, setAdminCategories] = useState([]);
 
-    setAdminProducts(productsResponse.products);
-    setOrders(ordersResponse.orders);
-    setAnalytics(analyticsResponse);
-  }
+
+async function loadAdminData(nextAnalyticsFilters = analyticsFilters) {
+  const analyticsDateRange = getAnalyticsDateRange(nextAnalyticsFilters);
+
+  const [
+    productsResponse,
+    categoriesResponse,
+    ordersResponse,
+    analyticsResponse,
+  ] = await Promise.all([
+    api.getAdminProducts(),
+    api.getAdminCategories(),
+    api.getAdminOrders(),
+    api.getAdminAnalytics(analyticsDateRange),
+  ]);
+
+  setAdminProducts(productsResponse.products || []);
+  setAdminCategories(categoriesResponse.categories || []);
+  setOrders(ordersResponse.orders || []);
+  setAnalytics(analyticsResponse);
+}
 
   async function checkAdminSession() {
     const adminStatus = await api.adminMe();
@@ -64,23 +74,26 @@ export function useAdminData({ loadPublicData, setView }) {
     setOrders([]);
     setAnalytics(null);
     setView("home");
+    setAdminCategories([]);
   }
 
-  async function addDraftProduct() {
-    if (!draftProduct.name || !draftProduct.price) return;
+async function addDraftProduct() {
+  if (!draftProduct.name || !draftProduct.price) return;
 
-    await api.createAdminProduct({
-      ...draftProduct,
-      price: Number(draftProduct.price),
-      costPrice: Number(draftProduct.costPrice || 0),
-      oldPrice: draftProduct.oldPrice ? Number(draftProduct.oldPrice) : null,
-    });
+  await api.createAdminProduct({
+    ...draftProduct,
+    price: Number(draftProduct.price),
+    costPrice: Number(draftProduct.costPrice || 0),
+    oldPrice: draftProduct.oldPrice ? Number(draftProduct.oldPrice) : null,
+  });
 
-    setDraftProduct(EMPTY_DRAFT_PRODUCT);
+  setDraftProduct(EMPTY_DRAFT_PRODUCT);
 
-    await loadPublicData();
-    await loadAdminData();
-  }
+  await loadPublicData();
+  await loadAdminData();
+
+  alert("Товар успішно створено");
+}
 
   async function toggleProductActive(id) {
     const product = adminProducts.find((item) => item.id === id);
@@ -159,35 +172,97 @@ export function useAdminData({ loadPublicData, setView }) {
     await loadAdminData();
   }
 
-  return {
-    isAdmin,
-    adminProducts,
-    orders,
 
-    analytics,
-    analyticsFilters,
+  async function createCategory(name) {
+  await api.createAdminCategory({ name });
+  await loadPublicData();
+  await loadAdminData();
+}
 
-    draftProduct,
-    setDraftProduct,
+async function updateCategory(id, payload) {
+  if (
+    Object.prototype.hasOwnProperty.call(payload, "name") &&
+    !String(payload.name || "").trim()
+  ) {
+    return;
+  }
 
-    editingProduct,
-    setEditingProduct,
+  await api.updateAdminCategory(id, payload);
+  await loadPublicData();
+  await loadAdminData();
+}
 
-    loadAdminData,
-    checkAdminSession,
+async function deleteCategory(id) {
+  await api.deleteAdminCategory(id);
 
-    loginAdmin,
-    logoutAdmin,
+  await loadPublicData();
+  await loadAdminData();
+}
 
-    addDraftProduct,
-    toggleProductActive,
-    deleteProduct,
+async function createSubcategory(categoryId, name) {
+  await api.createAdminSubcategory(categoryId, { name });
+  await loadPublicData();
+  await loadAdminData();
+}
 
-    startEditProduct,
-    cancelEditProduct,
-    saveEditedProduct,
+async function updateSubcategory(categoryId, subcategoryId, payload) {
+  if (
+    Object.prototype.hasOwnProperty.call(payload, "name") &&
+    !String(payload.name || "").trim()
+  ) {
+    return;
+  }
 
-    updateAnalyticsFilters,
-    updateOrderAction,
-  };
+  await api.updateAdminSubcategory(categoryId, subcategoryId, payload);
+  await loadPublicData();
+  await loadAdminData();
+}
+
+async function deleteSubcategory(categoryId, subcategoryId) {
+  await api.deleteAdminSubcategory(categoryId, subcategoryId);
+
+  await loadPublicData();
+  await loadAdminData();
+}
+
+return {
+  isAdmin,
+  adminProducts,
+  adminCategories,
+  orders,
+
+  analytics,
+  analyticsFilters,
+
+  draftProduct,
+  setDraftProduct,
+
+  editingProduct,
+  setEditingProduct,
+
+  loadAdminData,
+  checkAdminSession,
+
+  loginAdmin,
+  logoutAdmin,
+
+  addDraftProduct,
+  toggleProductActive,
+  deleteProduct,
+
+  startEditProduct,
+  cancelEditProduct,
+  saveEditedProduct,
+
+  updateAnalyticsFilters,
+  updateOrderAction,
+  
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  createSubcategory,
+  updateSubcategory,
+  deleteSubcategory,
+  
+};
 }

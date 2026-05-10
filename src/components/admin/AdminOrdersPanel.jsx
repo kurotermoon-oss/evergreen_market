@@ -1,10 +1,15 @@
 import { useMemo, useState } from "react";
 import OrderCard from "./OrderCard.jsx";
-import { ACTIVE_ORDER_STATUSES, isFinalOrder } from "./orderUiConfig.js";
+import {
+  ACTIVE_ORDER_STATUSES,
+  getOrderStatusLabel,
+  isFinalOrder,
+  normalizeOrderStatus,
+} from "./orderUiConfig.js";
 
 export default function AdminOrdersPanel({ orders, updateOrderAction }) {
   const [section, setSection] = useState("active");
-  const [activeStatus, setActiveStatus] = useState("Усі активні");
+  const [activeStatus, setActiveStatus] = useState("all");
   const [query, setQuery] = useState("");
 
   const activeOrders = useMemo(
@@ -22,16 +27,19 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
     const normalizedQuery = query.toLowerCase().trim();
 
     return base.filter((order) => {
+      const normalizedStatus = normalizeOrderStatus(order.status);
+
       const statusMatch =
         section !== "active" ||
-        activeStatus === "Усі активні" ||
-        order.status === activeStatus;
+        activeStatus === "all" ||
+        normalizedStatus === activeStatus;
 
       const searchableText = [
         order.orderNumber,
         order.customerName,
         order.customerPhone,
         order.customerTelegram,
+        getOrderStatusLabel(order.status),
         order.status,
         order.paymentStatus,
         order.total,
@@ -54,8 +62,8 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
           <h2 className="text-2xl font-black text-stone-950">Замовлення</h2>
 
           <p className="mt-2 text-sm text-stone-500">
-            Активні замовлення можна рухати тільки кнопками. Завершені та скасовані
-            переходять в історію.
+            Активні замовлення можна рухати тільки кнопками. Завершені та
+            скасовані переходять в історію.
           </p>
         </div>
 
@@ -99,9 +107,11 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
         <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
           {ACTIVE_ORDER_STATUSES.map((status) => {
             const count =
-              status === "Усі активні"
+              status === "all"
                 ? activeOrders.length
-                : activeOrders.filter((order) => order.status === status).length;
+                : activeOrders.filter(
+                    (order) => normalizeOrderStatus(order.status) === status
+                  ).length;
 
             return (
               <button
@@ -114,7 +124,8 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
                     : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                 }`}
               >
-                {status} · {count}
+                {status === "all" ? "Усі" : getOrderStatusLabel(status)} ·{" "}
+                {count}
               </button>
             );
           })}

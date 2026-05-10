@@ -1,12 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { formatUAH } from "../utils/formatUAH.js";
-
+import TelegramVerificationCard from "../components/customer/TelegramVerificationCard.jsx";
 const ORDER_STATUS_LABELS = {
   new: "Нове",
   confirmed: "Підтверджено",
   preparing: "Готується",
   ready: "Готово до видачі",
   completed: "Завершено",
+  canceled: "Скасовано",
   cancelled: "Скасовано",
 
   Новий: "Нове",
@@ -18,52 +19,22 @@ const ORDER_STATUS_LABELS = {
   Скасовано: "Скасовано",
 };
 
-const PAYMENT_STATUS_LABELS = {
-  unpaid: "Не оплачено",
-  paid: "Оплачено",
-  refunded: "Повернення",
-
-  "Не оплачено": "Не оплачено",
-  Оплачено: "Оплачено",
-  Повернення: "Повернення",
-};
-
 const ORDER_STATUS_CLASS = {
-  new: "bg-yellow-100 text-yellow-800",
-  confirmed: "bg-blue-100 text-blue-800",
-  preparing: "bg-orange-100 text-orange-800",
-  ready: "bg-green-100 text-green-800",
-  completed: "bg-emerald-100 text-emerald-900",
-  cancelled: "bg-red-100 text-red-800",
-};
-
-const PAYMENT_STATUS_CLASS = {
-  unpaid: "bg-stone-100 text-stone-700",
-  paid: "bg-emerald-100 text-emerald-900",
-  refunded: "bg-orange-100 text-orange-800",
+  new: "bg-amber-50 text-amber-800 ring-1 ring-amber-200",
+  confirmed: "bg-sky-50 text-sky-800 ring-1 ring-sky-200",
+  preparing: "bg-orange-50 text-orange-800 ring-1 ring-orange-200",
+  ready: "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200",
+  completed: "bg-stone-100 text-stone-700 ring-1 ring-stone-200",
+  canceled: "bg-red-50 text-red-800 ring-1 ring-red-200",
+  cancelled: "bg-red-50 text-red-800 ring-1 ring-red-200",
 };
 
 const ORDER_STEPS = [
-  {
-    id: "new",
-    label: "Створено",
-  },
-  {
-    id: "confirmed",
-    label: "Підтверджено",
-  },
-  {
-    id: "preparing",
-    label: "Готується",
-  },
-  {
-    id: "ready",
-    label: "Готово до видачі",
-  },
-  {
-    id: "completed",
-    label: "Завершено",
-  },
+  { id: "new", label: "Створено" },
+  { id: "confirmed", label: "Підтверджено" },
+  { id: "preparing", label: "Готується" },
+  { id: "ready", label: "Готово до видачі" },
+  { id: "completed", label: "Завершено" },
 ];
 
 const STATUS_ALIASES = {
@@ -73,21 +44,12 @@ const STATUS_ALIASES = {
   Готується: "preparing",
   "Готово до видачі": "ready",
   Завершено: "completed",
-  Скасовано: "cancelled",
-};
-
-const PAYMENT_ALIASES = {
-  "Не оплачено": "unpaid",
-  Оплачено: "paid",
-  Повернення: "refunded",
+  Скасовано: "canceled",
+  cancelled: "canceled",
 };
 
 function normalizeOrderStatus(status) {
   return STATUS_ALIASES[status] || status || "new";
-}
-
-function normalizePaymentStatus(status) {
-  return PAYMENT_ALIASES[status] || status || "unpaid";
 }
 
 function getOrderStatusLabel(status) {
@@ -95,19 +57,62 @@ function getOrderStatusLabel(status) {
   return ORDER_STATUS_LABELS[normalizedStatus] || "Нове";
 }
 
-function getPaymentStatusLabel(status) {
-  const normalizedStatus = normalizePaymentStatus(status);
-  return PAYMENT_STATUS_LABELS[normalizedStatus] || "Не оплачено";
-}
-
 function getOrderStatusClass(status) {
   const normalizedStatus = normalizeOrderStatus(status);
   return ORDER_STATUS_CLASS[normalizedStatus] || "bg-stone-100 text-stone-700";
 }
 
-function getPaymentStatusClass(status) {
-  const normalizedStatus = normalizePaymentStatus(status);
-  return PAYMENT_STATUS_CLASS[normalizedStatus] || "bg-stone-100 text-stone-700";
+function normalizePhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+
+  if (!digits) return "";
+
+  if (digits.length === 10 && digits.startsWith("0")) {
+    return `+38${digits}`;
+  }
+
+  if (digits.length === 12 && digits.startsWith("380")) {
+    return `+${digits}`;
+  }
+
+  return "";
+}
+
+function isValidPhone(value) {
+  return /^\+380\d{9}$/.test(normalizePhone(value));
+}
+
+function normalizeTelegram(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^@/, "")
+    .toLowerCase();
+}
+
+function isValidTelegram(value) {
+  const telegram = normalizeTelegram(value);
+
+  if (!telegram) return false;
+
+  return /^[a-zA-Z][a-zA-Z0-9_]{4,31}$/.test(telegram);
+}
+
+function getBackendErrors(error) {
+  return error?.data?.errors || error?.errors || {};
+}
+
+function getInputClass(hasError) {
+  return `w-full rounded-2xl border bg-white px-4 py-3 outline-none transition ${
+    hasError
+      ? "border-red-300 focus:border-red-500"
+      : "border-stone-300 focus:border-emerald-700"
+  }`;
+}
+
+function FieldError({ children }) {
+  if (!children) return null;
+
+  return <p className="mt-1 text-sm font-semibold text-red-600">{children}</p>;
 }
 
 function formatDate(value) {
@@ -125,9 +130,7 @@ function formatDate(value) {
 function getStepIndex(status) {
   const normalizedStatus = normalizeOrderStatus(status);
 
-  if (normalizedStatus === "cancelled") {
-    return -1;
-  }
+  if (normalizedStatus === "canceled") return -1;
 
   return ORDER_STEPS.findIndex((step) => step.id === normalizedStatus);
 }
@@ -139,8 +142,9 @@ function getHistoryStepFromLabel(label = "") {
   if (normalizedLabel.includes("підтверджено")) return "confirmed";
   if (normalizedLabel.includes("готується")) return "preparing";
   if (normalizedLabel.includes("готове")) return "ready";
+  if (normalizedLabel.includes("готово")) return "ready";
   if (normalizedLabel.includes("завершено")) return "completed";
-  if (normalizedLabel.includes("скасовано")) return "cancelled";
+  if (normalizedLabel.includes("скасовано")) return "canceled";
 
   return null;
 }
@@ -173,24 +177,30 @@ function getVisibleStatusEvents(order) {
   });
 }
 
-function getPaymentEvents(order) {
-  return (order.statusHistory || []).filter((event) => {
-    return event.type === "payment_changed";
-  });
-}
-
 function getDeliveryLabel(order) {
   if (order.deliveryType === "building") {
-    return "Доставка по ЖК";
+    return "Доставка";
   }
 
-  return "Самовивіз з кавʼярні";
+  return "Самовивіз";
+}
+
+function createProfileForm(customer) {
+  return {
+    name: customer?.name || "",
+    phone: customer?.phone || "",
+    telegram: customer?.telegram ? `@${customer.telegram}` : "",
+    building: customer?.building || "",
+    entrance: customer?.entrance || "",
+    floor: customer?.floor || "",
+    apartment: customer?.apartment || "",
+  };
 }
 
 function OrderProgress({ order }) {
   const normalizedStatus = normalizeOrderStatus(order.status);
   const currentStepIndex = getStepIndex(normalizedStatus);
-  const isCancelled = normalizedStatus === "cancelled";
+  const isCancelled = normalizedStatus === "canceled";
 
   if (isCancelled) {
     return (
@@ -219,10 +229,7 @@ function OrderProgress({ order }) {
           const stepTime = getStepTime(order, step.id);
 
           return (
-            <div
-              key={step.id}
-              className="grid grid-cols-[28px_1fr] gap-3"
-            >
+            <div key={step.id} className="grid grid-cols-[28px_1fr] gap-3">
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${
                   isDone
@@ -262,9 +269,7 @@ function OrderProgress({ order }) {
 
 function OrderCard({ order }) {
   const normalizedStatus = normalizeOrderStatus(order.status);
-  const normalizedPaymentStatus = normalizePaymentStatus(order.paymentStatus);
   const visibleStatusEvents = getVisibleStatusEvents(order);
-  const paymentEvents = getPaymentEvents(order);
 
   return (
     <div className="rounded-3xl border border-stone-200 p-5">
@@ -283,15 +288,7 @@ function OrderCard({ order }) {
               {getOrderStatusLabel(normalizedStatus)}
             </span>
 
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-black ${getPaymentStatusClass(
-                normalizedPaymentStatus
-              )}`}
-            >
-              {getPaymentStatusLabel(normalizedPaymentStatus)}
-            </span>
-
-            <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-700">
+            <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-stone-700 ring-1 ring-stone-200">
               {getDeliveryLabel(order)}
             </span>
           </div>
@@ -329,6 +326,10 @@ function OrderCard({ order }) {
                 );
               })}
             </div>
+
+            <p className="mt-4 text-sm text-stone-500">
+              Оплата здійснюється на місці.
+            </p>
           </div>
 
           {order.deliveryType === "building" && (
@@ -362,50 +363,21 @@ function OrderCard({ order }) {
         <OrderProgress order={order} />
       </div>
 
-      {(visibleStatusEvents.length > 0 || paymentEvents.length > 0) && (
+      {visibleStatusEvents.length > 0 && (
         <details className="mt-5 rounded-3xl bg-white">
           <summary className="cursor-pointer text-sm font-black text-stone-700 hover:text-emerald-800">
             Детальна історія
           </summary>
 
-          <div className="mt-3 space-y-4">
-            {visibleStatusEvents.length > 0 && (
-              <div>
-                <p className="mb-2 text-xs font-black uppercase tracking-wide text-stone-400">
-                  Замовлення
-                </p>
-
-                <div className="space-y-1">
-                  {visibleStatusEvents.map((item, index) => (
-                    <p
-                      key={`${order.id}-status-history-${index}`}
-                      className="text-sm text-stone-500"
-                    >
-                      {formatDate(item.at)} — {item.label}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {paymentEvents.length > 0 && (
-              <div>
-                <p className="mb-2 text-xs font-black uppercase tracking-wide text-stone-400">
-                  Оплата
-                </p>
-
-                <div className="space-y-1">
-                  {paymentEvents.map((item, index) => (
-                    <p
-                      key={`${order.id}-payment-history-${index}`}
-                      className="text-sm text-stone-500"
-                    >
-                      {formatDate(item.at)} — {item.label}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            )}
+          <div className="mt-3 space-y-1">
+            {visibleStatusEvents.map((item, index) => (
+              <p
+                key={`${order.id}-status-history-${index}`}
+                className="text-sm text-stone-500"
+              >
+                {formatDate(item.at)} — {item.label}
+              </p>
+            ))}
           </div>
         </details>
       )}
@@ -413,19 +385,273 @@ function OrderCard({ order }) {
   );
 }
 
+function ProfileEditor({
+  customer,
+  updateCustomerProfile,
+  onCancel,
+  onSaved,
+}) {
+  const [form, setForm] = useState(() => createProfileForm(customer));
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  function updateField(field, value) {
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: "",
+      contact: "",
+    }));
+
+    setFormError("");
+  }
+
+  function validateProfileForm() {
+    const errors = {};
+    const name = form.name.trim();
+    const phone = form.phone.trim();
+    const telegram = form.telegram.trim();
+
+    if (!name) {
+      errors.name = "Вкажіть імʼя";
+    } else if (name.length < 2) {
+      errors.name = "Імʼя має містити щонайменше 2 символи";
+    }
+
+    if (!phone && !telegram) {
+      errors.contact = "Вкажіть телефон або Telegram";
+    }
+
+    if (phone && !isValidPhone(phone)) {
+      errors.phone = "Телефон має бути у форматі +380XXXXXXXXX";
+    }
+
+    if (telegram && !isValidTelegram(telegram)) {
+      errors.telegram =
+        "Telegram має бути у форматі @username, мінімум 5 символів";
+    }
+
+    return errors;
+  }
+
+  async function handleSave() {
+    const errors = validateProfileForm();
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setFormError("Перевірте правильність заповнення форми.");
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setFormError("");
+      setFieldErrors({});
+
+      await updateCustomerProfile({
+        name: form.name.trim(),
+        phone: normalizePhone(form.phone),
+        telegram: normalizeTelegram(form.telegram),
+        building: form.building.trim(),
+        entrance: form.entrance.trim(),
+        floor: form.floor.trim(),
+        apartment: form.apartment.trim(),
+      });
+
+      onSaved?.();
+    } catch (error) {
+      console.error("Update customer profile error:", error);
+
+      const backendErrors = getBackendErrors(error);
+
+      if (Object.keys(backendErrors).length > 0) {
+        setFieldErrors(backendErrors);
+        setFormError("Перевірте дані у формі.");
+        return;
+      }
+
+      setFormError("Не вдалося оновити профіль. Спробуйте ще раз.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <div className="mt-6 rounded-3xl bg-stone-50 p-5">
+      <p className="text-lg font-black text-stone-950">
+        Редагування профілю
+      </p>
+
+      <p className="mt-1 text-sm leading-6 text-stone-500">
+        Оновіть контактні дані та адресу для швидшого оформлення майбутніх
+        замовлень.
+      </p>
+
+      {formError && (
+        <div className="mt-4 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">
+          {formError}
+        </div>
+      )}
+
+      <div className="mt-5 space-y-4">
+        <label className="block">
+          <span className="mb-2 block text-sm font-semibold text-stone-700">
+            Імʼя
+          </span>
+
+          <input
+            value={form.name}
+            onChange={(event) => updateField("name", event.target.value)}
+            className={getInputClass(Boolean(fieldErrors.name))}
+            placeholder="Ваше імʼя"
+          />
+
+          <FieldError>{fieldErrors.name}</FieldError>
+        </label>
+
+        <div>
+          <p className="mb-2 text-sm font-semibold text-stone-700">
+            Контакт для звʼязку
+          </p>
+
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
+            <div>
+              <input
+                value={form.phone}
+                onChange={(event) => updateField("phone", event.target.value)}
+                onBlur={() => {
+                  if (form.phone && isValidPhone(form.phone)) {
+                    updateField("phone", normalizePhone(form.phone));
+                  }
+                }}
+                className={getInputClass(Boolean(fieldErrors.phone))}
+                placeholder="+380XXXXXXXXX"
+              />
+
+              <FieldError>{fieldErrors.phone}</FieldError>
+            </div>
+
+            <div className="flex h-12 items-center justify-center text-sm font-black uppercase tracking-wide text-stone-400">
+              або
+            </div>
+
+            <div>
+              <input
+                value={form.telegram}
+                onChange={(event) =>
+                  updateField("telegram", event.target.value)
+                }
+                onBlur={() => {
+                  if (form.telegram && isValidTelegram(form.telegram)) {
+                    updateField("telegram", `@${normalizeTelegram(form.telegram)}`);
+                  }
+                }}
+                className={getInputClass(Boolean(fieldErrors.telegram))}
+                placeholder="@username"
+              />
+
+              <FieldError>{fieldErrors.telegram}</FieldError>
+            </div>
+          </div>
+
+          <p className="mt-2 text-sm leading-6 text-stone-500">
+            Вкажіть <span className="font-semibold">телефон або Telegram</span>.
+            Одного контакту достатньо.
+          </p>
+
+          <FieldError>{fieldErrors.contact}</FieldError>
+        </div>
+
+        <div className="rounded-3xl bg-white p-4">
+          <div className="mb-4">
+            <p className="font-bold text-stone-800">Дані для доставки</p>
+
+            <p className="mt-1 text-sm leading-6 text-stone-500">
+              Необовʼязково. Можете залишити порожнім або заповнити для
+              майбутніх замовлень.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <input
+              value={form.building}
+              onChange={(event) => updateField("building", event.target.value)}
+              className={getInputClass(false)}
+              placeholder="Будинок"
+            />
+
+            <input
+              value={form.entrance}
+              onChange={(event) => updateField("entrance", event.target.value)}
+              className={getInputClass(false)}
+              placeholder="Підʼїзд"
+            />
+
+            <input
+              value={form.floor}
+              onChange={(event) => updateField("floor", event.target.value)}
+              className={getInputClass(false)}
+              placeholder="Поверх"
+            />
+
+            <input
+              value={form.apartment}
+              onChange={(event) =>
+                updateField("apartment", event.target.value)
+              }
+              className={getInputClass(false)}
+              placeholder="Квартира"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="rounded-2xl bg-emerald-900 px-5 py-3 font-black text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+          >
+            {isSaving ? "Збереження..." : "Зберегти"}
+          </button>
+
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isSaving}
+            className="rounded-2xl border border-stone-300 px-5 py-3 font-black text-stone-900 hover:bg-stone-100 disabled:cursor-not-allowed"
+          >
+            Скасувати
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AccountView({
   customer,
+  setCustomer,
   customerOrders,
   loadCustomerOrders,
   customerLogout,
+  updateCustomerProfile,
   setView,
 }) {
-useEffect(() => {
-  if (!customer) return;
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState("");
 
-  loadCustomerOrders();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [customer?.id]);
+  useEffect(() => {
+    if (!customer) return;
+
+    loadCustomerOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customer?.id]);
 
   if (!customer) {
     return (
@@ -475,6 +701,17 @@ useEffect(() => {
           <div className="flex flex-col gap-2 sm:flex-row">
             <button
               type="button"
+              onClick={() => {
+                setIsEditingProfile((current) => !current);
+                setProfileMessage("");
+              }}
+              className="rounded-2xl border border-stone-300 px-5 py-3 font-bold text-stone-900 hover:bg-stone-100"
+            >
+              {isEditingProfile ? "Закрити" : "Редагувати"}
+            </button>
+
+            <button
+              type="button"
               onClick={() => setView("catalog")}
               className="rounded-2xl bg-emerald-900 px-5 py-3 font-bold text-white hover:bg-emerald-800"
             >
@@ -490,8 +727,31 @@ useEffect(() => {
             </button>
           </div>
         </div>
-      </section>
 
+        {profileMessage && (
+          <div className="mt-5 rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+            {profileMessage}
+          </div>
+        )}
+
+        {isEditingProfile && (
+          <ProfileEditor
+            customer={customer}
+            updateCustomerProfile={updateCustomerProfile}
+            onCancel={() => setIsEditingProfile(false)}
+            onSaved={() => {
+              setIsEditingProfile(false);
+              setProfileMessage("Дані профілю оновлено.");
+            }}
+          />
+        )}
+
+        
+      </section>
+        <TelegramVerificationCard
+            customer={customer}
+            onCustomerUpdate={setCustomer}
+          />
       <section className="mt-8 rounded-3xl bg-white p-6 shadow-sm">
         <h2 className="text-2xl font-black text-stone-950">Мої замовлення</h2>
 

@@ -14,11 +14,26 @@ function getOrderItemCost(item, db) {
   return Number(product?.costPrice || 0) * Number(item.quantity || 0);
 }
 
-function isCompletedPaidOrder(order) {
+function normalizeOrderStatus(status) {
+  const aliases = {
+    Завершено: "completed",
+    completed: "completed",
+    Скасовано: "canceled",
+    canceled: "canceled",
+    cancelled: "canceled",
+  };
+
+  return aliases[status] || String(status || "").toLowerCase();
+}
+
+function isCompletedOrder(order) {
+  const status = normalizeOrderStatus(order.status);
+  const finalType = String(order.finalType || "").toLowerCase();
+
   return (
-    order.status === "Завершено" &&
-    order.paymentStatus === "Оплачено" &&
-    order.finalType === "paid"
+    status === "completed" ||
+    finalType === "completed" ||
+    finalType === "paid"
   );
 }
 
@@ -67,7 +82,7 @@ function buildAnalytics(db, filters = {}) {
     isOrderInDateRange(order, filters)
   );
 
-  const completedOrders = periodOrders.filter(isCompletedPaidOrder);
+  const completedOrders = periodOrders.filter(isCompletedOrder);
 
   const totalOrders = periodOrders.length;
   const completedOrdersCount = completedOrders.length;

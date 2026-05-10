@@ -1,6 +1,24 @@
 import { useState } from "react";
 import { api } from "../api/client.js";
 
+function extractBackendErrors(error) {
+  return (
+    error?.response?.data?.errors ||
+    error?.data?.errors ||
+    error?.errors ||
+    {}
+  );
+}
+
+function extractBackendMessage(error) {
+  return (
+    error?.response?.data?.message ||
+    error?.data?.message ||
+    error?.message ||
+    "Не вдалося створити замовлення."
+  );
+}
+
 export function useOrderSubmit({
   cartItems,
   form,
@@ -8,6 +26,7 @@ export function useOrderSubmit({
   isAdmin,
   loadAdminData,
   loadCustomerOrders,
+  clearCart,
   setView,
 }) {
   const [orderMessage, setOrderMessage] = useState("");
@@ -20,7 +39,15 @@ export function useOrderSubmit({
     );
 
     if (!cartItems.length || !hasName || !hasContact) {
-      return;
+      return {
+        ok: false,
+        message: "Додайте товари, імʼя та телефон або Telegram.",
+        errors: {
+          cart: !cartItems.length ? "Кошик порожній" : "",
+          name: !hasName ? "Вкажіть імʼя" : "",
+          contact: !hasContact ? "Вкажіть телефон або Telegram" : "",
+        },
+      };
     }
 
     const items = cartItems.map((item) => ({
@@ -36,7 +63,8 @@ export function useOrderSubmit({
 
       setOrderMessage(result.telegramMessage || "");
       setCreatedOrder(result.order || null);
-      setView("success");
+
+      clearCart?.();
 
       if (isAdmin) {
         await loadAdminData?.();
@@ -45,9 +73,21 @@ export function useOrderSubmit({
       if (customer) {
         await loadCustomerOrders?.();
       }
+
+      setView("success");
+
+      return {
+        ok: true,
+        order: result.order || null,
+      };
     } catch (error) {
       console.error("Create order error:", error);
-      alert("Не вдалося створити замовлення. Перевір backend.");
+
+      return {
+        ok: false,
+        message: extractBackendMessage(error),
+        errors: extractBackendErrors(error),
+      };
     }
   }
 

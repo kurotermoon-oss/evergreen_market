@@ -5,3 +5,4 @@ dist/
 server/db.json
 server/backups/
 server/data/
+/src/generated/prisma

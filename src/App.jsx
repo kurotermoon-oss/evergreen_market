@@ -68,9 +68,10 @@ export default function App() {
   } = usePublicData();
 
 
-  const {
+const {
   cart,
   setCart,
+  clearCart,
   cartItems,
   total,
   cartCount,
@@ -124,10 +125,12 @@ const [form, setForm] = useState(DEFAULT_FORM);
 const {
   customer,
   customerOrders,
+  setCustomer,
   checkCustomerSession,
   loadCustomerOrders,
   customerLogin,
   customerRegister,
+  updateCustomerProfile,
   customerLogout: logoutCustomerSession,
 } = useCustomerSession({
   applyCustomerToForm,
@@ -137,6 +140,7 @@ const {
 const {
   isAdmin,
   adminProducts,
+  adminCategories,
   orders,
 
   analytics,
@@ -164,6 +168,13 @@ const {
 
   updateAnalyticsFilters,
   updateOrderAction,
+
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  createSubcategory,
+  updateSubcategory,
+  deleteSubcategory,
 } = useAdminData({
   loadPublicData,
   setView,
@@ -185,6 +196,7 @@ const {
   isAdmin,
   loadAdminData,
   loadCustomerOrders,
+  clearCart,
   setView,
 });
 
@@ -237,25 +249,30 @@ useEffect(() => {
   }
 }, [view]);
 
+useEffect(() => {
+  window.scrollTo({ top: 0, behavior: "auto" });
+}, [view]);
+
+
   function updateForm(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
 
-  function applyCustomerToForm(customerData) {
+function applyCustomerToForm(customerData) {
   if (!customerData) return;
 
   setForm((current) => ({
     ...current,
-    name: current.name || customerData.name || "",
-    phone: current.phone || customerData.phone || "",
-    telegram:
-      current.telegram ||
-      (customerData.telegram ? `@${customerData.telegram}` : ""),
-    building: current.building || customerData.building || "",
-    entrance: current.entrance || customerData.entrance || "",
-    floor: current.floor || customerData.floor || "",
-    apartment: current.apartment || customerData.apartment || "",
+
+    name: customerData.name || "",
+    phone: customerData.phone || "",
+    telegram: customerData.telegram ? `@${customerData.telegram}` : "",
+
+    building: customerData.building || "",
+    entrance: customerData.entrance || "",
+    floor: customerData.floor || "",
+    apartment: customerData.apartment || "",
   }));
 }
 
@@ -269,6 +286,7 @@ useEffect(() => {
   function openProduct(product) {
     setSelectedProduct(product);
     setView("product");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
 
@@ -400,13 +418,15 @@ useEffect(() => {
     )}
 
     {view === "account" && (
-      <AccountView
-        customer={customer}
-        customerOrders={customerOrders}
-        loadCustomerOrders={loadCustomerOrders}
-        customerLogout={customerLogout}
-        setView={setView}
-      />
+        <AccountView
+          customer={customer}
+          setCustomer={setCustomer}
+          customerOrders={customerOrders}
+          loadCustomerOrders={loadCustomerOrders}
+          customerLogout={customerLogout}
+          updateCustomerProfile={updateCustomerProfile}
+          setView={setView}
+        />
     )}
 
 
@@ -428,6 +448,7 @@ useEffect(() => {
       <AdminView
         categories={categories}
         products={adminProducts}
+        adminCategories={adminCategories}
         orders={orders}
         draftProduct={draftProduct}
         setDraftProduct={setDraftProduct}
@@ -444,6 +465,12 @@ useEffect(() => {
         analytics={analytics}
         analyticsFilters={analyticsFilters}
         updateAnalyticsFilters={updateAnalyticsFilters}
+        createCategory={createCategory}
+        updateCategory={updateCategory}
+        deleteCategory={deleteCategory}
+        createSubcategory={createSubcategory}
+        updateSubcategory={updateSubcategory}
+        deleteSubcategory={deleteSubcategory}
       />
       )}
 

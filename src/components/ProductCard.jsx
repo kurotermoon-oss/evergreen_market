@@ -1,3 +1,4 @@
+import Icon from "./Icon.jsx";
 import { formatUAH } from "../utils/formatUAH.js";
 import {
   getCategoryName,
@@ -9,6 +10,41 @@ import {
   isProductPopular,
   isProductAvailable,
 } from "../utils/products.js";
+
+function ProductBadges({ discountPercent, popular, available }) {
+  const hasDiscount = Number(discountPercent || 0) > 0;
+
+  if (!hasDiscount && !popular && available) {
+    return null;
+  }
+
+  return (
+    <div className="pointer-events-none absolute inset-x-4 top-4 z-20 flex items-start justify-between gap-2">
+      <div className="flex flex-col items-start gap-2">
+        {hasDiscount && (
+          <span className="inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-xs font-black text-white shadow-sm ring-2 ring-white">
+            -{discountPercent}%
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-col items-end gap-2">
+        {popular && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-900 px-3 py-1 text-xs font-black text-white shadow-sm ring-2 ring-white">
+            <Icon name="popular" size={14} className="text-emerald-100" />
+            Популярне
+          </span>
+        )}
+
+        {!available && (
+          <span className="inline-flex items-center rounded-full bg-stone-900 px-3 py-1 text-xs font-black text-white shadow-sm ring-2 ring-white">
+            Немає
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function ProductCard({
   product,
@@ -74,38 +110,31 @@ export default function ProductCard({
     changeQuantity?.(product.id, nextQuantity);
   }
 
+  function handleImageError(event) {
+    event.currentTarget.src = "/logo_evergreen.png";
+    event.currentTarget.className =
+      "relative z-0 max-h-[72%] max-w-[72%] object-contain opacity-80 transition duration-300 group-hover:scale-[1.03]";
+  }
+
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
+    <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-md">
       <button
         type="button"
         onClick={() => openProduct?.(product)}
-        className="relative flex h-56 items-center justify-center bg-white p-5"
+        className="relative flex h-56 w-full items-center justify-center overflow-hidden bg-stone-50 p-5"
+        aria-label={`Відкрити товар ${product.name}`}
       >
-      {discountPercent && (
-        <span className="absolute left-4 top-4 rounded-full bg-red-600 px-3 py-1 text-xs font-black text-white shadow-sm">
-          -{discountPercent}%
-        </span>
-      )}
-
-
-      <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
-        {popular && (
-          <span className="rounded-full bg-emerald-900 px-3 py-1 text-xs font-black text-white shadow-sm">
-            🔥 Популярне
-          </span>
-        )}
-
-        {!available && (
-          <span className="rounded-full bg-stone-900 px-3 py-1 text-xs font-black text-white shadow-sm">
-            Немає
-          </span>
-        )}
-      </div>
+        <ProductBadges
+          discountPercent={discountPercent}
+          popular={popular}
+          available={available}
+        />
 
         <img
-          src={product.image}
+          src={product.image || "/logo_evergreen.png"}
           alt={product.name}
-          className="max-h-full max-w-full object-contain transition group-hover:scale-105"
+          onError={handleImageError}
+          className="relative z-0 max-h-full max-w-full object-contain transition duration-300 group-hover:scale-[1.05]"
         />
       </button>
 
@@ -119,9 +148,9 @@ export default function ProductCard({
           </div>
 
           <p
-            className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${stockTone}`}
+            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ${stockTone}`}
           >
-            {available ? "✓ " : ""}
+            {available && <Icon name="success" size={12} />}
             {stockLabel}
           </p>
         </div>
@@ -131,7 +160,7 @@ export default function ProductCard({
           onClick={() => openProduct?.(product)}
           className="text-left"
         >
-          <h3 className="line-clamp-2 min-h-[52px] text-base font-black leading-6 text-stone-950 hover:text-emerald-800">
+          <h3 className="line-clamp-2 min-h-[52px] text-base font-black leading-6 text-stone-950 transition hover:text-emerald-800">
             {product.name}
           </h3>
         </button>
@@ -148,11 +177,12 @@ export default function ProductCard({
                 {formatUAH(product.price)}
               </p>
 
-              {product.oldPrice && Number(product.oldPrice) > Number(product.price) && (
-                <p className="pb-1 text-sm text-stone-400 line-through">
-                  {formatUAH(product.oldPrice)}
-                </p>
-              )}
+              {product.oldPrice &&
+                Number(product.oldPrice) > Number(product.price) && (
+                  <p className="pb-1 text-sm text-stone-400 line-through">
+                    {formatUAH(product.oldPrice)}
+                  </p>
+                )}
             </div>
           </div>
 
@@ -170,10 +200,10 @@ export default function ProductCard({
                 <button
                   type="button"
                   onClick={handleDecrease}
-                  className="px-4 py-3 text-sm font-black transition hover:bg-emerald-800"
+                  className="flex h-full items-center justify-center px-4 py-3 text-sm font-black transition hover:bg-emerald-800"
                   aria-label="Зменшити кількість"
                 >
-                  −
+                  <Icon name="minus" size={14} />
                 </button>
 
                 <span className="min-w-8 px-1 text-center text-sm font-black">
@@ -184,10 +214,10 @@ export default function ProductCard({
                   type="button"
                   onClick={handleIncrease}
                   disabled={!available}
-                  className="px-4 py-3 text-sm font-black transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+                  className="flex h-full items-center justify-center px-4 py-3 text-sm font-black transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
                   aria-label="Збільшити кількість"
                 >
-                  +
+                  <Icon name="plus" size={14} />
                 </button>
               </div>
             ) : (

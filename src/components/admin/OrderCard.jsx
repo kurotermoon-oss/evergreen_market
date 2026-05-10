@@ -1,6 +1,10 @@
 import { formatUAH } from "../../utils/formatUAH.js";
 import OrderActions from "./OrderActions.jsx";
-import { isFinalOrder, paymentColors, statusColors } from "./orderUiConfig.js";
+import {
+  isFinalOrder,
+  getOrderStatusClass,
+  getOrderStatusLabel,
+} from "./orderUiConfig.js";
 
 export default function OrderCard({ order, updateOrderAction }) {
   const final = isFinalOrder(order);
@@ -8,22 +12,11 @@ export default function OrderCard({ order, updateOrderAction }) {
   async function handleAction(action) {
     if (action === "cancel") {
       const reason = window.prompt("Причина скасування замовлення:");
-
       if (reason === null) return;
 
-      await updateOrderAction(order.id, action, {
-        reason,
-      });
-
+      await updateOrderAction(order.id, action, { reason });
       return;
     }
-
-    const shouldConfirm =
-      action === "complete_paid"
-        ? window.confirm("Завершити замовлення як оплачене? Після цього його не можна буде редагувати.")
-        : true;
-
-    if (!shouldConfirm) return;
 
     await updateOrderAction(order.id, action);
   }
@@ -57,6 +50,10 @@ export default function OrderCard({ order, updateOrderAction }) {
             Оплата: {order.paymentMethod}
           </p>
 
+          <p className="text-sm text-stone-500">
+            Оплата здійснюється на місці
+          </p>
+
           {order.cancelReason && (
             <p className="mt-2 text-sm font-semibold text-red-600">
               Причина скасування: {order.cancelReason}
@@ -71,19 +68,11 @@ export default function OrderCard({ order, updateOrderAction }) {
 
           <div className="mt-3 flex flex-wrap gap-2 xl:justify-end">
             <span
-              className={`rounded-full px-3 py-1 text-xs font-black ${
-                statusColors[order.status] || "bg-stone-100 text-stone-700"
-              }`}
+              className={`rounded-full px-3 py-1 text-xs font-black ${getOrderStatusClass(
+                order.status
+              )}`}
             >
-              {order.status}
-            </span>
-
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-black ${
-                paymentColors[order.paymentStatus] || "bg-stone-100 text-stone-700"
-              }`}
-            >
-              {order.paymentStatus}
+              {getOrderStatusLabel(order.status)}
             </span>
           </div>
 
@@ -142,12 +131,14 @@ export default function OrderCard({ order, updateOrderAction }) {
 
           <div className="mt-3 space-y-2">
             {(order.statusHistory || []).map((item, index) => (
-              <div key={`${order.id}-history-${index}`} className="text-sm text-stone-600">
+              <div
+                key={`${order.id}-history-${index}`}
+                className="text-sm text-stone-600"
+              >
                 <span className="font-semibold">
                   {new Date(item.at).toLocaleString("uk-UA")}
-                </span>
-                {" — "}
-                <span>{item.label}</span>
+                </span>{" "}
+                — <span>{item.label}</span>
               </div>
             ))}
           </div>

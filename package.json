@@ -9,9 +9,14 @@
     "build": "vite build",
     "start": "node server/index.cjs",
     "preview": "vite preview",
-    "db:migrate": "node server/database/migrate.cjs"
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "db:import-json": "node server/scripts/migrateJsonToPostgres.cjs"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "@tailwindcss/vite": "latest",
     "@vitejs/plugin-react": "latest",
     "cookie-parser": "^1.4.7",
@@ -19,11 +24,15 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
+    "lucide-react": "^1.14.0",
     "pg": "^8.20.0",
     "react": "latest",
     "react-dom": "latest",
     "recharts": "^3.8.1",
     "tailwindcss": "latest",
     "vite": "latest"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
   }
 }

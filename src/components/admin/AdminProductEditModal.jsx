@@ -22,6 +22,7 @@ function TextInput({
   placeholder,
   type = "text",
   className = "",
+  ...props
 }) {
   return (
     <input
@@ -29,7 +30,8 @@ function TextInput({
       onChange={onChange}
       type={type}
       placeholder={placeholder}
-      className={`w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700 ${className}`}
+      className={`w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400 ${className}`}
+      {...props}
     />
   );
 }
@@ -46,6 +48,18 @@ function TextArea({ value, onChange, placeholder, rows = 4 }) {
   );
 }
 
+function OrDivider() {
+  return (
+    <div className="flex items-center gap-3 py-1">
+      <div className="h-px flex-1 bg-stone-200" />
+      <span className="text-xs font-black uppercase tracking-wide text-stone-400">
+        або
+      </span>
+      <div className="h-px flex-1 bg-stone-200" />
+    </div>
+  );
+}
+
 export default function AdminProductEditModal({
   categories,
   editingProduct,
@@ -54,15 +68,33 @@ export default function AdminProductEditModal({
   cancelEditProduct,
 }) {
   function updateField(field, value) {
-    setEditingProduct({
-      ...editingProduct,
+    setEditingProduct((current) => ({
+      ...current,
       [field]: value,
-    });
+    }));
   }
 
-  const selectedCategory = categories.find(
-    (category) => category.id === editingProduct.category
+  function updateFields(nextFields) {
+    setEditingProduct((current) => ({
+      ...current,
+      ...nextFields,
+    }));
+  }
+
+  const hasNewCategory = Boolean(
+    String(editingProduct.newCategoryName || "").trim()
   );
+
+  const hasNewSubcategory = Boolean(
+    String(editingProduct.newSubcategoryName || "").trim()
+  );
+
+  const selectedCategory = categories.find((category) => {
+    return category.id === editingProduct.category;
+  });
+
+  const canCreateOrSelectSubcategory =
+    Boolean(editingProduct.category) || hasNewCategory;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8">
@@ -79,7 +111,7 @@ export default function AdminProductEditModal({
 
             <p className="mt-2 text-sm leading-6 text-stone-500">
               Змініть дані товару. Ці поля використовуються в каталозі,
-              карточці товару та на сторінці товару.
+              картці товару та на сторінці товару.
             </p>
           </div>
 
@@ -128,17 +160,22 @@ export default function AdminProductEditModal({
             </div>
           </FormSection>
 
-          <FormSection title="Категорія">
+          <FormSection
+            title="Категорія"
+            description="Можна обрати існуючу категорію або створити нову прямо під час редагування товару."
+          >
             <select
               value={editingProduct.category || ""}
+              disabled={hasNewCategory}
               onChange={(event) =>
-                setEditingProduct({
-                  ...editingProduct,
+                updateFields({
                   category: event.target.value,
                   subcategory: "",
+                  newCategoryName: "",
+                  newSubcategoryName: "",
                 })
               }
-              className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700"
+              className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400"
             >
               <option value="">Оберіть категорію</option>
 
@@ -150,15 +187,49 @@ export default function AdminProductEditModal({
                   </option>
                 ))}
             </select>
+
+            <OrDivider />
+
+            <TextInput
+              value={editingProduct.newCategoryName || ""}
+              onChange={(event) =>
+                updateFields({
+                  newCategoryName: event.target.value,
+                  category: event.target.value.trim()
+                    ? ""
+                    : editingProduct.category,
+                  subcategory: event.target.value.trim()
+                    ? ""
+                    : editingProduct.subcategory,
+                })
+              }
+              placeholder="Введіть нову категорію"
+            />
+
+            {hasNewCategory && (
+              <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900">
+                Буде створено нову категорію:{" "}
+                <span className="font-black">
+                  {editingProduct.newCategoryName}
+                </span>
+              </p>
+            )}
           </FormSection>
 
-          <FormSection title="Підкатегорія">
+          <FormSection
+            title="Підкатегорія"
+            description="Підкатегорія необовʼязкова. Її можна обрати зі списку або створити нову."
+          >
             <select
               value={editingProduct.subcategory || ""}
+              disabled={!selectedCategory || hasNewCategory || hasNewSubcategory}
               onChange={(event) =>
-                updateField("subcategory", event.target.value)
+                updateFields({
+                  subcategory: event.target.value,
+                  newSubcategoryName: "",
+                })
               }
-              className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700"
+              className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400"
             >
               <option value="">Без підкатегорії</option>
 
@@ -168,6 +239,35 @@ export default function AdminProductEditModal({
                 </option>
               ))}
             </select>
+
+            <OrDivider />
+
+            <TextInput
+              value={editingProduct.newSubcategoryName || ""}
+              disabled={!canCreateOrSelectSubcategory}
+              onChange={(event) =>
+                updateFields({
+                  newSubcategoryName: event.target.value,
+                  subcategory: event.target.value.trim()
+                    ? ""
+                    : editingProduct.subcategory,
+                })
+              }
+              placeholder={
+                canCreateOrSelectSubcategory
+                  ? "Введіть нову підкатегорію"
+                  : "Спочатку оберіть або введіть категорію"
+              }
+            />
+
+            {hasNewSubcategory && (
+              <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm leading-6 text-emerald-900">
+                Буде створено нову підкатегорію:{" "}
+                <span className="font-black">
+                  {editingProduct.newSubcategoryName}
+                </span>
+              </p>
+            )}
           </FormSection>
 
           <FormSection
@@ -180,6 +280,8 @@ export default function AdminProductEditModal({
                 onChange={(event) => updateField("price", event.target.value)}
                 placeholder="Ціна, грн"
                 type="number"
+                min="0"
+                max="999999"
               />
 
               <TextInput
@@ -189,6 +291,8 @@ export default function AdminProductEditModal({
                 }
                 placeholder="Собівартість, грн"
                 type="number"
+                min="0"
+                max="999999"
               />
 
               <TextInput
@@ -198,47 +302,67 @@ export default function AdminProductEditModal({
                 }
                 placeholder="Стара ціна, якщо є"
                 type="number"
+                min="0"
+                max="999999"
               />
             </div>
           </FormSection>
 
-          <FormSection
-            title="Наявність"
-            description="Точну кількість бачить тільки адмінка. На сайті клієнт бачить лише статус."
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
-              <select
-                value={editingProduct.stockStatus || "in_stock"}
-                onChange={(event) =>
-                  setEditingProduct({
-                    ...editingProduct,
-                    stockStatus: event.target.value,
-                    stockQuantity:
-                      event.target.value === "limited"
-                        ? editingProduct.stockQuantity || ""
-                        : "",
-                  })
-                }
-                className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700"
-              >
-                <option value="in_stock">У наявності</option>
-                <option value="limited">Мало в наявності</option>
-                <option value="preorder">Під замовлення</option>
-                <option value="out_of_stock">Немає в наявності</option>
-              </select>
+        <FormSection
+          title="Наявність"
+          description="Точну кількість бачить тільки адмінка. На сайті клієнт бачить лише статус."
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <select
+              value={editingProduct.stockStatus || "in_stock"}
+              onChange={(event) => {
+                const nextStatus = event.target.value;
 
-              {editingProduct.stockStatus === "limited" && (
-                <TextInput
-                  value={editingProduct.stockQuantity || ""}
-                  onChange={(event) =>
-                    updateField("stockQuantity", event.target.value)
-                  }
-                  placeholder="Кількість на складі"
-                  type="number"
-                />
-              )}
-            </div>
-          </FormSection>
+                updateFields({
+                  stockStatus: nextStatus,
+                  stockQuantity:
+                    nextStatus === "limited"
+                      ? editingProduct.stockQuantity || "1"
+                      : "",
+                });
+              }}
+              className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-700"
+            >
+              <option value="in_stock">У наявності</option>
+              <option value="limited">Обмежена кількість</option>
+              <option value="preorder">Під замовлення</option>
+              <option value="out_of_stock">Немає в наявності</option>
+            </select>
+
+            <TextInput
+              value={editingProduct.stockQuantity || ""}
+              onChange={(event) => updateField("stockQuantity", event.target.value)}
+              placeholder={
+                editingProduct.stockStatus === "limited"
+                  ? "Кількість на складі"
+                  : "Кількість доступна тільки для обмеженого залишку"
+              }
+              type="number"
+              min="0"
+              max="999999"
+              disabled={editingProduct.stockStatus !== "limited"}
+            />
+          </div>
+
+          {editingProduct.stockStatus !== "limited" && (
+            <p className="rounded-2xl bg-white px-4 py-3 text-sm leading-6 text-stone-500">
+              Для звичайного статусу “У наявності” точний залишок не списується.
+              Щоб контролювати склад, оберіть “Обмежена кількість”.
+            </p>
+          )}
+
+          {editingProduct.stockStatus === "limited" && (
+            <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
+              Це число буде зменшуватися після оформлення замовлення і повертатися
+              назад, якщо замовлення скасовано.
+            </p>
+          )}
+        </FormSection>
 
           <FormSection
             title="Зображення"
@@ -281,7 +405,7 @@ export default function AdminProductEditModal({
 
           <FormSection
             title="Обʼєм, вага та упаковка"
-            description="Ці поля показуються в карточці каталогу та на сторінці товару."
+            description="Ці поля показуються в картці каталогу та на сторінці товару."
           >
             <div className="grid gap-3 sm:grid-cols-2">
               <TextInput
@@ -323,10 +447,8 @@ export default function AdminProductEditModal({
             />
 
             <TextArea
-              value={editingProduct.storageConditions || ""}
-              onChange={(event) =>
-                updateField("storageConditions", event.target.value)
-              }
+              value={editingProduct.storage || ""}
+              onChange={(event) => updateField("storage", event.target.value)}
               rows={3}
               placeholder="Умови зберігання"
             />

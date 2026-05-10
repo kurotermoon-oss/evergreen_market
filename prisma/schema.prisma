@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id        String   @id
+  name      String
+  slug      String   @unique
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subcategories Subcategory[]
+  products      Product[]
+
+  @@map("categories")
+}
+
+model Subcategory {
+  id         String   @id
+  categoryId String
+  name       String
+  slug       String
+  active     Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  products Product[]
+
+  @@unique([categoryId, slug])
+  @@map("subcategories")
+}
+
+model Product {
+  id          String   @id
+  name        String
+  brand       String   @default("")
+  image       String   @default("")
+
+  categoryId    String
+  subcategoryId String?
+
+  price      Int
+  oldPrice   Int?
+  costPrice  Int      @default(0)
+
+  unit        String   @default("1 шт")
+  packageInfo String   @default("продається поштучно")
+
+  description String @default("")
+  details     String @default("")
+  composition String @default("")
+  allergens   String @default("")
+  storage     String @default("")
+
+  statusLabel   String @default("")
+  stockStatus   String @default("in_stock")
+  stockQuantity Int?
+
+  active        Boolean @default(true)
+  popular       Boolean @default(false)
+  purchaseCount Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category    Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  subcategory Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+
+  orderItems OrderItem[]
+
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([active])
+  @@map("products")
+}
+
+model Customer {
+  id Int @id @default(autoincrement())
+
+  name     String
+  phone    String?
+  telegram String?
+
+  passwordHash String
+
+  building  String @default("")
+  entrance  String @default("")
+  floor     String @default("")
+  apartment String @default("")
+
+  telegramChatId     String @default("")
+  telegramVerifiedAt DateTime?
+  phoneVerifiedAt    DateTime?
+
+  telegramVerificationCode               String @default("")
+  telegramVerificationExpiresAt          DateTime?
+  telegramVerificationStartedAt          DateTime?
+  telegramVerificationChatId             String @default("")
+  telegramVerificationUsername           String @default("")
+  telegramVerificationCodeConfirmedAt    DateTime?
+  telegramVerificationContactRequestedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
+
+  @@unique([phone])
+  @@unique([telegram])
+  @@map("customers")
+}
+
+model Order {
+  id          String @id
+  orderNumber Int   @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customerId Int?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  guestId    String?
+  clientIp   String @default("")
+  trustLevel String @default("guest")
+
+  customerName     String
+  customerPhone    String @default("")
+  customerTelegram String @default("")
+
+  deliveryType String @default("pickup")
+  building     String @default("")
+  entrance     String @default("")
+  floor        String @default("")
+  apartment    String @default("")
+
+  paymentMethod String @default("Після підтвердження")
+  paymentStatus String @default("unpaid")
+
+  comment String @default("")
+
+  status       String @default("new")
+  isFinal      Boolean @default(false)
+  finalType    String?
+  finalizedAt  DateTime?
+  cancelReason String @default("")
+
+  stockRestoredAt DateTime?
+
+  total Int @default(0)
+
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+
+  @@index([customerId])
+  @@index([guestId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id Int @id @default(autoincrement())
+
+  orderId   String
+  productId String?
+
+  name        String
+  brand       String @default("")
+  unit        String @default("")
+  packageInfo String @default("")
+
+  price     Int
+  costPrice Int @default(0)
+  quantity  Int
+
+  total     Int
+  costTotal Int @default(0)
+  profit    Int @default(0)
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+model OrderStatusHistory {
+  id Int @id @default(autoincrement())
+
+  orderId String
+
+  at    DateTime @default(now())
+  type  String
+  label String
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_status_history")
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model BlockedCustomer {
+  id Int @id @default(autoincrement())
+
+  type      String
+  value     String
+  reason    String @default("")
+  createdAt DateTime @default(now())
+
+  @@unique([type, value])
+  @@map("blocked_customers")
+}

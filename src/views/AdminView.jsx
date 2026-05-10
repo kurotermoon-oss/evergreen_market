@@ -2,29 +2,42 @@ import { useState } from "react";
 
 import AdminOrdersPanel from "../components/admin/AdminOrdersPanel.jsx";
 import AdminAnalyticsPanel from "../components/admin/AdminAnalyticsPanel.jsx";
-import AdminProductForm from "../components/admin/AdminProductForm.jsx";
-import AdminProductsPanel from "../components/admin/AdminProductsPanel.jsx";
 import AdminProductEditModal from "../components/admin/AdminProductEditModal.jsx";
+import AdminCatalogPanel from "../components/admin/AdminCatalogPanel.jsx";
 
 export default function AdminView({
   categories,
   products,
+  adminCategories,
   orders,
+
   draftProduct,
   setDraftProduct,
+
   editingProduct,
   setEditingProduct,
+
   startEditProduct,
   cancelEditProduct,
   saveEditedProduct,
+
   addDraftProduct,
   toggleProductActive,
   deleteProduct,
+
   updateOrderAction,
   logoutAdmin,
+
   analytics,
   analyticsFilters,
   updateAnalyticsFilters,
+
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  createSubcategory,
+  updateSubcategory,
+  deleteSubcategory,
 }) {
   const [adminTab, setAdminTab] = useState("orders");
 
@@ -37,11 +50,11 @@ export default function AdminView({
           </p>
 
           <h1 className="mt-2 text-4xl font-black text-stone-950">
-            Товари та замовлення
+            Керування магазином
           </h1>
 
           <p className="mt-3 max-w-3xl text-stone-600">
-            Керуйте замовленнями, товарами та позиціями каталогу.
+            Керуйте замовленнями, каталогом товарів, категоріями та аналітикою.
           </p>
         </div>
 
@@ -57,8 +70,7 @@ export default function AdminView({
       <div className="mb-8 flex gap-2 overflow-x-auto rounded-3xl bg-white p-2 shadow-sm">
         {[
           { id: "orders", label: "Замовлення" },
-          { id: "products", label: "Товари" },
-          { id: "add-product", label: "Додати товар" },
+          { id: "catalog", label: "Каталог" },
           { id: "analytics", label: "Аналітика" },
         ].map((tab) => (
           <button
@@ -83,22 +95,22 @@ export default function AdminView({
         />
       )}
 
-      {adminTab === "products" && (
-        <AdminProductsPanel
+      {adminTab === "catalog" && (
+        <AdminCatalogPanel
+          categories={adminCategories?.length ? adminCategories : categories}
           products={products}
-          categories={categories}
-          startEditProduct={startEditProduct}
-          toggleProductActive={toggleProductActive}
-          deleteProduct={deleteProduct}
-        />
-      )}
-
-      {adminTab === "add-product" && (
-        <AdminProductForm
-          categories={categories}
           draftProduct={draftProduct}
           setDraftProduct={setDraftProduct}
           addDraftProduct={addDraftProduct}
+          startEditProduct={startEditProduct}
+          toggleProductActive={toggleProductActive}
+          deleteProduct={deleteProduct}
+          createCategory={createCategory}
+          updateCategory={updateCategory}
+          deleteCategory={deleteCategory}
+          createSubcategory={createSubcategory}
+          updateSubcategory={updateSubcategory}
+          deleteSubcategory={deleteSubcategory}
         />
       )}
 

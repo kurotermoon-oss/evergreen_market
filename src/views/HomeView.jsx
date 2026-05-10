@@ -3,6 +3,13 @@ import { useMemo, useRef } from "react";
 import ProductCard from "../components/ProductCard.jsx";
 import { getRandomItems } from "../utils/products.js";
 
+import {
+  PickupIcon,
+  DeliveryIcon,
+  PaymentIcon,
+  GuestIcon,
+} from "../components/icons/HomeFeatureIcons.jsx";
+
 const CATEGORY_ICONS = {
   coffee: "☕",
   milk: "🥛",
@@ -12,6 +19,20 @@ const CATEGORY_ICONS = {
   snacks: "🥨",
   drinks: "🥤",
 };
+
+function HeroFeatureCard({ icon, title, text }) {
+  return (
+    <div className="group rounded-3xl bg-white/90 p-5 shadow-sm ring-1 ring-stone-200 transition duration-200 hover:-translate-y-1 hover:shadow-md hover:ring-emerald-200">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-900 ring-1 ring-emerald-100 transition duration-200 group-hover:bg-emerald-900 group-hover:text-white">
+        {icon}
+      </div>
+
+      <p className="mt-4 font-black text-stone-950">{title}</p>
+
+      <p className="mt-2 text-sm leading-6 text-stone-500">{text}</p>
+    </div>
+  );
+}
 
 export default function HomeView({
   setView,
@@ -76,43 +97,29 @@ export default function HomeView({
             </p>
 
             <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-                <p className="text-2xl">☕</p>
-                <p className="mt-3 font-black text-stone-950">Самовивіз</p>
-                <p className="mt-1 text-sm leading-6 text-stone-500">
-                  Замовте заздалегідь і заберіть без черги.
-                </p>
-              </div>
+              <HeroFeatureCard
+                icon={<PickupIcon />}
+                title="Самовивіз"
+                text="Замовте заздалегідь і заберіть у кавʼярні без зайвого очікування."
+              />
 
-              <div className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-                <p className="text-2xl">🏡</p>
-                <p className="mt-3 font-black text-stone-950">
-                  Локальна доставка
-                </p>
-                <p className="mt-1 text-sm leading-6 text-stone-500">
-                  Привеземо замовлення просто до вас у межах ЖК.
-                </p>
-              </div>
+              <HeroFeatureCard
+                icon={<DeliveryIcon />}
+                title="Локальна доставка"
+                text="Привеземо замовлення просто до вас у межах комплексу."
+              />
 
-              <div className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-                <p className="text-2xl">💳</p>
-                <p className="mt-3 font-black text-stone-950">
-                  Оплата після підтвердження
-                </p>
-                <p className="mt-1 text-sm leading-6 text-stone-500">
-                  Спочатку підтвердимо замовлення, потім — оплата.
-                </p>
-              </div>
+              <HeroFeatureCard
+                icon={<PaymentIcon />}
+                title="Оплата після підтвердження"
+                text="Спочатку підтвердимо замовлення, а потім ви оплатите його на місці."
+              />
 
-              <div className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
-                <p className="text-2xl">✨</p>
-                <p className="mt-3 font-black text-stone-950">
-                  Без обовʼязкової реєстрації
-                </p>
-                <p className="mt-1 text-sm leading-6 text-stone-500">
-                  Можна замовити як гість або зберегти історію в кабінеті.
-                </p>
-              </div>
+              <HeroFeatureCard
+                icon={<GuestIcon />}
+                title="Без обовʼязкової реєстрації"
+                text="Можна оформити замовлення як гість або зберегти історію в кабінеті."
+              />
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -166,9 +173,11 @@ export default function HomeView({
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-[1.5rem] bg-stone-50 p-5">
               <p className="text-3xl font-black text-emerald-900">1</p>
+
               <h3 className="mt-3 font-black text-stone-950">
                 Оберіть товари
               </h3>
+
               <p className="mt-2 text-sm leading-6 text-stone-500">
                 Додайте каву, напої або продукти до кошика.
               </p>
@@ -176,9 +185,11 @@ export default function HomeView({
 
             <div className="rounded-[1.5rem] bg-stone-50 p-5">
               <p className="text-3xl font-black text-emerald-900">2</p>
+
               <h3 className="mt-3 font-black text-stone-950">
                 Залиште контакти
               </h3>
+
               <p className="mt-2 text-sm leading-6 text-stone-500">
                 Вкажіть телефон або Telegram, щоб ми підтвердили замовлення.
               </p>
@@ -186,9 +197,11 @@ export default function HomeView({
 
             <div className="rounded-[1.5rem] bg-stone-50 p-5">
               <p className="text-3xl font-black text-emerald-900">3</p>
+
               <h3 className="mt-3 font-black text-stone-950">
                 Отримайте замовлення
               </h3>
+
               <p className="mt-2 text-sm leading-6 text-stone-500">
                 Заберіть самостійно або замовте доставку по ЖК.
               </p>
