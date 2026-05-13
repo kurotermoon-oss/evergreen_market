@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "../api/client.js";
+import { saveRecentOrder } from "../utils/recentOrders.js";
 
 function extractBackendErrors(error) {
   return (
@@ -61,8 +62,15 @@ export function useOrderSubmit({
         form,
       });
 
+      const order = result.order || null;
+
       setOrderMessage(result.telegramMessage || "");
-      setCreatedOrder(result.order || null);
+      setCreatedOrder(order);
+
+      saveRecentOrder(order, {
+        form,
+        customer,
+      });
 
       clearCart?.();
 
@@ -78,7 +86,7 @@ export function useOrderSubmit({
 
       return {
         ok: true,
-        order: result.order || null,
+        order,
       };
     } catch (error) {
       console.error("Create order error:", error);

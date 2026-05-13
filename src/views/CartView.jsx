@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { getRecentOrders, clearRecentOrders } from "../utils/recentOrders.js";
 import Icon from "../components/Icon.jsx";
 import OrderRulesModal from "../components/OrderRulesModal.jsx";
 import { formatUAH } from "../utils/formatUAH.js";
@@ -56,6 +56,117 @@ function FieldError({ children }) {
     </p>
   );
 }
+
+
+function formatRecentOrderDate(value) {
+  if (!value) return "—";
+
+  return new Date(value).toLocaleString("uk-UA", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function RecentOrdersCard({ customer, setView }) {
+  const [recentOrders, setRecentOrders] = useState(() => getRecentOrders());
+
+  if (!recentOrders.length) return null;
+
+  function handleClearRecentOrders() {
+    clearRecentOrders();
+    setRecentOrders([]);
+  }
+
+  return (
+    <section className="eg-glass eg-premium-card mx-auto max-w-2xl rounded-[2rem] p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-sm font-black uppercase tracking-wide text-emerald-700">
+            Історія
+          </p>
+
+          <h2 className="mt-1 text-2xl font-black text-stone-950">
+            Останні замовлення на цьому пристрої
+          </h2>
+
+          <p className="mt-2 text-sm leading-6 text-stone-500">
+            Це локальна історія цього браузера. Якщо очистити кеш або відкрити
+            сайт з іншого пристрою, ці номери можуть не відображатися.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleClearRecentOrders}
+          className="eg-button rounded-2xl border border-stone-300 bg-white/80 px-4 py-3 text-sm font-black text-stone-800 hover:bg-white"
+        >
+          Очистити
+        </button>
+      </div>
+
+      <div className="mt-5 space-y-3">
+        {recentOrders.map((order) => (
+          <div
+            key={`${order.id}-${order.orderNumber}`}
+            className="eg-card flex flex-col gap-3 rounded-[1.5rem] bg-white/85 p-4 ring-1 ring-stone-100 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <p className="text-xl font-black text-stone-950">
+                #{order.orderNumber}
+              </p>
+
+              <p className="mt-1 text-sm text-stone-500">
+                {formatRecentOrderDate(order.createdAt)}
+                {order.contact ? ` · ${order.contact}` : ""}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-800 ring-1 ring-amber-200">
+                Очікує підтвердження
+              </span>
+
+              <span className="font-black text-stone-950">
+                {formatUAH(order.total)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 rounded-[1.5rem] bg-emerald-50/80 p-4 text-sm leading-6 text-emerald-900">
+        {customer ? (
+          <>
+            Повна історія замовлень доступна в особистому кабінеті.
+            <button
+              type="button"
+              onClick={() => setView("account")}
+              className="eg-button ml-2 font-black text-emerald-950 underline"
+            >
+              Відкрити кабінет
+            </button>
+          </>
+        ) : (
+          <>
+            Щоб історія зберігалась на будь-якому пристрої, створіть особистий
+            кабінет.
+            <button
+              type="button"
+              onClick={() => setView("customer-auth")}
+              className="eg-button ml-2 font-black text-emerald-950 underline"
+            >
+              Увійти або зареєструватися
+            </button>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
 
 export default function CartView({
   cartItems,
@@ -178,27 +289,31 @@ export default function CartView({
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      {isEmpty ? (
-        <div className="eg-glass eg-premium-card mx-auto max-w-2xl rounded-[2.5rem] px-16 py-24 text-center">
-          <Icon name="package" className="mx-auto text-stone-400" size={72} />
+        {isEmpty ? (
+          <div className="space-y-5">
+            <div className="eg-glass eg-premium-card mx-auto max-w-2xl rounded-[2.5rem] px-16 py-24 text-center">
+              <Icon name="package" className="mx-auto text-stone-400" size={72} />
 
-          <p className="mt-6 text-2xl font-black text-stone-950">
-            Кошик порожній
-          </p>
+              <p className="mt-6 text-2xl font-black text-stone-950">
+                Кошик порожній
+              </p>
 
-          <p className="mt-2 text-sm leading-6 text-stone-500">
-            Додайте щось смачне, щоб оформити замовлення.
-          </p>
+              <p className="mt-2 text-sm leading-6 text-stone-500">
+                Додайте щось смачне, щоб оформити замовлення.
+              </p>
 
-          <button
-            type="button"
-            onClick={() => setView("catalog")}
-            className="eg-button eg-sweep mt-8 rounded-2xl bg-emerald-900 px-7 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
-          >
-            Перейти до каталогу
-          </button>
-        </div>
-      ) : (
+              <button
+                type="button"
+                onClick={() => setView("catalog")}
+                className="eg-button eg-sweep mt-8 rounded-2xl bg-emerald-900 px-7 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
+              >
+                Перейти до каталогу
+              </button>
+            </div>
+
+            <RecentOrdersCard customer={customer} setView={setView} />
+          </div>
+        ) : (
         <div className="eg-stagger grid gap-8 lg:grid-cols-[1fr_0.88fr]">
           <section className="eg-glass eg-premium-card rounded-[2.2rem] p-6 lg:p-8">
             <div className="mb-6 flex items-center justify-between gap-4">

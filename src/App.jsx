@@ -440,6 +440,7 @@ return (
       {view === "success" && (
         <SuccessView
           createdOrder={createdOrder}
+          customer={customer}
           setCart={setCart}
           setOrderMessage={setOrderMessage}
           setCreatedOrder={setCreatedOrder}
