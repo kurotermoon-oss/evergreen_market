@@ -187,15 +187,15 @@ async function handleSearch(event) {
   }, [customers]);
 
   return (
-    <section className="space-y-5">
-      <div className="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-stone-100">
+    <section className="eg-ambient space-y-6">
+      <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 shadow-sm ring-1 ring-stone-100 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-800 shadow-sm backdrop-blur">
               Адмінка
             </p>
 
-            <h2 className="mt-1 text-3xl font-black text-stone-950">
+            <h2 className="mt-4 text-4xl font-black leading-tight text-stone-950">
               Клієнти
             </h2>
 
@@ -211,7 +211,7 @@ async function handleSearch(event) {
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Пошук: імʼя, телефон, Telegram"
-                className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 pr-12 text-sm outline-none focus:border-emerald-700"
+                className="eg-field w-full rounded-[1.4rem] border border-stone-200 bg-white/85 px-5 py-3 pr-12 text-sm outline-none backdrop-blur transition-all duration-300 focus:border-emerald-700 focus:bg-white focus:shadow-lg focus:shadow-emerald-900/10"
                 />
 
                 {searchQuery && (
@@ -227,15 +227,15 @@ async function handleSearch(event) {
 
             <button
                 type="submit"
-                className="rounded-2xl bg-emerald-900 px-5 py-3 text-sm font-black text-white hover:bg-emerald-800"
+                className="eg-button rounded-[1.3rem] bg-emerald-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-900/20 hover:-translate-y-[2px] hover:bg-emerald-800 hover:shadow-xl hover:shadow-emerald-900/30"
             >
                 Знайти
             </button>
             </form>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <div className="rounded-3xl bg-stone-50 p-4">
+        <div className="eg-stagger mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-black uppercase text-stone-400">
               Клієнтів
             </p>
@@ -244,7 +244,7 @@ async function handleSearch(event) {
             </p>
           </div>
 
-          <div className="rounded-3xl bg-stone-50 p-4">
+          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-black uppercase text-stone-400">
               Підтверджені
             </p>
@@ -253,7 +253,7 @@ async function handleSearch(event) {
             </p>
           </div>
 
-          <div className="rounded-3xl bg-stone-50 p-4">
+          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-black uppercase text-stone-400">
               Активні замовлення
             </p>
@@ -262,7 +262,7 @@ async function handleSearch(event) {
             </p>
           </div>
 
-          <div className="rounded-3xl bg-stone-50 p-4">
+          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-black uppercase text-stone-400">
               Заблоковані
             </p>
@@ -271,7 +271,7 @@ async function handleSearch(event) {
             </p>
           </div>
 
-          <div className="rounded-3xl bg-stone-50 p-4">
+          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-black uppercase text-stone-400">
               Виручка
             </p>
@@ -288,7 +288,7 @@ async function handleSearch(event) {
         </div>
       )}
 
-      <div className="rounded-[2rem] bg-white p-4 shadow-sm ring-1 ring-stone-100">
+      <div className="eg-glass rounded-[2.5rem] p-5 shadow-sm ring-1 ring-stone-100">
         {isLoading ? (
           <div className="rounded-3xl bg-stone-50 p-8 text-center font-bold text-stone-500">
             Завантажуємо клієнтів...
@@ -310,16 +310,16 @@ async function handleSearch(event) {
               return (
                 <article
                   key={customer.id}
-                  className={`rounded-3xl border p-4 ${
+                  className={`eg-card rounded-[2rem] border p-5 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl ${
                     customer.isBlocked
-                      ? "border-red-200 bg-red-50/50"
-                      : "border-stone-200 bg-white"
+                    ? "border-red-200 bg-red-50/70 shadow-red-100/40"
+                    : "border-stone-200 bg-white/80 hover:border-emerald-100 hover:shadow-emerald-900/10"
                   }`}
                 >
                   <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr_1fr_auto] xl:items-start">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-lg font-black text-stone-950">
+                        <h3 className="text-2xl font-black tracking-tight text-stone-950">
                           {customer.name || "Без імені"}
                         </h3>
 
@@ -363,7 +363,7 @@ async function handleSearch(event) {
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="rounded-2xl bg-stone-50 p-3">
+                      <div className="rounded-[1.3rem] bg-white/75 p-4 shadow-sm ring-1 ring-stone-100 backdrop-blur">
                         <p className="text-xs font-black uppercase text-stone-400">
                           Замовлень
                         </p>
@@ -372,7 +372,7 @@ async function handleSearch(event) {
                         </p>
                       </div>
 
-                      <div className="rounded-2xl bg-stone-50 p-3">
+                      <div className="rounded-[1.3rem] bg-white/75 p-4 shadow-sm ring-1 ring-stone-100 backdrop-blur">
                         <p className="text-xs font-black uppercase text-stone-400">
                           Активні
                         </p>
@@ -381,7 +381,7 @@ async function handleSearch(event) {
                         </p>
                       </div>
 
-                      <div className="rounded-2xl bg-stone-50 p-3">
+                      <div className="rounded-[1.3rem] bg-white/75 p-4 shadow-sm ring-1 ring-stone-100 backdrop-blur">
                         <p className="text-xs font-black uppercase text-stone-400">
                           Видано
                         </p>
@@ -390,7 +390,7 @@ async function handleSearch(event) {
                         </p>
                       </div>
 
-                      <div className="rounded-2xl bg-stone-50 p-3">
+                      <div className="rounded-[1.3rem] bg-white/75 p-4 shadow-sm ring-1 ring-stone-100 backdrop-blur">
                         <p className="text-xs font-black uppercase text-stone-400">
                           Скасовано
                         </p>
@@ -427,7 +427,7 @@ async function handleSearch(event) {
                       <button
                         type="button"
                         onClick={() => loadCustomerOrders(customer.id)}
-                        className="rounded-2xl bg-stone-900 px-4 py-3 text-sm font-black text-white hover:bg-stone-800"
+                        className="eg-button rounded-[1.3rem] bg-stone-950 px-4 py-3 text-sm font-black text-white shadow-lg shadow-stone-950/10 hover:-translate-y-[2px] hover:bg-stone-800"
                       >
                         {isExpanded ? "Сховати" : "Замовлення"}
                       </button>
@@ -441,7 +441,7 @@ async function handleSearch(event) {
                             `клієнта #${customer.id}`
                           )
                         }
-                        className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-800 ring-1 ring-red-200 hover:bg-red-100"
+                        className="eg-button rounded-[1.3rem] bg-red-50 px-4 py-3 text-sm font-black text-red-800 ring-1 ring-red-200 hover:-translate-y-[2px] hover:bg-red-100"
                       >
                         Блок акаунта
                       </button>
@@ -456,7 +456,7 @@ async function handleSearch(event) {
                               customer.phone
                             )
                           }
-                          className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100"
+                          className="eg-button rounded-[1.3rem] bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 ring-1 ring-amber-200 hover:-translate-y-[2px] hover:bg-amber-100"
                         >
                           Блок телефону
                         </button>
@@ -472,7 +472,7 @@ async function handleSearch(event) {
                               `@${customer.telegram}`
                             )
                           }
-                          className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100"
+                          className="eg-button rounded-[1.3rem] bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 ring-1 ring-amber-200 hover:-translate-y-[2px] hover:bg-amber-100"
                         >
                           Блок Telegram
                         </button>
@@ -502,7 +502,7 @@ async function handleSearch(event) {
                   )}
 
                   {isExpanded && (
-                    <div className="mt-4 rounded-3xl bg-stone-50 p-4">
+                    <div className="eg-panel mt-5 rounded-[1.8rem] bg-stone-50/90 p-5 backdrop-blur">
                       <p className="font-black text-stone-950">
                         Замовлення клієнта
                       </p>
@@ -517,7 +517,7 @@ async function handleSearch(event) {
                         </p>
                       ) : (
                         <div className="mt-3 overflow-x-auto">
-                          <table className="min-w-full text-left text-sm">
+                          <table className="min-w-full overflow-hidden rounded-2xl text-left text-sm">
                             <thead>
                               <tr className="text-xs uppercase text-stone-400">
                                 <th className="px-3 py-2">№</th>
@@ -532,7 +532,7 @@ async function handleSearch(event) {
                               {orders.map((order) => (
                                 <tr
                                   key={order.id}
-                                  className="border-t border-stone-200"
+                                  className="border-t border-stone-200 transition-colors hover:bg-white/80"
                                 >
                                   <td className="px-3 py-3 font-black">
                                     #{order.orderNumber}

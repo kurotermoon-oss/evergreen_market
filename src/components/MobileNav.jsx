@@ -43,7 +43,12 @@ function CoffeeIcon({ className = "" }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path d="M8 21h8" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+      <path
+        d="M8 21h8"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
       <path
         d="M9 4c-.5.7-.5 1.3 0 2M12 3.5c-.5.8-.5 1.5 0 2.3M15 4c-.5.7-.5 1.3 0 2"
         stroke="currentColor"
@@ -122,6 +127,7 @@ export default function MobileNav({
       isActive: view === "cart",
       onClick: () => setView("cart"),
       badge: cartCount,
+      hasGlow: cartCount > 0,
     },
     {
       id: "account",
@@ -133,7 +139,9 @@ export default function MobileNav({
   ];
 
   return (
-    <nav className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-[1.75rem] border border-stone-200 bg-white/95 p-2 shadow-xl backdrop-blur-xl md:hidden">
+    <nav className="eg-panel fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-2 shadow-2xl shadow-emerald-950/10 backdrop-blur-2xl md:hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_55%)]" />
+
       {navItems.map((item) => {
         const Icon = item.Icon;
 
@@ -142,10 +150,12 @@ export default function MobileNav({
             key={item.id}
             type="button"
             onClick={item.onClick}
-            className={`relative flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-200 ${
+            className={`eg-icon-button relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl ${
               item.isActive
-                ? "bg-emerald-900 text-white shadow-sm"
-                : "text-emerald-800 hover:bg-emerald-50"
+                ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                : item.hasGlow
+                  ? "eg-cart-glow bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
+                  : "text-emerald-800 hover:bg-emerald-50"
             }`}
             aria-label={item.label}
             title={item.label}
@@ -153,7 +163,7 @@ export default function MobileNav({
             <Icon className="h-5 w-5" />
 
             {item.badge > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-black text-stone-950 shadow-md ring-2 ring-white">
+              <span className="eg-cart-badge absolute -right-1.5 -top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-black text-stone-950 shadow-md ring-2 ring-white">
                 {item.badge}
               </span>
             )}

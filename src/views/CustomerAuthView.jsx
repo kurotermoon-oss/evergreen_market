@@ -45,17 +45,21 @@ function getBackendErrors(error) {
 }
 
 function getInputClass(hasError) {
-  return `w-full rounded-2xl border bg-white px-4 py-3 outline-none transition ${
+  return `eg-field w-full rounded-[1.3rem] border px-5 py-3.5 outline-none transition ${
     hasError
-      ? "border-red-300 focus:border-red-500"
-      : "border-stone-300 focus:border-emerald-700"
+      ? "eg-shake border-red-300 bg-red-50/40 focus:border-red-500"
+      : "border-stone-200 bg-white/85 backdrop-blur focus:border-emerald-700 focus:bg-white"
   }`;
 }
 
 function FieldError({ children }) {
   if (!children) return null;
 
-  return <p className="mt-1 text-sm font-semibold text-red-600">{children}</p>;
+  return (
+    <p className="eg-error mt-1 text-sm font-semibold text-red-600">
+      {children}
+    </p>
+  );
 }
 
 function PasswordInput({
@@ -81,7 +85,7 @@ function PasswordInput({
         <button
           type="button"
           onClick={() => setShowPassword((current) => !current)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl px-2 py-1 text-lg hover:bg-stone-100"
+          className="eg-icon-button absolute right-3 top-1/2 -translate-y-1/2 rounded-xl px-2 py-1 text-lg hover:bg-stone-100"
           aria-label={showPassword ? "Приховати пароль" : "Показати пароль"}
         >
           {showPassword ? "🙈" : "👁️"}
@@ -135,6 +139,8 @@ export default function CustomerAuthView({
       ...current,
       [field]: "",
     }));
+
+    setError("");
   }
 
   function updateRegister(field, value) {
@@ -148,6 +154,8 @@ export default function CustomerAuthView({
       [field]: "",
       contact: "",
     }));
+
+    setError("");
   }
 
   function switchMode(nextMode) {
@@ -294,29 +302,29 @@ export default function CustomerAuthView({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-      <section className="rounded-3xl bg-white p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+    <main className="eg-ambient mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+      <section className="eg-glass eg-premium-card overflow-hidden rounded-[2.5rem] p-6 sm:p-8">
+        <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-emerald-800 shadow-sm backdrop-blur">
           Особистий кабінет
         </p>
 
-        <h1 className="mt-2 text-3xl font-black text-stone-950">
+        <h1 className="mt-5 text-4xl font-black leading-tight text-stone-950">
           {mode === "login" ? "Вхід для клієнта" : "Реєстрація клієнта"}
         </h1>
 
-        <p className="mt-3 text-stone-600">
+        <p className="mt-3 max-w-2xl text-base leading-7 text-stone-600">
           Реєстрація необовʼязкова. Ви можете оформити замовлення і без акаунта,
           але кабінет збереже ваші дані та історію замовлень.
         </p>
 
-        <div className="mt-6 grid grid-cols-2 gap-2 rounded-3xl bg-stone-100 p-2">
+        <div className="mt-7 grid grid-cols-2 gap-2 rounded-[2rem] bg-stone-100/80 p-2 backdrop-blur">
           <button
             type="button"
             onClick={() => switchMode("login")}
-            className={`rounded-2xl px-4 py-3 text-sm font-black ${
+            className={`eg-button rounded-[1.4rem] px-4 py-3 text-sm font-black ${
               mode === "login"
-                ? "bg-white text-stone-950 shadow-sm"
-                : "text-stone-600 hover:bg-stone-200"
+                ? "bg-white text-stone-950 shadow-md"
+                : "text-stone-600 hover:bg-white/70"
             }`}
           >
             Увійти
@@ -325,10 +333,10 @@ export default function CustomerAuthView({
           <button
             type="button"
             onClick={() => switchMode("register")}
-            className={`rounded-2xl px-4 py-3 text-sm font-black ${
+            className={`eg-button rounded-[1.4rem] px-4 py-3 text-sm font-black ${
               mode === "register"
-                ? "bg-white text-stone-950 shadow-sm"
-                : "text-stone-600 hover:bg-stone-200"
+                ? "bg-white text-stone-950 shadow-md"
+                : "text-stone-600 hover:bg-white/70"
             }`}
           >
             Створити акаунт
@@ -336,12 +344,12 @@ export default function CustomerAuthView({
         </div>
 
         {error && (
-          <div className="mt-5 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">
+          <div className="eg-error eg-shake mt-5 rounded-[1.4rem] border border-red-200 bg-red-50/80 p-4 text-sm font-semibold text-red-700 backdrop-blur">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-7 space-y-5">
           {mode === "login" && (
             <>
               <div>
@@ -352,6 +360,7 @@ export default function CustomerAuthView({
                   placeholder="Телефон або Telegram"
                   autoComplete="username"
                 />
+
                 <FieldError>{fieldErrors.login}</FieldError>
               </div>
 
@@ -369,7 +378,7 @@ export default function CustomerAuthView({
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                className="text-sm font-bold text-emerald-800 hover:text-emerald-950"
+                className="eg-button rounded-xl text-sm font-bold text-emerald-800 hover:text-emerald-950"
               >
                 Забули пароль?
               </button>
@@ -388,53 +397,57 @@ export default function CustomerAuthView({
                   placeholder="Ваше імʼя"
                   autoComplete="name"
                 />
+
                 <FieldError>{fieldErrors.name}</FieldError>
               </div>
 
-                <div>
-  <p className="mb-2 text-sm font-semibold text-stone-700">
-    Контакт для звʼязку
-  </p>
+              <div>
+                <p className="mb-2 text-sm font-semibold text-stone-700">
+                  Контакт для звʼязку
+                </p>
 
-  <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
-    <div>
-      <input
-        value={registerForm.phone}
-        onChange={(event) =>
-          updateRegister("phone", event.target.value)
-        }
-        className={getInputClass(Boolean(fieldErrors.phone))}
-        placeholder="+380XXXXXXXXX"
-        autoComplete="tel"
-      />
-      <FieldError>{fieldErrors.phone}</FieldError>
-    </div>
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
+                  <div>
+                    <input
+                      value={registerForm.phone}
+                      onChange={(event) =>
+                        updateRegister("phone", event.target.value)
+                      }
+                      className={getInputClass(Boolean(fieldErrors.phone))}
+                      placeholder="+380XXXXXXXXX"
+                      autoComplete="tel"
+                    />
 
-    <div className="flex h-12 items-center justify-center text-sm font-black uppercase tracking-wide text-stone-400">
-      або
-    </div>
+                    <FieldError>{fieldErrors.phone}</FieldError>
+                  </div>
 
-    <div>
-      <input
-        value={registerForm.telegram}
-        onChange={(event) =>
-          updateRegister("telegram", event.target.value)
-        }
-        className={getInputClass(Boolean(fieldErrors.telegram))}
-        placeholder="@username"
-        autoComplete="username"
-      />
-      <FieldError>{fieldErrors.telegram}</FieldError>
-    </div>
-  </div>
+                  <div className="flex h-12 items-center justify-center text-sm font-black uppercase tracking-wide text-stone-400">
+                    або
+                  </div>
 
-  <p className="mt-2 text-sm leading-6 text-stone-500">
-    Вкажіть <span className="font-semibold">телефон або Telegram</span>.
-    Одного контакту достатньо.
-  </p>
+                  <div>
+                    <input
+                      value={registerForm.telegram}
+                      onChange={(event) =>
+                        updateRegister("telegram", event.target.value)
+                      }
+                      className={getInputClass(Boolean(fieldErrors.telegram))}
+                      placeholder="@username"
+                      autoComplete="username"
+                    />
 
-  <FieldError>{fieldErrors.contact}</FieldError>
-</div>
+                    <FieldError>{fieldErrors.telegram}</FieldError>
+                  </div>
+                </div>
+
+                <p className="mt-2 text-sm leading-6 text-stone-500">
+                  Вкажіть{" "}
+                  <span className="font-semibold">телефон або Telegram</span>.
+                  Одного контакту достатньо.
+                </p>
+
+                <FieldError>{fieldErrors.contact}</FieldError>
+              </div>
 
               <PasswordInput
                 value={registerForm.password}
@@ -458,16 +471,17 @@ export default function CustomerAuthView({
                 error={fieldErrors.passwordConfirm}
               />
 
-          <div className="rounded-3xl bg-stone-50 p-4">
-            <div className="mb-4">
-              <p className="font-bold text-stone-800">
-                Дані для доставки
-              </p>
+              <div className="eg-panel eg-premium-card rounded-[2rem] bg-stone-50/90 p-5 backdrop-blur">
+                <div className="mb-4">
+                  <p className="font-black text-stone-800">
+                    Дані для доставки
+                  </p>
 
-              <p className="mt-1 text-sm leading-6 text-stone-500">
-                Необовʼязково. Можете заповнити зараз або пізніше в особистому кабінеті.
-              </p>
-            </div>
+                  <p className="mt-1 text-sm leading-6 text-stone-500">
+                    Необовʼязково. Можете заповнити зараз або пізніше в
+                    особистому кабінеті.
+                  </p>
+                </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <input
@@ -513,7 +527,7 @@ export default function CustomerAuthView({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-2xl bg-emerald-900 px-5 py-4 font-black text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+            className="eg-button eg-sweep w-full rounded-[1.4rem] bg-emerald-900 px-5 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20 disabled:cursor-not-allowed disabled:bg-stone-400 disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             {isSubmitting
               ? "Зачекайте..."
@@ -526,7 +540,7 @@ export default function CustomerAuthView({
         <button
           type="button"
           onClick={() => setView("cart")}
-          className="mt-4 w-full rounded-2xl border border-stone-300 px-5 py-3 font-bold text-stone-900 hover:bg-stone-100"
+          className="eg-button mt-4 w-full rounded-[1.4rem] border border-stone-300 bg-white/80 px-5 py-3 font-bold text-stone-900 backdrop-blur hover:bg-white"
         >
           Продовжити без реєстрації
         </button>

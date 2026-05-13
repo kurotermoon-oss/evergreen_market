@@ -113,66 +113,68 @@ export default function CatalogView({
       className="scroll-mt-24 mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8"
     >
       <section className="relative mb-10">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-          <button
-            type="button"
-            onClick={() =>
-              isCatalogMenuOpen ? closeCatalogMenu() : openCatalogMenu()
-            }
-            className="flex w-full items-center justify-center gap-3 rounded-[28px] bg-emerald-900 px-7 py-4 text-base font-black text-white shadow-sm transition hover:bg-emerald-800 lg:w-[320px]"
-          >
-            <span className="text-xl leading-none">
-              {isCatalogMenuOpen ? "×" : "☰"}
-            </span>
-            <span>Каталог товарів</span>
-          </button>
+        <div className="eg-glass eg-premium-card rounded-[2rem] p-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+            <button
+              type="button"
+              onClick={() =>
+                isCatalogMenuOpen ? closeCatalogMenu() : openCatalogMenu()
+              }
+              className="eg-button eg-sweep flex w-full items-center justify-center gap-3 rounded-[28px] bg-emerald-900 px-7 py-4 text-base font-black text-white shadow-sm hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20 lg:w-[320px]"
+            >
+              <span className="text-xl leading-none">
+                {isCatalogMenuOpen ? "×" : "☰"}
+              </span>
+              <span>Каталог товарів</span>
+            </button>
 
-          <div className="flex min-w-0 flex-1 flex-col gap-3 xl:flex-row">
-            <input
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Пошук"
-              className="min-h-[56px] flex-1 rounded-[28px] border border-stone-200 bg-white px-6 text-base outline-none transition focus:border-emerald-700"
-            />
-
-            <div className="flex flex-wrap gap-3">
+            <div className="flex min-w-0 flex-1 flex-col gap-3 xl:flex-row">
               <input
-                value={minPrice}
+                value={query}
                 onChange={(event) => {
-                  setMinPrice(event.target.value);
+                  setQuery(event.target.value);
                   setCurrentPage(1);
                 }}
-                type="number"
-                placeholder="від"
-                className="min-h-[56px] w-28 rounded-[22px] border border-stone-200 bg-white px-5 outline-none transition focus:border-emerald-700"
+                placeholder="Пошук"
+                className="eg-field min-h-[56px] flex-1 rounded-[28px] border border-white/80 bg-white/80 px-6 text-base outline-none backdrop-blur focus:border-emerald-700"
               />
 
-              <input
-                value={maxPrice}
-                onChange={(event) => {
-                  setMaxPrice(event.target.value);
-                  setCurrentPage(1);
-                }}
-                type="number"
-                placeholder="до"
-                className="min-h-[56px] w-28 rounded-[22px] border border-stone-200 bg-white px-5 outline-none transition focus:border-emerald-700"
-              />
+              <div className="flex flex-wrap gap-3">
+                <input
+                  value={minPrice}
+                  onChange={(event) => {
+                    setMinPrice(event.target.value);
+                    setCurrentPage(1);
+                  }}
+                  type="number"
+                  placeholder="від"
+                  className="eg-field min-h-[56px] w-28 rounded-[22px] border border-white/80 bg-white/80 px-5 outline-none backdrop-blur focus:border-emerald-700"
+                />
 
-              <select
-                value={sortBy}
-                onChange={(event) => {
-                  setSortBy(event.target.value);
-                  setCurrentPage(1);
-                }}
-                className="min-h-[56px] rounded-[22px] border border-stone-200 bg-white px-5 outline-none transition focus:border-emerald-700"
-              >
-                <option value="default">За замовчуванням</option>
-                <option value="price-asc">Спочатку дешевші</option>
-                <option value="price-desc">Спочатку дорожчі</option>
-              </select>
+                <input
+                  value={maxPrice}
+                  onChange={(event) => {
+                    setMaxPrice(event.target.value);
+                    setCurrentPage(1);
+                  }}
+                  type="number"
+                  placeholder="до"
+                  className="eg-field min-h-[56px] w-28 rounded-[22px] border border-white/80 bg-white/80 px-5 outline-none backdrop-blur focus:border-emerald-700"
+                />
+
+                <select
+                  value={sortBy}
+                  onChange={(event) => {
+                    setSortBy(event.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="eg-field min-h-[56px] rounded-[22px] border border-white/80 bg-white/80 px-5 outline-none backdrop-blur focus:border-emerald-700"
+                >
+                  <option value="default">За замовчуванням</option>
+                  <option value="price-asc">Спочатку дешевші</option>
+                  <option value="price-desc">Спочатку дорожчі</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -180,20 +182,20 @@ export default function CatalogView({
         {isCatalogMenuOpen && (
           <>
             <div
-              className="fixed inset-0 z-30 bg-black/20"
+              className="eg-overlay fixed inset-0 z-30 bg-emerald-950/20 backdrop-blur-[2px]"
               onClick={closeCatalogMenu}
             />
 
-            <div className="absolute left-0 top-full z-40 mt-4 w-full overflow-hidden rounded-[34px] border border-stone-200 bg-white shadow-2xl">
+            <div className="eg-menu eg-glass absolute left-0 top-full z-40 mt-4 w-full overflow-hidden rounded-[34px] border border-white/70 shadow-2xl shadow-emerald-950/10">
               <div className="grid min-h-[460px] lg:grid-cols-[360px_1fr]">
-                <div className="bg-stone-50 p-5">
+                <div className="bg-stone-50/80 p-5 backdrop-blur">
                   <button
                     type="button"
                     onClick={resetCatalogFilters}
-                    className={`mb-3 flex w-full items-center justify-between rounded-[24px] px-5 py-4 text-left font-black transition ${
+                    className={`eg-button mb-3 flex w-full items-center justify-between rounded-[24px] px-5 py-4 text-left font-black ${
                       selectedCategory === "all"
-                        ? "bg-emerald-900 text-white"
-                        : "bg-white text-stone-950 hover:bg-emerald-50"
+                        ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                        : "bg-white/85 text-stone-950 hover:bg-emerald-50"
                     }`}
                   >
                     <span>Усі товари</span>
@@ -219,14 +221,20 @@ export default function CatalogView({
                           }
                           onFocus={() => setHoveredCategoryId(category.id)}
                           onClick={() => selectCategory(category.id)}
-                          className={`flex w-full items-center justify-between rounded-[24px] px-4 py-4 text-left transition ${
+                          className={`eg-button flex w-full items-center justify-between rounded-[24px] px-4 py-4 text-left ${
                             isPreviewed
-                              ? "bg-emerald-100 text-emerald-950"
-                              : "text-stone-900 hover:bg-white"
+                              ? "bg-emerald-100 text-emerald-950 shadow-sm"
+                              : "text-stone-900 hover:bg-white/95"
                           }`}
                         >
                           <span className="flex min-w-0 items-center gap-3">
-                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-xs font-black text-emerald-900 shadow-sm">
+                            <span
+                              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xs font-black shadow-sm ${
+                                isPreviewed
+                                  ? "bg-white text-emerald-900"
+                                  : "bg-white/85 text-emerald-900"
+                              }`}
+                            >
                               {mark}
                             </span>
 
@@ -237,7 +245,7 @@ export default function CatalogView({
 
                           <span className="ml-3 flex items-center gap-2">
                             {isActive && (
-                              <span className="hidden text-xs font-black text-emerald-800 sm:inline">
+                              <span className="hidden rounded-full bg-white/70 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-800 sm:inline">
                                 Активна
                               </span>
                             )}
@@ -252,7 +260,7 @@ export default function CatalogView({
                   </div>
                 </div>
 
-                <div className="bg-white p-7">
+                <div className="bg-white/90 p-7 backdrop-blur">
                   {previewCategory ? (
                     <>
                       <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -269,14 +277,14 @@ export default function CatalogView({
                         <button
                           type="button"
                           onClick={() => selectCategory(previewCategory.id)}
-                          className="rounded-[22px] bg-stone-50 px-5 py-3 text-sm font-black text-stone-950 transition hover:bg-emerald-50"
+                          className="eg-button rounded-[22px] bg-stone-50 px-5 py-3 text-sm font-black text-stone-950 hover:bg-emerald-50"
                         >
                           Усі товари категорії
                         </button>
                       </div>
 
                       {previewSubcategories.length > 0 ? (
-                        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        <div className="eg-stagger grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                           {previewSubcategories.map((subcategory) => {
                             const isActive =
                               selectedCategory === previewCategory.id &&
@@ -292,9 +300,9 @@ export default function CatalogView({
                                     subcategory.id
                                   )
                                 }
-                                className={`min-h-[72px] rounded-[24px] px-6 py-4 text-left text-sm font-black uppercase tracking-wide transition ${
+                                className={`eg-button eg-premium-card min-h-[72px] rounded-[24px] px-6 py-4 text-left text-sm font-black uppercase tracking-wide ${
                                   isActive
-                                    ? "bg-emerald-900 text-white"
+                                    ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
                                     : "bg-stone-50 text-stone-950 hover:bg-emerald-50"
                                 }`}
                               >
@@ -304,7 +312,7 @@ export default function CatalogView({
                           })}
                         </div>
                       ) : (
-                        <div className="flex min-h-[260px] items-center justify-center rounded-[28px] border border-dashed border-stone-200 bg-stone-50 px-8 text-center">
+                        <div className="eg-panel flex min-h-[260px] items-center justify-center rounded-[28px] border border-dashed border-stone-200 bg-stone-50 px-8 text-center">
                           <div>
                             <p className="text-lg font-black text-stone-950">
                               У цій категорії поки немає підкатегорій
@@ -335,7 +343,7 @@ export default function CatalogView({
           <button
             type="button"
             onClick={resetCatalogFilters}
-            className="hover:text-emerald-800"
+            className="eg-button rounded-xl px-1 hover:text-emerald-800"
           >
             Головна
           </button>
@@ -346,7 +354,7 @@ export default function CatalogView({
               <button
                 type="button"
                 onClick={() => selectCategory(activeCategory.id)}
-                className="font-semibold text-stone-700 hover:text-emerald-800"
+                className="eg-button rounded-xl px-1 font-semibold text-stone-700 hover:text-emerald-800"
               >
                 {activeCategory?.name}
               </button>
@@ -374,16 +382,16 @@ export default function CatalogView({
         </div>
 
         {selectedCategory !== "all" && activeSubcategories.length > 0 && (
-          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="eg-stagger mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <button
               type="button"
               onClick={() => {
                 setSelectedSubcategory("all");
                 setCurrentPage(1);
               }}
-              className={`min-h-[76px] rounded-[24px] px-6 py-4 text-left text-sm font-black uppercase tracking-wide transition ${
+              className={`eg-button eg-premium-card min-h-[76px] rounded-[24px] px-6 py-4 text-left text-sm font-black uppercase tracking-wide ${
                 selectedSubcategory === "all"
-                  ? "bg-emerald-900 text-white"
+                  ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
                   : "bg-white text-stone-950 shadow-sm hover:bg-emerald-50"
               }`}
             >
@@ -398,9 +406,9 @@ export default function CatalogView({
                   setSelectedSubcategory(subcategory.id);
                   setCurrentPage(1);
                 }}
-                className={`min-h-[76px] rounded-[24px] px-6 py-4 text-left text-sm font-black uppercase tracking-wide transition ${
+                className={`eg-button eg-premium-card min-h-[76px] rounded-[24px] px-6 py-4 text-left text-sm font-black uppercase tracking-wide ${
                   selectedSubcategory === subcategory.id
-                    ? "bg-emerald-900 text-white"
+                    ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
                     : "bg-white text-stone-950 shadow-sm hover:bg-emerald-50"
                 }`}
               >
@@ -414,7 +422,7 @@ export default function CatalogView({
           <button
             type="button"
             onClick={resetCatalogFilters}
-            className="mb-6 text-sm font-black text-emerald-800 hover:text-emerald-950"
+            className="eg-button mb-6 rounded-xl text-sm font-black text-emerald-800 hover:text-emerald-950"
           >
             Скинути категорію
           </button>
@@ -423,7 +431,7 @@ export default function CatalogView({
 
       <section>
         {visibleProducts.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="eg-stagger grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
             {visibleProducts.map((product) => (
               <ProductCard
                 key={product.id}
@@ -438,7 +446,7 @@ export default function CatalogView({
             ))}
           </div>
         ) : (
-          <div className="rounded-[2rem] border border-dashed border-stone-200 bg-white p-10 text-center shadow-sm">
+          <div className="eg-panel rounded-[2rem] border border-dashed border-stone-200 bg-white p-10 text-center shadow-sm">
             <p className="text-xl font-black text-stone-950">
               Товарів не знайдено
             </p>
@@ -450,7 +458,7 @@ export default function CatalogView({
             <button
               type="button"
               onClick={resetCatalogFilters}
-              className="mt-5 rounded-2xl bg-emerald-900 px-6 py-3 font-bold text-white hover:bg-emerald-800"
+              className="eg-button eg-sweep mt-5 rounded-2xl bg-emerald-900 px-6 py-3 font-bold text-white hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20"
             >
               Показати всі товари
             </button>
@@ -467,9 +475,9 @@ export default function CatalogView({
                   key={page}
                   type="button"
                   onClick={() => setCurrentPage(page)}
-                  className={`h-10 min-w-10 rounded-xl px-3 text-sm font-bold transition ${
+                  className={`eg-button h-10 min-w-10 rounded-xl px-3 text-sm font-bold ${
                     currentPage === page
-                      ? "bg-emerald-900 text-white"
+                      ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
                       : "bg-white text-stone-700 shadow-sm hover:bg-stone-100"
                   }`}
                 >

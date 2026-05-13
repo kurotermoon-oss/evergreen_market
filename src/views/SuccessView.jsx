@@ -15,46 +15,62 @@ export default function SuccessView({
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-14 sm:px-6 lg:px-8">
-      <div className="rounded-[2rem] bg-white p-8 text-center shadow-sm">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-900">
-          <Icon name="success" size={34} />
+    <main className="eg-ambient mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:px-8">
+      <div className="eg-glass eg-premium-card overflow-hidden rounded-[2.5rem] p-8 text-center sm:p-10">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[1.75rem] bg-emerald-100 text-emerald-900 shadow-lg shadow-emerald-900/10">
+          <div className="eg-attention">
+            <Icon name="success" size={42} />
+          </div>
         </div>
 
-        <p className="mt-6 text-sm font-semibold uppercase tracking-wide text-emerald-700">
+        <p className="mt-7 text-sm font-black uppercase tracking-[0.24em] text-emerald-700">
           Замовлення прийнято
         </p>
 
-        <h1 className="mt-2 text-3xl font-black text-stone-950">
+        <h1 className="mx-auto mt-3 max-w-2xl text-4xl font-black leading-tight text-stone-950">
           Дякуємо! Ми отримали ваше замовлення
         </h1>
 
         {createdOrder?.orderNumber && (
-          <div className="mx-auto mt-5 w-fit rounded-2xl bg-stone-950 px-5 py-3 text-xl font-black text-white">
-            #{createdOrder.orderNumber}
+          <div className="eg-premium-card mx-auto mt-6 w-fit overflow-hidden rounded-[1.5rem] bg-emerald-950 px-6 py-4 text-2xl font-black text-white shadow-xl shadow-emerald-950/20">
+            <span className="relative z-10">#{createdOrder.orderNumber}</span>
           </div>
         )}
 
-        <p className="mx-auto mt-5 max-w-xl text-stone-600">
+        <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-stone-600">
           Ми перевіримо замовлення та зв’яжемося з вами для підтвердження.
           Не оплачуйте замовлення до підтвердження.
         </p>
 
-        <div className="mt-8 rounded-3xl bg-stone-50 p-5 text-left">
-          <p className="font-bold text-stone-950">Що далі?</p>
+        <div className="eg-panel mt-9 rounded-[2rem] bg-white/75 p-6 text-left shadow-sm ring-1 ring-stone-200/70 backdrop-blur">
+          <p className="text-lg font-black text-stone-950">Що далі?</p>
 
-          <ol className="mt-3 space-y-2 text-sm text-stone-600">
-            <li>1. Ми побачимо ваше замовлення.</li>
-            <li>2. Перевіримо наявність товарів.</li>
-            <li>3. Напишемо вам у Telegram або зателефонуємо.</li>
-            <li>4. Після підтвердження узгодимо оплату та видачу.</li>
+          <ol className="eg-stagger mt-4 grid gap-3 text-sm text-stone-600">
+            {[
+              "Ми побачимо ваше замовлення.",
+              "Перевіримо наявність товарів.",
+              "Напишемо вам у Telegram або зателефонуємо.",
+              "Після підтвердження узгодимо оплату та видачу.",
+            ].map((item, index) => (
+              <li
+                key={item}
+                className="eg-card flex gap-3 rounded-2xl bg-stone-50 p-4 hover:bg-emerald-50/60"
+              >
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-900 text-xs font-black text-white">
+                  {index + 1}
+                </span>
+
+                <span className="pt-1 font-semibold leading-6">{item}</span>
+              </li>
+            ))}
           </ol>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <div className="eg-stagger mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
+            type="button"
             onClick={returnToCatalog}
-            className="rounded-2xl bg-emerald-900 px-6 py-4 font-bold text-white hover:bg-emerald-800"
+            className="eg-button eg-sweep rounded-2xl bg-emerald-900 px-6 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
           >
             Повернутися до каталогу
           </button>
@@ -63,7 +79,7 @@ export default function SuccessView({
             href="https://t.me/EvergreeenCofee"
             target="_blank"
             rel="noreferrer"
-            className="rounded-2xl border border-stone-300 px-6 py-4 font-bold text-stone-900 hover:bg-stone-100"
+            className="eg-button rounded-2xl border border-stone-300 bg-white/80 px-6 py-4 font-black text-stone-900 backdrop-blur hover:bg-white"
           >
             Написати в Telegram
           </a>

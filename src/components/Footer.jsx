@@ -35,75 +35,116 @@ function InstagramIcon({ size = 18 }) {
   );
 }
 
+function ContactCard({ href, target, rel, icon, title, children }) {
+  const Component = href ? "a" : "div";
+
+  return (
+    <Component
+      href={href}
+      target={target}
+      rel={rel}
+      className="eg-card eg-premium-card flex min-h-[148px] items-start gap-4 rounded-[2rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur hover:-translate-y-1 hover:bg-emerald-50/80 hover:shadow-lg hover:shadow-emerald-900/10"
+    >
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-900 shadow-sm">
+        {icon}
+      </span>
+
+      <span>
+        <span className="block text-base font-black text-stone-950">
+          {title}
+        </span>
+
+        <span className="mt-2 block text-sm leading-6 text-stone-600">
+          {children}
+        </span>
+      </span>
+    </Component>
+  );
+}
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer id="contacts" className="mt-0 border-t border-stone-200 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
-          {/* BRAND CARD */}
-          <div className="rounded-[2rem] bg-stone-50 p-6 shadow-sm ring-1 ring-stone-100">
-            <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
-              <BrandLogo size="lg" showText={false} animated={true} />
+    <footer
+      id="contacts"
+      className="eg-ambient relative mt-0 overflow-hidden border-t border-stone-200 bg-gradient-to-b from-white to-emerald-50/40"
+    >
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        {/* TOP BLOCKS */}
 
-              <div className="mt-5 sm:ml-5 sm:mt-0">
-                <p className="text-2xl font-black text-stone-950">
+        <div className="eg-stagger grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
+          {/* BRAND */}
+
+          <div className="eg-glass eg-premium-card rounded-[2.5rem] p-7">
+            <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left">
+              <div className="shrink-0">
+                <BrandLogo
+                  size="lg"
+                  showText={false}
+                  animated={true}
+                />
+              </div>
+
+              <div className="mt-5 sm:ml-6 sm:mt-0">
+                <p className="text-3xl font-black tracking-tight text-stone-950">
                   Evergreen coffee
                 </p>
 
-                <p className="mt-1 text-sm font-medium text-stone-500">
-                  local market
+                <p className="mt-1 text-xs font-black uppercase tracking-[0.24em] text-emerald-700">
+                  local coffee · market · cozy place
                 </p>
 
-                <p className="mt-4 max-w-xl text-sm leading-6 text-stone-600">
-                  Кава, напої та товари поруч з домом. Можна швидко забрати
-                  замовлення у кавʼярні або оформити локальну доставку.
+                <p className="mt-5 max-w-xl text-sm leading-7 text-stone-600">
+                  Кава, напої та товари поруч з домом. Замовляйте онлайн —
+                  забирайте самостійно або оформлюйте локальну доставку.
                 </p>
               </div>
             </div>
 
-            <div className="mt-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-stone-100">
-              <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-800">
+            <div className="eg-panel eg-premium-card mt-7 rounded-[2rem] bg-white/75 p-6 shadow-sm ring-1 ring-stone-100 backdrop-blur">
+              <p className="text-xs font-black uppercase tracking-[0.26em] text-emerald-800">
                 Місце, де час зупиняється на один ковток
               </p>
 
-              <p className="mt-3 text-sm leading-6 text-stone-600">
-                Evergreen coffee — маленька кавʼярня та локальний маркет для
-                щоденних покупок поруч.
+              <p className="mt-4 text-sm leading-7 text-stone-600">
+                Evergreen coffee — маленька локальна кавʼярня та маркет для
+                щоденних покупок поруч. Ми поєднуємо атмосферу затишної кави
+                та швидкі покупки біля дому.
               </p>
             </div>
           </div>
 
-          {/* MAP CARD */}
-          <div className="rounded-[2rem] bg-stone-50 p-6 shadow-sm ring-1 ring-stone-100">
-            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          {/* MAP */}
+
+          <div className="eg-glass eg-premium-card overflow-hidden rounded-[2.5rem] p-7">
+            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+                <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
                   Як нас знайти
                 </p>
 
-                <p className="mt-1 text-2xl font-black text-stone-950">
+                <h2 className="mt-2 text-3xl font-black text-stone-950">
                   Київ, вул. Білицька 20
-                </p>
+                </h2>
               </div>
 
               <a
                 href="https://www.google.com/maps/search/?api=1&query=Київ%2C%20вул.%20Білицька%2020"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-900 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-800"
+                className="eg-button eg-sweep inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-900 px-5 py-3 text-sm font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
               >
                 <Icon name="navigation" size={16} />
                 Маршрут
               </a>
             </div>
 
-            <div className="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-stone-100">
+            <div className="overflow-hidden rounded-[2rem] border border-white/70 shadow-lg shadow-emerald-950/5">
               <iframe
                 title="Evergreen coffee на карті"
                 src="https://www.google.com/maps?q=Київ%2C%20вул.%20Білицька%2020&output=embed"
-                className="h-[320px] w-full border-0"
+                className="h-[340px] w-full border-0"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
               />
@@ -111,87 +152,57 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* CONTACT CARDS */}
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <a
+        {/* CONTACTS */}
+
+        <div className="eg-stagger mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <ContactCard
             href="tel:+380997592367"
-            className="flex min-h-[132px] items-start gap-4 rounded-3xl bg-stone-50 p-5 shadow-sm ring-1 ring-stone-100 transition hover:-translate-y-0.5 hover:bg-emerald-50 hover:shadow-md"
+            icon={<Icon name="phone" size={18} />}
+            title="Телефон"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-900">
-              <Icon name="phone" size={18} />
-            </span>
+            +380 99 759 23 67
+          </ContactCard>
 
-            <span>
-              <span className="block font-black text-stone-950">Телефон</span>
-              <span className="mt-2 block text-sm leading-6 text-stone-600">
-                +380 99 759 23 67
-              </span>
-            </span>
-          </a>
-
-          <a
+          <ContactCard
             href="https://t.me/EvergreeenCofee"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex min-h-[132px] items-start gap-4 rounded-3xl bg-stone-50 p-5 shadow-sm ring-1 ring-stone-100 transition hover:-translate-y-0.5 hover:bg-emerald-50 hover:shadow-md"
+            icon={<TelegramIcon size={18} />}
+            title="Telegram"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-900">
-              <TelegramIcon size={18} />
-            </span>
+            @EvergreeenCofee
+          </ContactCard>
 
-            <span>
-              <span className="block font-black text-stone-950">Telegram</span>
-              <span className="mt-2 block text-sm leading-6 text-stone-600">
-                @EvergreeenCofee
-              </span>
-            </span>
-          </a>
-
-          <a
+          <ContactCard
             href="https://instagram.com/evergreen___coffee/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex min-h-[132px] items-start gap-4 rounded-3xl bg-stone-50 p-5 shadow-sm ring-1 ring-stone-100 transition hover:-translate-y-0.5 hover:bg-emerald-50 hover:shadow-md"
+            icon={<InstagramIcon size={18} />}
+            title="Instagram"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-900">
-              <InstagramIcon size={18} />
-            </span>
+            evergreen___coffee
+          </ContactCard>
 
-            <span>
-              <span className="block font-black text-stone-950">Instagram</span>
-              <span className="mt-2 block text-sm leading-6 text-stone-600">
-                evergreen___coffee
-              </span>
-            </span>
-          </a>
-
-          <div className="flex min-h-[132px] items-start gap-4 rounded-3xl bg-stone-50 p-5 shadow-sm ring-1 ring-stone-100">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-900">
-              <Icon name="clock" size={18} />
-            </span>
-
-            <span>
-              <span className="block font-black text-stone-950">
-                Адреса та графік
-              </span>
-
-              <span className="mt-2 block text-sm leading-6 text-stone-600">
-                вул. Білицька 20
-                <br />
-                Щодня · 08:00–21:00
-              </span>
-            </span>
-          </div>
+          <ContactCard
+            icon={<Icon name="clock" size={18} />}
+            title="Адреса та графік"
+          >
+            вул. Білицька 20
+            <br />
+            Щодня · 08:00–21:00
+          </ContactCard>
         </div>
 
-        {/* BOTTOM LINE */}
-        <div className="mt-10 border-t border-stone-100 pt-6">
-          <div className="flex flex-col gap-2 text-center text-xs text-stone-400 sm:flex-row sm:items-center sm:justify-between sm:text-left">
-            <p>© {currentYear} Evergreen coffee. Усі права захищені.</p>
+        {/* BOTTOM */}
 
-            <p>
-              Самовивіз з кавʼярні · Локальна доставка · Замовлення без
-              реєстрації
+        <div className="mt-12 border-t border-white/60 pt-6">
+          <div className="flex flex-col gap-3 text-center text-xs text-stone-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+            <p className="font-medium">
+              © {currentYear} Evergreen coffee. Усі права захищені.
+            </p>
+
+            <p className="font-medium">
+              Самовивіз · Локальна доставка · Замовлення без реєстрації
             </p>
           </div>
         </div>

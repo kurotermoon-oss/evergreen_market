@@ -40,17 +40,21 @@ function isValidTelegram(value) {
 }
 
 function getInputClass(hasError, extraClass = "") {
-  return `w-full rounded-2xl border px-4 py-3 outline-none transition ${
+  return `eg-field w-full rounded-[1.3rem] border px-5 py-3.5 outline-none transition ${
     hasError
-      ? "border-red-300 focus:border-red-500"
-      : "border-stone-300 focus:border-emerald-700"
+      ? "eg-shake border-red-300 bg-red-50/40 focus:border-red-500"
+      : "border-stone-200 bg-white/85 backdrop-blur focus:border-emerald-700 focus:bg-white"
   } ${extraClass}`;
 }
 
 function FieldError({ children }) {
   if (!children) return null;
 
-  return <p className="mt-1 text-sm font-semibold text-red-600">{children}</p>;
+  return (
+    <p className="eg-error mt-1 text-sm font-semibold text-red-600">
+      {children}
+    </p>
+  );
 }
 
 export default function CartView({
@@ -175,7 +179,7 @@ export default function CartView({
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       {isEmpty ? (
-        <div className="mx-auto max-w-xl rounded-3xl bg-white px-16 py-20 text-center shadow-sm">
+        <div className="eg-glass eg-premium-card mx-auto max-w-2xl rounded-[2.5rem] px-16 py-24 text-center">
           <Icon name="package" className="mx-auto text-stone-400" size={72} />
 
           <p className="mt-6 text-2xl font-black text-stone-950">
@@ -189,14 +193,14 @@ export default function CartView({
           <button
             type="button"
             onClick={() => setView("catalog")}
-            className="mt-6 rounded-2xl bg-emerald-900 px-6 py-3 font-semibold text-white hover:bg-emerald-800"
+            className="eg-button eg-sweep mt-8 rounded-2xl bg-emerald-900 px-7 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
           >
             Перейти до каталогу
           </button>
         </div>
       ) : (
-        <div className="grid gap-8 lg:grid-cols-[1fr_0.85fr]">
-          <section className="rounded-3xl bg-white p-6 shadow-sm">
+        <div className="eg-stagger grid gap-8 lg:grid-cols-[1fr_0.88fr]">
+          <section className="eg-glass eg-premium-card rounded-[2.2rem] p-6 lg:p-8">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
@@ -215,7 +219,7 @@ export default function CartView({
                   setFieldErrors({});
                   setFormError("");
                 }}
-                className="rounded-2xl border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-700 hover:bg-stone-100"
+                className="eg-button rounded-2xl border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-700 hover:bg-stone-100"
               >
                 Очистити
               </button>
@@ -230,12 +234,12 @@ export default function CartView({
                 return (
                   <div
                     key={productId}
-                    className="flex gap-4 rounded-3xl border border-stone-200 p-4"
+                    className="eg-card eg-premium-card flex gap-4 rounded-[2rem] border border-stone-200 bg-white/85 p-4 backdrop-blur hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10"
                   >
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="h-24 w-24 rounded-2xl object-cover"
+                      className="eg-image h-24 w-24 rounded-[1.4rem] object-cover hover:scale-[1.05]"
                     />
 
                     <div className="min-w-0 flex-1">
@@ -256,28 +260,30 @@ export default function CartView({
                       </p>
 
                       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center overflow-hidden rounded-2xl border border-stone-300 bg-white">
-                          <button
-                            type="button"
-                            onClick={() => decreaseItem(item)}
-                            className="p-3 text-stone-700 hover:text-emerald-800"
-                            aria-label="Зменшити кількість"
-                          >
-                            <Icon name="minus" size={16} />
-                          </button>
+                        <div className="overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 shadow-sm">
+                          <div className="flex h-12 items-center">
+                            <button
+                              type="button"
+                              onClick={() => decreaseItem(item)}
+                              className="eg-counter-button flex h-12 w-12 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900"
+                              aria-label="Зменшити кількість"
+                            >
+                              <Icon name="minus" size={16} />
+                            </button>
 
-                          <span className="min-w-10 text-center font-bold">
-                            {quantity}
-                          </span>
+                            <span className="flex h-12 min-w-12 items-center justify-center bg-white px-1 text-center font-black text-stone-950">
+                              {quantity}
+                            </span>
 
-                          <button
-                            type="button"
-                            onClick={() => increaseItem(item)}
-                            className="p-3 text-stone-700 hover:text-emerald-800"
-                            aria-label="Збільшити кількість"
-                          >
-                            <Icon name="plus" size={16} />
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => increaseItem(item)}
+                              className="eg-counter-button flex h-12 w-12 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900"
+                              aria-label="Збільшити кількість"
+                            >
+                              <Icon name="plus" size={16} />
+                            </button>
+                          </div>
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -288,7 +294,7 @@ export default function CartView({
                           <button
                             type="button"
                             onClick={() => removeFromCart(productId)}
-                            className="rounded-xl bg-stone-100 p-3 text-stone-500 hover:text-red-600"
+                            className="eg-icon-button rounded-xl bg-stone-100 p-3 text-stone-500 hover:bg-red-50 hover:text-red-600"
                             aria-label="Видалити товар"
                           >
                             <Icon name="trash" size={16} />
@@ -303,15 +309,20 @@ export default function CartView({
 
             <FieldError>{fieldErrors.cart}</FieldError>
 
-            <div className="mt-6 rounded-3xl bg-stone-950 p-6 text-white">
-              <div className="flex items-center justify-between">
-                <span className="text-stone-300">Разом</span>
-                <span className="text-3xl font-black">{formatUAH(total)}</span>
+            <div className="eg-premium-card mt-6 overflow-hidden rounded-[2rem] bg-emerald-950 p-7 text-white shadow-xl shadow-emerald-950/20">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_40%)]" />
+
+              <div className="relative z-10 flex items-center justify-between">
+                <span className="text-emerald-100">Разом</span>
+
+                <span className="text-3xl font-black">
+                  {formatUAH(total)}
+                </span>
               </div>
             </div>
           </section>
 
-          <section className="rounded-3xl bg-white p-6 shadow-sm">
+          <section className="eg-glass eg-premium-card rounded-[2.2rem] p-6 lg:p-8">
             <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
               Оформлення
             </p>
@@ -319,9 +330,11 @@ export default function CartView({
             <h2 className="mt-2 text-3xl font-black text-stone-950">
               Куди надіслати замовлення
             </h2>
-              <OrderRulesModal />
+
+            <OrderRulesModal />
+
             {!customer && (
-              <div className="mt-5 rounded-3xl bg-emerald-50 p-5 text-sm text-emerald-900">
+              <div className="eg-panel eg-premium-card mt-5 rounded-[2rem] bg-gradient-to-br from-emerald-50 to-white p-6 text-sm text-emerald-900">
                 <p className="font-black">Можна замовити без реєстрації</p>
 
                 <p className="mt-1 leading-6">
@@ -332,14 +345,14 @@ export default function CartView({
                 <button
                   type="button"
                   onClick={() => setView("customer-auth")}
-                  className="mt-4 rounded-2xl bg-white px-4 py-2 font-bold text-emerald-900 shadow-sm hover:bg-emerald-100"
+                  className="eg-button mt-4 rounded-2xl bg-white px-4 py-2 font-bold text-emerald-900 shadow-sm hover:bg-emerald-100"
                 >
                   Увійти або зареєструватися
                 </button>
               </div>
             )}
 
-            <div className="mt-6 space-y-4">
+            <div className="mt-7 space-y-5">
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-stone-700">
                   Імʼя *
@@ -357,63 +370,63 @@ export default function CartView({
                 <FieldError>{fieldErrors.name}</FieldError>
               </label>
 
-          <div>
-            <p className="mb-2 text-sm font-semibold text-stone-700">
-              Контакт для звʼязку
-            </p>
-
-            <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
               <div>
-                <input
-                  value={form.phone}
-                  onChange={(event) =>
-                    updateFormAndClearError("phone", event.target.value)
-                  }
-                  onBlur={() => {
-                    if (form.phone && isValidPhone(form.phone)) {
-                      updateForm("phone", normalizePhone(form.phone));
-                    }
-                  }}
-                  className={getInputClass(Boolean(fieldErrors.phone))}
-                  placeholder="+380XXXXXXXXX"
-                />
+                <p className="mb-2 text-sm font-semibold text-stone-700">
+                  Контакт для звʼязку
+                </p>
 
-                <FieldError>{fieldErrors.phone}</FieldError>
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
+                  <div>
+                    <input
+                      value={form.phone}
+                      onChange={(event) =>
+                        updateFormAndClearError("phone", event.target.value)
+                      }
+                      onBlur={() => {
+                        if (form.phone && isValidPhone(form.phone)) {
+                          updateForm("phone", normalizePhone(form.phone));
+                        }
+                      }}
+                      className={getInputClass(Boolean(fieldErrors.phone))}
+                      placeholder="+380XXXXXXXXX"
+                    />
+
+                    <FieldError>{fieldErrors.phone}</FieldError>
+                  </div>
+
+                  <div className="flex h-12 items-center justify-center text-sm font-black uppercase tracking-wide text-stone-400">
+                    або
+                  </div>
+
+                  <div>
+                    <input
+                      value={form.telegram}
+                      onChange={(event) =>
+                        updateFormAndClearError("telegram", event.target.value)
+                      }
+                      onBlur={() => {
+                        if (form.telegram && isValidTelegram(form.telegram)) {
+                          updateForm(
+                            "telegram",
+                            `@${normalizeTelegram(form.telegram)}`
+                          );
+                        }
+                      }}
+                      className={getInputClass(Boolean(fieldErrors.telegram))}
+                      placeholder="@username"
+                    />
+
+                    <FieldError>{fieldErrors.telegram}</FieldError>
+                  </div>
+                </div>
+
+                <p className="mt-2 text-sm leading-6 text-stone-500">
+                  Для оформлення замовлення достатньо вказати{" "}
+                  <span className="font-semibold">телефон або Telegram</span>.
+                </p>
+
+                <FieldError>{fieldErrors.contact}</FieldError>
               </div>
-
-              <div className="flex h-12 items-center justify-center text-sm font-black uppercase tracking-wide text-stone-400">
-                або
-              </div>
-
-              <div>
-                <input
-                  value={form.telegram}
-                  onChange={(event) =>
-                    updateFormAndClearError("telegram", event.target.value)
-                  }
-                  onBlur={() => {
-                    if (form.telegram && isValidTelegram(form.telegram)) {
-                      updateForm(
-                        "telegram",
-                        `@${normalizeTelegram(form.telegram)}`
-                      );
-                    }
-                  }}
-                  className={getInputClass(Boolean(fieldErrors.telegram))}
-                  placeholder="@username"
-                />
-
-                <FieldError>{fieldErrors.telegram}</FieldError>
-              </div>
-            </div>
-
-            <p className="mt-2 text-sm leading-6 text-stone-500">
-              Для оформлення замовлення достатньо вказати{" "}
-              <span className="font-semibold">телефон або Telegram</span>.
-            </p>
-
-            <FieldError>{fieldErrors.contact}</FieldError>
-          </div>
 
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-stone-700">
@@ -450,7 +463,7 @@ export default function CartView({
               </label>
 
               {needsDelivery && (
-                <div className="grid gap-3 rounded-3xl bg-stone-50 p-4 sm:grid-cols-2">
+                <div className="eg-panel eg-soft-ring eg-premium-card grid gap-3 rounded-[2rem] bg-stone-50/90 p-5 backdrop-blur sm:grid-cols-2">
                   <label>
                     <input
                       value={form.building}
@@ -522,7 +535,7 @@ export default function CartView({
               </label>
 
               {formError && (
-                <div className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">
+                <div className="eg-error eg-shake rounded-[1.4rem] border border-red-200 bg-red-50/80 p-4 text-sm font-semibold text-red-700 backdrop-blur">
                   {formError}
                 </div>
               )}
@@ -531,7 +544,7 @@ export default function CartView({
                 type="button"
                 onClick={handleSubmitOrder}
                 disabled={!canSubmit}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-900 px-6 py-4 font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-300"
+                className="eg-button eg-sweep flex w-full items-center justify-center gap-2 rounded-[1.4rem] bg-emerald-900 px-6 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <Icon name="send" size={18} />
                 Оформити замовлення

@@ -1,28 +1,58 @@
 import { formatUAH } from "../../utils/formatUAH.js";
 import AnalyticsCharts from "../AnalyticsCharts.jsx";
 
+function KpiCard({ label, value, tone = "stone" }) {
+  const valueClass =
+    tone === "emerald" ? "text-emerald-900" : "text-stone-950";
+
+  return (
+    <div className="eg-card eg-premium-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur hover:bg-emerald-50/50 hover:shadow-lg hover:shadow-emerald-900/10">
+      <p className="text-xs font-black uppercase tracking-wide text-stone-400">
+        {label}
+      </p>
+
+      <p className={`mt-2 text-3xl font-black ${valueClass}`}>{value}</p>
+    </div>
+  );
+}
+
 export default function AdminAnalyticsPanel({
   analytics,
   analyticsFilters,
   updateAnalyticsFilters,
 }) {
-  return (
-    <section className="rounded-3xl bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-black text-stone-950">Аналітика</h2>
+  const periods = [
+    { id: "today", label: "Сьогодні" },
+    { id: "7d", label: "7 днів" },
+    { id: "30d", label: "30 днів" },
+    { id: "all", label: "Весь час" },
+    { id: "custom", label: "Вручну" },
+  ];
 
-      <div className="mt-5 rounded-3xl bg-stone-50 p-4">
-        <p className="mb-3 text-sm font-bold text-stone-700">
+  return (
+    <section className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
+      <div>
+        <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-800 shadow-sm backdrop-blur">
+          Dashboard
+        </p>
+
+        <h2 className="mt-4 text-4xl font-black leading-tight text-stone-950">
+          Аналітика
+        </h2>
+
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-600">
+          Дивіться оборот, собівартість, прибуток та динаміку замовлень за
+          обраний період.
+        </p>
+      </div>
+
+      <div className="eg-panel eg-premium-card mt-7 rounded-[2rem] bg-stone-50/90 p-5 backdrop-blur">
+        <p className="mb-3 text-sm font-black text-stone-700">
           Період аналітики
         </p>
 
         <div className="flex flex-wrap gap-2">
-          {[
-            { id: "today", label: "Сьогодні" },
-            { id: "7d", label: "7 днів" },
-            { id: "30d", label: "30 днів" },
-            { id: "all", label: "Весь час" },
-            { id: "custom", label: "Вручну" },
-          ].map((period) => (
+          {periods.map((period) => (
             <button
               key={period.id}
               type="button"
@@ -32,10 +62,10 @@ export default function AdminAnalyticsPanel({
                   preset: period.id,
                 })
               }
-              className={`rounded-2xl px-4 py-2 text-sm font-black transition ${
+              className={`eg-button rounded-[1.25rem] px-4 py-2.5 text-sm font-black ${
                 analyticsFilters?.preset === period.id
-                  ? "bg-emerald-900 text-white"
-                  : "bg-white text-stone-700 hover:bg-stone-100"
+                  ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                  : "bg-white/85 text-stone-700 shadow-sm hover:bg-white hover:text-emerald-900"
               }`}
             >
               {period.label}
@@ -44,7 +74,7 @@ export default function AdminAnalyticsPanel({
         </div>
 
         {analyticsFilters?.preset === "custom" && (
-          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+          <div className="eg-panel mt-4 grid gap-3 rounded-[1.6rem] bg-white/70 p-4 sm:grid-cols-[1fr_1fr_auto]">
             <input
               type="date"
               value={analyticsFilters.from || ""}
@@ -55,7 +85,7 @@ export default function AdminAnalyticsPanel({
                   from: event.target.value,
                 })
               }
-              className="rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+              className="eg-field rounded-[1.25rem] border border-stone-200 bg-white/85 px-4 py-3 outline-none backdrop-blur focus:border-emerald-700 focus:bg-white"
             />
 
             <input
@@ -68,7 +98,7 @@ export default function AdminAnalyticsPanel({
                   to: event.target.value,
                 })
               }
-              className="rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+              className="eg-field rounded-[1.25rem] border border-stone-200 bg-white/85 px-4 py-3 outline-none backdrop-blur focus:border-emerald-700 focus:bg-white"
             />
 
             <button
@@ -80,7 +110,7 @@ export default function AdminAnalyticsPanel({
                   to: analyticsFilters.to || "",
                 })
               }
-              className="rounded-2xl bg-stone-950 px-5 py-3 font-bold text-white hover:bg-stone-800"
+              className="eg-button rounded-[1.25rem] bg-stone-950 px-5 py-3 font-black text-white hover:bg-stone-800"
             >
               Застосувати
             </button>
@@ -89,44 +119,36 @@ export default function AdminAnalyticsPanel({
       </div>
 
       {!analytics && (
-        <div className="mt-6 rounded-3xl bg-stone-50 p-8 text-center text-stone-500">
+        <div className="eg-panel mt-6 rounded-[2rem] bg-stone-50/90 p-8 text-center text-stone-500">
           Аналітика ще не завантажена.
         </div>
       )}
 
       {analytics && (
         <>
-          <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <div className="rounded-3xl bg-stone-50 p-5">
-              <p className="text-sm text-stone-500">Завершених</p>
-              <p className="mt-2 text-3xl font-black text-stone-950">
-                {analytics.completedOrdersCount}
-              </p>
-            </div>
+          <div className="eg-stagger mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <KpiCard
+              label="Завершених"
+              value={analytics.completedOrdersCount}
+            />
 
-            <div className="rounded-3xl bg-stone-50 p-5">
-              <p className="text-sm text-stone-500">Оборот</p>
-              <p className="mt-2 text-3xl font-black text-stone-950">
-                {formatUAH(analytics.totalRevenue)}
-              </p>
-            </div>
+            <KpiCard label="Оборот" value={formatUAH(analytics.totalRevenue)} />
 
-            <div className="rounded-3xl bg-stone-50 p-5">
-              <p className="text-sm text-stone-500">Собівартість</p>
-              <p className="mt-2 text-3xl font-black text-stone-950">
-                {formatUAH(analytics.totalCost)}
-              </p>
-            </div>
+            <KpiCard
+              label="Собівартість"
+              value={formatUAH(analytics.totalCost)}
+            />
 
-            <div className="rounded-3xl bg-stone-50 p-5">
-              <p className="text-sm text-stone-500">Прибуток</p>
-              <p className="mt-2 text-3xl font-black text-emerald-900">
-                {formatUAH(analytics.totalProfit)}
-              </p>
-            </div>
+            <KpiCard
+              label="Прибуток"
+              value={formatUAH(analytics.totalProfit)}
+              tone="emerald"
+            />
           </div>
 
-          <AnalyticsCharts analytics={analytics} />
+          <div className="mt-6">
+            <AnalyticsCharts analytics={analytics} />
+          </div>
         </>
       )}
     </section>

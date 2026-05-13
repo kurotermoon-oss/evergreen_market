@@ -55,6 +55,62 @@ function Badge({ children, className = "" }) {
   );
 }
 
+function StatCard({ label, value, tone = "stone" }) {
+  const valueClass = {
+    stone: "text-stone-950",
+    emerald: "text-emerald-900",
+    blue: "text-blue-800",
+    red: "text-red-800",
+    amber: "text-amber-800",
+  }[tone];
+
+  return (
+    <div className="eg-card rounded-[1.6rem] bg-white/75 p-4 shadow-sm ring-1 ring-stone-100 backdrop-blur hover:-translate-y-1 hover:bg-emerald-50/50 hover:shadow-lg hover:shadow-emerald-900/10">
+      <p className="text-xs font-black uppercase tracking-wide text-stone-400">
+        {label}
+      </p>
+
+      <p className={`mt-1 text-2xl font-black ${valueClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function MiniMetric({ label, value, tone = "stone" }) {
+  const valueClass = {
+    stone: "text-stone-950",
+    blue: "text-blue-800",
+    red: "text-red-800",
+    emerald: "text-emerald-800",
+  }[tone];
+
+  return (
+    <div className="rounded-[1.2rem] bg-white/80 p-3 shadow-sm ring-1 ring-stone-100">
+      <p className="text-xs font-black uppercase text-stone-400">{label}</p>
+
+      <p className={`mt-1 font-black ${valueClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function ActionButton({ children, tone = "stone", onClick }) {
+  const className =
+    tone === "red"
+      ? "bg-red-50 text-red-800 ring-1 ring-red-200 hover:bg-red-100"
+      : tone === "amber"
+        ? "bg-amber-50 text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100"
+        : "bg-stone-950 text-white hover:bg-stone-800";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`eg-button rounded-[1.2rem] px-4 py-2.5 text-sm font-black shadow-sm hover:-translate-y-[2px] hover:shadow-md ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function AdminSecurityPanel() {
   const [guests, setGuests] = useState([]);
   const [blockedCustomers, setBlockedCustomers] = useState([]);
@@ -62,6 +118,7 @@ export default function AdminSecurityPanel() {
   const [message, setMessage] = useState("");
   const [activeView, setActiveView] = useState("guests");
   const [expandedGuestKey, setExpandedGuestKey] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   async function loadSecurityData() {
     setIsLoading(true);
@@ -86,7 +143,11 @@ export default function AdminSecurityPanel() {
     loadSecurityData();
   }, []);
 
-  async function createBlock(type, value, defaultReason = "Підозріла активність") {
+  async function createBlock(
+    type,
+    value,
+    defaultReason = "Підозріла активність"
+  ) {
     if (!value) return;
 
     const reason = window.prompt(
@@ -151,20 +212,64 @@ export default function AdminSecurityPanel() {
     );
   }, [guests]);
 
+  const visibleGuests = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return guests;
+
+    return guests.filter((guest) => {
+      const text = [
+        guest.mainName,
+        guest.mainPhone,
+        guest.mainTelegram,
+        guest.clientIp,
+        guest.guestId,
+        guest.risk?.label,
+        ...(guest.risk?.reasons || []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return text.includes(query);
+    });
+  }, [guests, searchQuery]);
+
+  const visibleBlockedCustomers = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return blockedCustomers;
+
+    return blockedCustomers.filter((item) => {
+      const text = [
+        getTypeLabel(item.type),
+        item.type,
+        item.value,
+        item.reason,
+        item.createdAt,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return text.includes(query);
+    });
+  }, [blockedCustomers, searchQuery]);
+
   return (
-    <section className="space-y-5">
-      <div className="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-stone-100">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <section className="eg-ambient space-y-6">
+      <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 shadow-sm ring-1 ring-stone-100 lg:p-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-800 shadow-sm backdrop-blur">
               Адмінка
             </p>
 
-            <h2 className="mt-1 text-3xl font-black text-stone-950">
+            <h2 className="mt-4 text-4xl font-black leading-tight text-stone-950">
               Безпека
             </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-500">
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600">
               Гостьові замовлення, підозріла активність, IP, контакти та ручні
               блокування.
             </p>
@@ -173,135 +278,116 @@ export default function AdminSecurityPanel() {
           <button
             type="button"
             onClick={loadSecurityData}
-            className="rounded-2xl border border-stone-300 px-5 py-3 text-sm font-black text-stone-900 hover:bg-stone-100"
+            disabled={isLoading}
+            className="eg-button rounded-[1.3rem] border border-stone-300 bg-white/80 px-5 py-3 text-sm font-black text-stone-900 backdrop-blur hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Оновити
+            {isLoading ? "Оновлюємо..." : "Оновити"}
           </button>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-          <div className="rounded-3xl bg-stone-50 p-4">
-            <p className="text-xs font-black uppercase text-stone-400">
-              Гостей
-            </p>
-            <p className="mt-1 text-2xl font-black text-stone-950">
-              {stats.total}
-            </p>
+        <div className="eg-stagger mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+          <StatCard label="Гостей" value={stats.total} />
+          <StatCard label="Замовлень" value={stats.orders} />
+          <StatCard label="Активні" value={stats.active} tone="blue" />
+          <StatCard label="Скасовані" value={stats.cancelled} tone="red" />
+          <StatCard label="Високий ризик" value={stats.highRisk} tone="red" />
+          <StatCard label="Блокувань" value={blockedCustomers.length} />
+        </div>
+      </div>
+
+      <div className="eg-glass eg-premium-card rounded-[2rem] p-3">
+        <div className="grid gap-3 lg:grid-cols-[auto_1fr] lg:items-center">
+          <div className="flex gap-2 overflow-x-auto">
+            <button
+              type="button"
+              onClick={() => setActiveView("guests")}
+              className={`eg-button whitespace-nowrap rounded-[1.3rem] px-5 py-3 text-sm font-black ${
+                activeView === "guests"
+                  ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                  : "bg-white/80 text-stone-700 hover:bg-white hover:text-emerald-900"
+              }`}
+            >
+              Гостьові · {guests.length}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveView("blocked")}
+              className={`eg-button whitespace-nowrap rounded-[1.3rem] px-5 py-3 text-sm font-black ${
+                activeView === "blocked"
+                  ? "bg-stone-950 text-white shadow-lg shadow-stone-950/20"
+                  : "bg-white/80 text-stone-700 hover:bg-white hover:text-emerald-900"
+              }`}
+            >
+              Заблоковані · {blockedCustomers.length}
+            </button>
           </div>
 
-          <div className="rounded-3xl bg-stone-50 p-4">
-            <p className="text-xs font-black uppercase text-stone-400">
-              Замовлень
-            </p>
-            <p className="mt-1 text-2xl font-black text-stone-950">
-              {stats.orders}
-            </p>
-          </div>
+          <div className="relative">
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="eg-field w-full rounded-[1.3rem] border border-stone-200 bg-white/85 px-5 py-3 pr-12 text-sm outline-none backdrop-blur focus:border-emerald-700 focus:bg-white"
+              placeholder={
+                activeView === "guests"
+                  ? "Пошук: імʼя, телефон, Telegram, IP, Guest ID..."
+                  : "Пошук блокувань..."
+              }
+            />
 
-          <div className="rounded-3xl bg-stone-50 p-4">
-            <p className="text-xs font-black uppercase text-stone-400">
-              Активні
-            </p>
-            <p className="mt-1 text-2xl font-black text-blue-800">
-              {stats.active}
-            </p>
-          </div>
-
-          <div className="rounded-3xl bg-stone-50 p-4">
-            <p className="text-xs font-black uppercase text-stone-400">
-              Скасовані
-            </p>
-            <p className="mt-1 text-2xl font-black text-red-800">
-              {stats.cancelled}
-            </p>
-          </div>
-
-          <div className="rounded-3xl bg-stone-50 p-4">
-            <p className="text-xs font-black uppercase text-stone-400">
-              Високий ризик
-            </p>
-            <p className="mt-1 text-2xl font-black text-red-800">
-              {stats.highRisk}
-            </p>
-          </div>
-
-          <div className="rounded-3xl bg-stone-50 p-4">
-            <p className="text-xs font-black uppercase text-stone-400">
-              Блокувань
-            </p>
-            <p className="mt-1 text-2xl font-black text-stone-950">
-              {blockedCustomers.length}
-            </p>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-stone-100 px-2 py-1 text-xs font-black text-stone-500 hover:bg-stone-200"
+              >
+                ×
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto rounded-3xl bg-white p-2 shadow-sm ring-1 ring-stone-100">
-        <button
-          type="button"
-          onClick={() => setActiveView("guests")}
-          className={`rounded-2xl px-5 py-3 text-sm font-black transition ${
-            activeView === "guests"
-              ? "bg-emerald-900 text-white"
-              : "text-stone-700 hover:bg-stone-100"
-          }`}
-        >
-          Гостьові замовлення
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveView("blocked")}
-          className={`rounded-2xl px-5 py-3 text-sm font-black transition ${
-            activeView === "blocked"
-              ? "bg-emerald-900 text-white"
-              : "text-stone-700 hover:bg-stone-100"
-          }`}
-        >
-          Заблоковані
-        </button>
-      </div>
-
       {message && (
-        <div className="rounded-3xl bg-amber-50 p-4 text-sm font-semibold text-amber-900 ring-1 ring-amber-100">
+        <div className="eg-panel rounded-[1.6rem] bg-amber-50/90 p-4 text-sm font-semibold text-amber-900 ring-1 ring-amber-100">
           {message}
         </div>
       )}
 
       {isLoading ? (
-        <div className="rounded-[2rem] bg-white p-8 text-center font-bold text-stone-500 shadow-sm ring-1 ring-stone-100">
+        <div className="eg-glass rounded-[2rem] p-8 text-center font-bold text-stone-500 shadow-sm ring-1 ring-stone-100">
           Завантажуємо дані безпеки...
         </div>
       ) : activeView === "guests" ? (
-        <div className="rounded-[2rem] bg-white p-4 shadow-sm ring-1 ring-stone-100">
-          {guests.length === 0 ? (
-            <div className="rounded-3xl bg-stone-50 p-8 text-center">
+        <div className="eg-glass rounded-[2.5rem] p-5 shadow-sm ring-1 ring-stone-100">
+          {visibleGuests.length === 0 ? (
+            <div className="rounded-[2rem] bg-stone-50/90 p-8 text-center">
               <p className="font-black text-stone-900">
-                Гостьових замовлень немає
+                Гостьових замовлень не знайдено
               </p>
+
               <p className="mt-2 text-sm text-stone-500">
-                Тут зʼявляться користувачі, які оформлювали замовлення без
-                реєстрації.
+                Спробуйте змінити пошуковий запит або очистити пошук.
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {guests.map((guest) => {
+            <div className="eg-stagger space-y-4">
+              {visibleGuests.map((guest) => {
                 const isExpanded = expandedGuestKey === guest.key;
 
                 return (
                   <article
                     key={guest.key}
-                    className={`rounded-3xl border p-4 ${
+                    className={`eg-card rounded-[2rem] border p-5 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl ${
                       guest.isBlocked
-                        ? "border-red-200 bg-red-50/50"
-                        : "border-stone-200 bg-white"
+                        ? "border-red-200 bg-red-50/70 shadow-red-100/40"
+                        : "border-stone-200 bg-white/80 hover:border-emerald-100 hover:shadow-emerald-900/10"
                     }`}
                   >
-                    <div className="grid gap-4 xl:grid-cols-[1.3fr_1fr_1fr_auto]">
+                    <div className="grid gap-5 xl:grid-cols-[1.25fr_1fr_1fr_auto]">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-lg font-black text-stone-950">
+                          <h3 className="text-2xl font-black tracking-tight text-stone-950">
                             {guest.mainName || "Гість"}
                           </h3>
 
@@ -316,102 +402,75 @@ export default function AdminSecurityPanel() {
                           )}
                         </div>
 
-                        <div className="mt-3 space-y-1 text-sm text-stone-600">
-                          <p>
-                            <span className="font-bold text-stone-900">
-                              Телефон:
-                            </span>{" "}
-                            {guest.mainPhone || "—"}
-                          </p>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <Badge className="bg-white/80 text-stone-700 ring-stone-200">
+                            Телефон: {guest.mainPhone || "—"}
+                          </Badge>
 
-                          <p>
-                            <span className="font-bold text-stone-900">
-                              Telegram:
-                            </span>{" "}
+                          <Badge className="bg-white/80 text-stone-700 ring-stone-200">
+                            Telegram:{" "}
                             {guest.mainTelegram
-                              ? `@${String(guest.mainTelegram).replace(/^@/, "")}`
+                              ? `@${String(guest.mainTelegram).replace(
+                                  /^@/,
+                                  ""
+                                )}`
                               : "—"}
-                          </p>
+                          </Badge>
 
-                          <p>
-                            <span className="font-bold text-stone-900">
-                              IP:
-                            </span>{" "}
-                            {guest.clientIp || "—"}
-                          </p>
+                          <Badge className="bg-white/80 text-stone-700 ring-stone-200">
+                            IP: {guest.clientIp || "—"}
+                          </Badge>
 
-                          <p>
-                            <span className="font-bold text-stone-900">
-                              Guest ID:
-                            </span>{" "}
-                            {guest.guestId || "—"}
-                          </p>
+                          <Badge className="bg-white/80 text-stone-700 ring-stone-200">
+                            Guest ID: {guest.guestId || "—"}
+                          </Badge>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="rounded-2xl bg-stone-50 p-3">
-                          <p className="text-xs font-black uppercase text-stone-400">
-                            Замовлень
-                          </p>
-                          <p className="mt-1 font-black text-stone-950">
-                            {guest.ordersCount}
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl bg-stone-50 p-3">
-                          <p className="text-xs font-black uppercase text-stone-400">
-                            Сьогодні
-                          </p>
-                          <p className="mt-1 font-black text-blue-800">
-                            {guest.ordersTodayCount}
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl bg-stone-50 p-3">
-                          <p className="text-xs font-black uppercase text-stone-400">
-                            Активні
-                          </p>
-                          <p className="mt-1 font-black text-blue-800">
-                            {guest.activeOrdersCount}
-                          </p>
-                        </div>
-
-                        <div className="rounded-2xl bg-stone-50 p-3">
-                          <p className="text-xs font-black uppercase text-stone-400">
-                            Скасовані
-                          </p>
-                          <p className="mt-1 font-black text-red-800">
-                            {guest.cancelledOrdersCount}
-                          </p>
-                        </div>
+                        <MiniMetric label="Замовлень" value={guest.ordersCount} />
+                        <MiniMetric
+                          label="Сьогодні"
+                          value={guest.ordersTodayCount}
+                          tone="blue"
+                        />
+                        <MiniMetric
+                          label="Активні"
+                          value={guest.activeOrdersCount}
+                          tone="blue"
+                        />
+                        <MiniMetric
+                          label="Скасовані"
+                          value={guest.cancelledOrdersCount}
+                          tone="red"
+                        />
                       </div>
 
-                      <div className="space-y-2 text-sm text-stone-600">
+                      <div className="rounded-[1.4rem] bg-stone-50/90 p-4 text-sm leading-6 text-stone-600">
                         <p>
-                          <span className="font-bold text-stone-900">
+                          <span className="font-black text-stone-900">
                             Сума:
                           </span>{" "}
                           {formatMoney(guest.totalRevenue)}
                         </p>
 
                         <p>
-                          <span className="font-bold text-stone-900">
+                          <span className="font-black text-stone-900">
                             Видано:
                           </span>{" "}
                           {formatMoney(guest.completedRevenue)}
                         </p>
 
                         <p>
-                          <span className="font-bold text-stone-900">
+                          <span className="font-black text-stone-900">
                             Останнє:
                           </span>{" "}
                           {formatDate(guest.lastOrderAt)}
                         </p>
 
                         {guest.risk?.reasons?.length > 0 && (
-                          <p>
-                            <span className="font-bold text-stone-900">
+                          <p className="mt-2">
+                            <span className="font-black text-stone-900">
                               Причини:
                             </span>{" "}
                             {guest.risk.reasons.join(", ")}
@@ -420,19 +479,17 @@ export default function AdminSecurityPanel() {
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <button
-                          type="button"
+                        <ActionButton
                           onClick={() =>
                             setExpandedGuestKey(isExpanded ? null : guest.key)
                           }
-                          className="rounded-2xl bg-stone-900 px-4 py-3 text-sm font-black text-white hover:bg-stone-800"
                         >
                           {isExpanded ? "Сховати" : "Замовлення"}
-                        </button>
+                        </ActionButton>
 
                         {guest.clientIp && (
-                          <button
-                            type="button"
+                          <ActionButton
+                            tone="red"
                             onClick={() =>
                               createBlock(
                                 "ip",
@@ -440,15 +497,14 @@ export default function AdminSecurityPanel() {
                                 "Підозріла активність з IP"
                               )
                             }
-                            className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-800 ring-1 ring-red-200 hover:bg-red-100"
                           >
                             Блок IP
-                          </button>
+                          </ActionButton>
                         )}
 
                         {guest.guestId && (
-                          <button
-                            type="button"
+                          <ActionButton
+                            tone="red"
                             onClick={() =>
                               createBlock(
                                 "guestId",
@@ -456,15 +512,14 @@ export default function AdminSecurityPanel() {
                                 "Підозріла гостьова активність"
                               )
                             }
-                            className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-800 ring-1 ring-red-200 hover:bg-red-100"
                           >
                             Блок гостя
-                          </button>
+                          </ActionButton>
                         )}
 
                         {guest.mainPhone && (
-                          <button
-                            type="button"
+                          <ActionButton
+                            tone="amber"
                             onClick={() =>
                               createBlock(
                                 "phone",
@@ -472,15 +527,14 @@ export default function AdminSecurityPanel() {
                                 "Підозрілі замовлення за телефоном"
                               )
                             }
-                            className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100"
                           >
                             Блок телефону
-                          </button>
+                          </ActionButton>
                         )}
 
                         {guest.mainTelegram && (
-                          <button
-                            type="button"
+                          <ActionButton
+                            tone="amber"
                             onClick={() =>
                               createBlock(
                                 "telegram",
@@ -488,29 +542,28 @@ export default function AdminSecurityPanel() {
                                 "Підозрілі замовлення за Telegram"
                               )
                             }
-                            className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-black text-amber-800 ring-1 ring-amber-200 hover:bg-amber-100"
                           >
                             Блок Telegram
-                          </button>
+                          </ActionButton>
                         )}
                       </div>
                     </div>
 
                     {isExpanded && (
-                      <div className="mt-4 rounded-3xl bg-stone-50 p-4">
+                      <div className="eg-panel mt-5 rounded-[1.8rem] bg-stone-50/90 p-5 backdrop-blur">
                         <p className="font-black text-stone-950">
                           Замовлення гостя
                         </p>
 
-                        <div className="mt-3 overflow-x-auto">
+                        <div className="mt-3 overflow-x-auto rounded-[1.4rem] bg-white/80 ring-1 ring-stone-100">
                           <table className="min-w-full text-left text-sm">
                             <thead>
                               <tr className="text-xs uppercase text-stone-400">
-                                <th className="px-3 py-2">№</th>
-                                <th className="px-3 py-2">Дата</th>
-                                <th className="px-3 py-2">Статус</th>
-                                <th className="px-3 py-2">Контакт</th>
-                                <th className="px-3 py-2">Сума</th>
+                                <th className="px-4 py-3">№</th>
+                                <th className="px-4 py-3">Дата</th>
+                                <th className="px-4 py-3">Статус</th>
+                                <th className="px-4 py-3">Контакт</th>
+                                <th className="px-4 py-3">Сума</th>
                               </tr>
                             </thead>
 
@@ -518,23 +571,25 @@ export default function AdminSecurityPanel() {
                               {(guest.orders || []).map((order) => (
                                 <tr
                                   key={order.id}
-                                  className="border-t border-stone-200"
+                                  className="border-t border-stone-200 transition-colors hover:bg-stone-50"
                                 >
-                                  <td className="px-3 py-3 font-black">
+                                  <td className="px-4 py-3 font-black">
                                     #{order.orderNumber}
                                   </td>
-                                  <td className="px-3 py-3">
+
+                                  <td className="px-4 py-3">
                                     {formatDate(order.createdAt)}
                                   </td>
-                                  <td className="px-3 py-3">
-                                    {order.status}
-                                  </td>
-                                  <td className="px-3 py-3 text-stone-600">
+
+                                  <td className="px-4 py-3">{order.status}</td>
+
+                                  <td className="px-4 py-3 text-stone-600">
                                     {order.customerPhone ||
                                       order.customerTelegram ||
                                       "—"}
                                   </td>
-                                  <td className="px-3 py-3 font-bold">
+
+                                  <td className="px-4 py-3 font-bold">
                                     {formatMoney(order.total)}
                                   </td>
                                 </tr>
@@ -551,21 +606,22 @@ export default function AdminSecurityPanel() {
           )}
         </div>
       ) : (
-        <div className="rounded-[2rem] bg-white p-4 shadow-sm ring-1 ring-stone-100">
-          {blockedCustomers.length === 0 ? (
-            <div className="rounded-3xl bg-stone-50 p-8 text-center">
-              <p className="font-black text-stone-900">Блокувань немає</p>
+        <div className="eg-glass rounded-[2.5rem] p-5 shadow-sm ring-1 ring-stone-100">
+          {visibleBlockedCustomers.length === 0 ? (
+            <div className="rounded-[2rem] bg-stone-50/90 p-8 text-center">
+              <p className="font-black text-stone-900">Блокувань не знайдено</p>
+
               <p className="mt-2 text-sm text-stone-500">
                 Тут будуть IP, телефони, Telegram або гості, яких ви
                 заблокували.
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {blockedCustomers.map((item) => (
+            <div className="eg-stagger space-y-3">
+              {visibleBlockedCustomers.map((item) => (
                 <article
                   key={item.id}
-                  className="flex flex-col gap-3 rounded-3xl border border-stone-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="eg-card flex flex-col gap-3 rounded-[2rem] border border-stone-200 bg-white/80 p-5 backdrop-blur hover:-translate-y-1 hover:border-red-100 hover:shadow-lg hover:shadow-red-900/10 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -573,24 +629,18 @@ export default function AdminSecurityPanel() {
                         {getTypeLabel(item.type)}
                       </Badge>
 
-                      <p className="font-black text-stone-950">
-                        {item.value}
-                      </p>
+                      <p className="font-black text-stone-950">{item.value}</p>
                     </div>
 
-                    <p className="mt-2 text-sm text-stone-500">
+                    <p className="mt-2 text-sm leading-6 text-stone-500">
                       {item.reason || "Без причини"} ·{" "}
                       {formatDate(item.createdAt)}
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => deleteBlock(item)}
-                    className="rounded-2xl bg-stone-900 px-4 py-3 text-sm font-black text-white hover:bg-stone-800"
-                  >
-                    Видалити
-                  </button>
+                  <ActionButton tone="red" onClick={() => deleteBlock(item)}>
+                    Видалити блокування
+                  </ActionButton>
                 </article>
               ))}
             </div>

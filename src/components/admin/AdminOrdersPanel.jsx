@@ -56,25 +56,31 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
   }, [section, activeOrders, historyOrders, activeStatus, query]);
 
   return (
-    <section className="rounded-3xl bg-white p-6 shadow-sm">
+    <section className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h2 className="text-2xl font-black text-stone-950">Замовлення</h2>
+          <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
+            Адмінка
+          </p>
 
-          <p className="mt-2 text-sm text-stone-500">
+          <h2 className="mt-2 text-3xl font-black text-stone-950">
+            Замовлення
+          </h2>
+
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500">
             Активні замовлення можна рухати тільки кнопками. Завершені та
             скасовані переходять в історію.
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2 rounded-[2rem] bg-stone-100/80 p-2 backdrop-blur">
           <button
             type="button"
             onClick={() => setSection("active")}
-            className={`rounded-2xl px-4 py-3 text-sm font-black ${
+            className={`eg-button rounded-[1.4rem] px-4 py-3 text-sm font-black ${
               section === "active"
-                ? "bg-stone-950 text-white"
-                : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                : "text-stone-700 hover:bg-white/80"
             }`}
           >
             Активні · {activeOrders.length}
@@ -83,10 +89,10 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
           <button
             type="button"
             onClick={() => setSection("history")}
-            className={`rounded-2xl px-4 py-3 text-sm font-black ${
+            className={`eg-button rounded-[1.4rem] px-4 py-3 text-sm font-black ${
               section === "history"
-                ? "bg-stone-950 text-white"
-                : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                ? "bg-stone-950 text-white shadow-lg shadow-stone-950/20"
+                : "text-stone-700 hover:bg-white/80"
             }`}
           >
             Історія · {historyOrders.length}
@@ -94,11 +100,11 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
         </div>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-6">
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
+          className="eg-field w-full rounded-[1.4rem] border border-stone-200 bg-white/85 px-5 py-3.5 outline-none backdrop-blur focus:border-emerald-700 focus:bg-white"
           placeholder="Пошук за номером, імʼям, телефоном або Telegram..."
         />
       </div>
@@ -118,10 +124,10 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
                 key={status}
                 type="button"
                 onClick={() => setActiveStatus(status)}
-                className={`whitespace-nowrap rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                className={`eg-button whitespace-nowrap rounded-2xl px-4 py-3 text-sm font-bold ${
                   activeStatus === status
-                    ? "bg-emerald-900 text-white"
-                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                    ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                    : "bg-white/80 text-stone-700 shadow-sm hover:bg-emerald-50 hover:text-emerald-900"
                 }`}
               >
                 {status === "all" ? "Усі" : getOrderStatusLabel(status)} ·{" "}
@@ -133,14 +139,14 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
       )}
 
       {!visibleOrders.length && (
-        <div className="mt-6 rounded-3xl bg-stone-50 p-8 text-center text-stone-500">
+        <div className="eg-panel mt-6 rounded-[2rem] bg-stone-50/90 p-8 text-center text-stone-500">
           {section === "active"
             ? "Активних замовлень за цим фільтром немає."
             : "Історія замовлень поки що порожня."}
         </div>
       )}
 
-      <div className="mt-6 space-y-4">
+      <div className="eg-stagger mt-6 space-y-4">
         {visibleOrders.map((order) => (
           <OrderCard
             key={order.id}

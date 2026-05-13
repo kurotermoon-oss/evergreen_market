@@ -9,7 +9,7 @@ export default function OrderActions({ order, onAction }) {
 
   if (!actions.length || isFinalOrder(order)) {
     return (
-      <div className="rounded-2xl bg-stone-50 p-4 text-sm font-semibold text-stone-500">
+      <div className="eg-panel rounded-[1.4rem] bg-stone-50/90 p-4 text-sm font-semibold text-stone-500">
         Замовлення завершене. Редагування недоступне.
       </div>
     );
@@ -22,7 +22,7 @@ export default function OrderActions({ order, onAction }) {
           key={action.id}
           type="button"
           onClick={() => onAction(action.action)}
-          className={`rounded-2xl px-4 py-3 text-sm font-black transition ${getActionClassName(
+          className={`eg-button rounded-[1.25rem] px-4 py-3 text-sm font-black shadow-sm hover:shadow-md ${getActionClassName(
             action.variant
           )}`}
         >

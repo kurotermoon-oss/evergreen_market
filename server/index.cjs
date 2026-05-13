@@ -38,7 +38,10 @@ const adminAuthRoutes = require("./routes/adminAuth.routes.cjs");
 const adminAnalyticsRoutes = require("./routes/adminAnalytics.routes.cjs");
 const adminCustomersRoutes = require("./routes/adminCustomers.routes.cjs");
 const adminSecurityRoutes = require("./routes/adminSecurity.routes.cjs");
+const adminUploadsRoutes = require("./routes/adminUploads.routes.cjs");
 
+
+const uploadsRoutes = require("./routes/uploads.routes.cjs");
 
 
 const { requireAdmin } = require("./middleware/adminAuth.cjs");
@@ -96,6 +99,7 @@ const {
 
 
 const app = express();
+
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 const USE_POSTGRES = process.env.USE_POSTGRES === "true";
@@ -655,13 +659,18 @@ app.use(
   })
 );
 
-app.use(express.json());
+app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
+
+app.use("/uploads", uploadsRoutes);
 
 app.use("/api/admin", adminAuthRoutes);
 app.use("/api/admin/analytics", adminAnalyticsRoutes);
 app.use("/api/admin/customers", adminCustomersRoutes);
 app.use("/api/admin/security", adminSecurityRoutes);
+app.use("/api/admin/uploads", adminUploadsRoutes);
+
+console.log("[debug] admin routes mounted");
 
 
 console.log("[debug] adminAuthRoutes mounted");

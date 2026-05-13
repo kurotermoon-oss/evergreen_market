@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-
+import PageLoader from "./components/PageLoader.jsx";
 import { api } from "./api/client.js";
 import {
   DEFAULT_FORM,
@@ -66,6 +66,19 @@ export default function App() {
     products,
     loadPublicData,
   } = usePublicData();
+
+
+const [showPageLoader, setShowPageLoader] = useState(true);
+
+useEffect(() => {
+  const timeoutId = window.setTimeout(() => {
+    setShowPageLoader(false);
+  }, 1400);
+
+  return () => window.clearTimeout(timeoutId);
+}, []);
+
+
 
 
 const {
@@ -290,20 +303,11 @@ function applyCustomerToForm(customerData) {
   }
 
 
-  if (isAppLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-stone-50 text-stone-950">
-        <div className="rounded-3xl bg-white p-8 shadow-sm">
-          <p className="text-lg font-bold">Завантаження Evergreen...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (appError) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-stone-50 px-4 text-stone-950">
-        <div className="max-w-xl rounded-3xl bg-white p-8 shadow-sm">
+        <div className="eg-panel max-w-xl rounded-3xl bg-white p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-wide text-red-600">
             Backend error
           </p>
@@ -322,7 +326,7 @@ function applyCustomerToForm(customerData) {
 
           <button
             onClick={() => window.location.reload()}
-            className="mt-6 rounded-2xl bg-emerald-900 px-5 py-3 font-bold text-white hover:bg-emerald-800"
+            className="eg-button mt-6 rounded-2xl bg-emerald-900 px-5 py-3 font-bold text-white hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20"
           >
             Оновити сторінку
           </button>
@@ -331,15 +335,18 @@ function applyCustomerToForm(customerData) {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-stone-50 text-stone-950">
-      <Header
+return (
+  <div className="min-h-screen bg-stone-50 text-stone-950">
+    <PageLoader show={showPageLoader || isAppLoading} />
+
+    <Header
         view={view}
         setView={setView}
         cartCount={cartCount}
         isAdmin={isAdmin}
         customer={customer}
       />
+<div key={view} className="eg-page">
 
       {view === "home" && (
       <HomeView
@@ -473,7 +480,7 @@ function applyCustomerToForm(customerData) {
         deleteSubcategory={deleteSubcategory}
       />
       )}
-
+</div>
       <Footer />
 
       <MobileNav

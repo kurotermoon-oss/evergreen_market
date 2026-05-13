@@ -19,6 +19,7 @@
     "db:restore:remote": "powershell -ExecutionPolicy Bypass -File server/scripts/restore-postgres-remote.ps1"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1045.0",
     "@prisma/client": "6.19.3",
     "@tailwindcss/vite": "latest",
     "@vitejs/plugin-react": "latest",
@@ -28,10 +29,13 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.14.0",
+    "multer": "^2.1.1",
     "pg": "^8.20.0",
     "react": "latest",
     "react-dom": "latest",
+    "react-easy-crop": "^5.5.7",
     "recharts": "^3.8.1",
+    "sharp": "^0.34.5",
     "tailwindcss": "latest",
     "vite": "latest"
   },

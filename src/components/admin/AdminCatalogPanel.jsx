@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 import AdminProductForm from "./AdminProductForm.jsx";
 import AdminProductsPanel from "./AdminProductsPanel.jsx";
@@ -139,14 +140,14 @@ export default function AdminCatalogPanel({
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
 
-    if (showAddProductForm) {
+    if (showAddProductForm || showCategoryManager) {
       document.body.style.overflow = "hidden";
     }
 
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [showAddProductForm]);
+  }, [showAddProductForm, showCategoryManager]);
 
   const visibleCategories = useMemo(() => {
     return getVisibleCategories(categories);
@@ -185,19 +186,19 @@ export default function AdminCatalogPanel({
   }
 
   return (
-    <section className="space-y-6">
-      <div className="rounded-[2rem] bg-white p-6 shadow-sm">
+    <section className="eg-ambient space-y-6">
+      <div className="eg-glass eg-premium-card overflow-hidden rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-800 shadow-sm backdrop-blur">
               Каталог
             </p>
 
-            <h2 className="mt-2 text-3xl font-black text-stone-950">
+            <h2 className="mt-4 text-4xl font-black leading-tight text-stone-950">
               Керування каталогом
             </h2>
 
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-stone-500">
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
               Оберіть категорію зліва, щоб швидко переглянути повʼязані товари.
               Редагування категорій винесено в окремий режим, щоб сторінка не
               була перевантаженою.
@@ -208,10 +209,10 @@ export default function AdminCatalogPanel({
             <button
               type="button"
               onClick={() => setShowCategoryManager((current) => !current)}
-              className={`rounded-2xl px-5 py-3 text-sm font-black transition ${
+              className={`eg-button rounded-[1.3rem] px-5 py-3 text-sm font-black backdrop-blur transition-all duration-300 ${
                 showCategoryManager
-                  ? "bg-stone-950 text-white"
-                  : "border border-stone-300 bg-white text-stone-900 hover:bg-stone-100"
+                  ? "bg-stone-950 text-white shadow-lg shadow-stone-950/20"
+                  : "border border-stone-300 bg-white/80 text-stone-900 hover:bg-white"
               }`}
             >
               {showCategoryManager
@@ -222,15 +223,15 @@ export default function AdminCatalogPanel({
             <button
               type="button"
               onClick={() => setShowAddProductForm(true)}
-              className="rounded-2xl bg-emerald-900 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-800"
+              className="eg-button rounded-[1.3rem] bg-emerald-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-900/20 transition-all duration-300 hover:-translate-y-[2px] hover:bg-emerald-800 hover:shadow-xl hover:shadow-emerald-900/30 active:translate-y-0"
             >
               Додати товар
             </button>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-4">
-          <div className="rounded-3xl bg-stone-50 p-4">
+        <div className="eg-stagger mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
               Товарів
             </p>
@@ -239,7 +240,7 @@ export default function AdminCatalogPanel({
             </p>
           </div>
 
-          <div className="rounded-3xl bg-stone-50 p-4">
+          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
               Активних
             </p>
@@ -248,16 +249,16 @@ export default function AdminCatalogPanel({
             </p>
           </div>
 
-          <div className="rounded-3xl bg-stone-50 p-4">
+          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
               Прихованих
             </p>
-            <p className="mt-2 text-2xl font-black text-stone-950">
+            <p className="mt-2 text-2xl font-black text-amber-800">
               {hiddenProductsCount}
             </p>
           </div>
 
-          <div className="rounded-3xl bg-stone-50 p-4">
+          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
               Категорій / підкатегорій
             </p>
@@ -267,7 +268,7 @@ export default function AdminCatalogPanel({
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-7">
           <label className="mb-2 block text-sm font-black text-stone-800">
             Пошук у вибраному розділі
           </label>
@@ -276,7 +277,7 @@ export default function AdminCatalogPanel({
             <input
               value={catalogQuery}
               onChange={(event) => setCatalogQuery(event.target.value)}
-              className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-4 outline-none transition focus:border-emerald-700"
+              className="eg-field w-full rounded-[1.5rem] border border-stone-200 bg-white/85 px-5 py-4 outline-none backdrop-blur transition-all duration-300 focus:border-emerald-700 focus:bg-white focus:shadow-lg focus:shadow-emerald-900/10"
               placeholder="Пошук товарів, категорій, підкатегорій..."
             />
 
@@ -284,14 +285,14 @@ export default function AdminCatalogPanel({
               <button
                 type="button"
                 onClick={() => setCatalogQuery("")}
-                className="rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-black text-stone-900 hover:bg-stone-100"
+                className="eg-button rounded-[1.3rem] border border-stone-300 bg-white/80 px-5 py-3 text-sm font-black text-stone-900 hover:bg-white"
               >
                 Очистити
               </button>
             )}
           </div>
 
-          <p className="mt-2 text-sm text-stone-500">
+          <p className="mt-3 text-sm text-stone-500">
             Поточний розділ:{" "}
             <span className="font-bold text-stone-800">
               {catalogFilter.label}
@@ -305,36 +306,43 @@ export default function AdminCatalogPanel({
         </div>
       </div>
 
-{showCategoryManager && (
-  <div className="fixed inset-0 z-[70] bg-black/45 p-4 backdrop-blur-[2px] sm:p-6">
-    <div className="flex min-h-full items-start justify-center sm:items-center">
-      <div className="flex w-full max-w-6xl flex-col overflow-hidden rounded-[2rem] bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-stone-200 px-6 py-5 sm:px-8">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
-              Каталог
-            </p>
+{showCategoryManager &&
+  createPortal(
+    <div
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/55 p-3 backdrop-blur-md"
+      onClick={() => setShowCategoryManager(false)}
+    >
+      <div
+        className="eg-glass flex h-[96dvh] w-[96vw] max-w-[1500px] flex-col overflow-hidden rounded-[1.6rem] bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.22)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="shrink-0 border-b border-stone-200 bg-white/95 px-5 py-3 backdrop-blur-xl sm:px-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
+                Каталог
+              </p>
 
-            <h2 className="mt-1 text-3xl font-black text-stone-950">
-              Керування категоріями
-            </h2>
+              <h2 className="mt-0.5 text-2xl font-black text-stone-950">
+                Керування категоріями
+              </h2>
 
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-500">
-              Тут можна створювати, перейменовувати, приховувати, повертати та
-              видаляти категорії й підкатегорії.
-            </p>
+              <p className="mt-1 text-xs leading-5 text-stone-500">
+                Створення, перейменування, приховування та видалення категорій.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowCategoryManager(false)}
+              className="eg-icon-button flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-stone-100 text-xl font-black text-stone-600 hover:bg-stone-200"
+            >
+              ×
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setShowCategoryManager(false)}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-stone-100 text-xl font-black text-stone-600 transition hover:bg-stone-200"
-          >
-            ×
-          </button>
         </div>
 
-      <div className="modal-scrollbar max-h-[85vh] overflow-y-auto px-6 py-6 sm:px-8">
+        <div className="modal-scrollbar min-h-0 flex-1 overflow-y-auto bg-stone-50/60 px-4 py-4 sm:px-5">
           <AdminCategoriesPanel
             categories={categories}
             createCategory={createCategory}
@@ -346,12 +354,12 @@ export default function AdminCatalogPanel({
           />
         </div>
       </div>
-    </div>
-  </div>
-)}
+    </div>,
+    document.body
+  )}
 
       <div className="grid gap-6 xl:grid-cols-[340px_1fr] xl:items-start">
-        <aside className="rounded-[2rem] bg-white p-5 shadow-sm">
+        <aside className="eg-glass eg-premium-card sticky top-24 rounded-[2.5rem] p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
@@ -364,8 +372,6 @@ export default function AdminCatalogPanel({
             </div>
           </div>
 
-
-
           <div className="mt-5 space-y-2">
             <button
               type="button"
@@ -377,10 +383,10 @@ export default function AdminCatalogPanel({
                   label: "Усі товари",
                 })
               }
-              className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-black transition ${
+              className={`eg-button flex w-full items-center justify-between rounded-[1.3rem] px-4 py-3 text-left text-sm font-black ${
                 catalogFilter.type === "all"
-                  ? "bg-emerald-900 text-white"
-                  : "bg-stone-50 text-stone-800 hover:bg-stone-100"
+                  ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                  : "bg-white/75 text-stone-800 hover:bg-white"
               }`}
             >
               <span>Усі товари</span>
@@ -401,7 +407,7 @@ export default function AdminCatalogPanel({
               return (
                 <div
                   key={category.id}
-                  className="rounded-3xl border border-stone-200 bg-white p-3"
+                  className="eg-card rounded-[1.8rem] border border-stone-200 bg-white/75 p-3 backdrop-blur transition-all duration-300 hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10"
                 >
                   <div className="flex items-center gap-2">
                     <button
@@ -414,10 +420,10 @@ export default function AdminCatalogPanel({
                           label: category.name,
                         })
                       }
-                      className={`flex flex-1 items-center justify-between rounded-2xl px-3 py-3 text-left text-sm font-black transition ${
+                      className={`eg-button flex flex-1 items-center justify-between rounded-[1.2rem] px-4 py-3 text-left text-sm font-black transition-all duration-300 ${
                         isCategoryActive || hasActiveSubcategory
-                          ? "bg-emerald-900 text-white"
-                          : "bg-stone-50 text-stone-900 hover:bg-stone-100"
+                          ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                          : "bg-stone-50/90 text-stone-900 hover:bg-emerald-50"
                       }`}
                     >
                       <span className="min-w-0 truncate">{category.name}</span>
@@ -437,7 +443,7 @@ export default function AdminCatalogPanel({
                       <button
                         type="button"
                         onClick={() => toggleCategoryExpand(category.id)}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-100"
+                        className="eg-icon-button flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-100"
                         title={isExpanded ? "Згорнути" : "Розгорнути"}
                       >
                         <span
@@ -472,7 +478,7 @@ export default function AdminCatalogPanel({
                                   label: `${category.name} / ${subcategory.name}`,
                                 })
                               }
-                              className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition ${
+                              className={`eg-button flex w-full items-center justify-between rounded-[1rem] px-3 py-2.5 text-left text-sm transition-all duration-300 ${
                                 isSubcategoryActive
                                   ? "bg-emerald-50 font-black text-emerald-900"
                                   : "text-stone-600 hover:bg-stone-50"
@@ -497,7 +503,7 @@ export default function AdminCatalogPanel({
           </div>
         </aside>
 
-        <div className="min-w-0">
+        <div className="min-w-0 overflow-hidden">
           <AdminProductsPanel
             products={visibleProducts}
             categories={categories}
@@ -508,49 +514,54 @@ export default function AdminCatalogPanel({
         </div>
       </div>
 
-      {showAddProductForm && (
-        <div
-          className="fixed inset-0 z-50 bg-black/40 p-4 sm:p-6"
-          onClick={() => setShowAddProductForm(false)}
-        >
-          <div
-            className="mx-auto max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="mb-5 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
-                  Новий товар
-                </p>
+{showAddProductForm &&
+  createPortal(
+    <div
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/55 p-3 backdrop-blur-md"
+      onClick={() => setShowAddProductForm(false)}
+    >
+      <div
+        className="eg-glass flex h-[96dvh] w-[94vw] max-w-[1260px] flex-col overflow-hidden rounded-[1.6rem] bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.22)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="shrink-0 border-b border-stone-200 bg-white/95 px-5 py-3 backdrop-blur-xl sm:px-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
+                Новий товар
+              </p>
 
-                <h3 className="mt-1 text-2xl font-black text-stone-950">
-                  Додати товар
-                </h3>
+              <h3 className="mt-0.5 text-2xl font-black text-stone-950">
+                Додати товар
+              </h3>
 
-                <p className="mt-2 text-sm text-stone-500">
-                  Заповніть основні дані товару. Після створення форма
-                  автоматично закриється.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowAddProductForm(false)}
-                className="rounded-2xl border border-stone-300 px-4 py-2 font-bold text-stone-700 hover:bg-stone-100"
-              >
-                ✕
-              </button>
+              <p className="mt-1 text-xs leading-5 text-stone-500">
+                Заповніть основні дані товару. Після створення форма закриється.
+              </p>
             </div>
 
-            <AdminProductForm
-              categories={categories}
-              draftProduct={draftProduct}
-              setDraftProduct={setDraftProduct}
-              addDraftProduct={handleAddProduct}
-            />
+            <button
+              type="button"
+              onClick={() => setShowAddProductForm(false)}
+              className="eg-icon-button flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-stone-100 text-xl font-black text-stone-600 hover:bg-stone-200"
+            >
+              ×
+            </button>
           </div>
         </div>
-      )}
+
+        <div className="modal-scrollbar min-h-0 flex-1 overflow-y-auto bg-stone-50/60 px-4 py-4 sm:px-5">
+          <AdminProductForm
+            categories={categories}
+            draftProduct={draftProduct}
+            setDraftProduct={setDraftProduct}
+            addDraftProduct={handleAddProduct}
+          />
+        </div>
+      </div>
+    </div>,
+    document.body
+  )}
     </section>
   );
 }

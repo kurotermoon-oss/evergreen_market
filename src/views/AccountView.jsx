@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { formatUAH } from "../utils/formatUAH.js";
 import TelegramVerificationCard from "../components/customer/TelegramVerificationCard.jsx";
+
 const ORDER_STATUS_LABELS = {
   new: "Нове",
   confirmed: "Підтверджено",
@@ -9,7 +10,6 @@ const ORDER_STATUS_LABELS = {
   completed: "Завершено",
   canceled: "Скасовано",
   cancelled: "Скасовано",
-
   Новий: "Нове",
   Нове: "Нове",
   Підтверджено: "Підтверджено",
@@ -102,17 +102,21 @@ function getBackendErrors(error) {
 }
 
 function getInputClass(hasError) {
-  return `w-full rounded-2xl border bg-white px-4 py-3 outline-none transition ${
+  return `eg-field w-full rounded-[1.3rem] border px-5 py-3.5 outline-none transition ${
     hasError
-      ? "border-red-300 focus:border-red-500"
-      : "border-stone-300 focus:border-emerald-700"
+      ? "eg-shake border-red-300 bg-red-50/40 focus:border-red-500"
+      : "border-stone-200 bg-white/85 backdrop-blur focus:border-emerald-700 focus:bg-white"
   }`;
 }
 
 function FieldError({ children }) {
   if (!children) return null;
 
-  return <p className="mt-1 text-sm font-semibold text-red-600">{children}</p>;
+  return (
+    <p className="eg-error mt-1 text-sm font-semibold text-red-600">
+      {children}
+    </p>
+  );
 }
 
 function formatDate(value) {
@@ -204,7 +208,7 @@ function OrderProgress({ order }) {
 
   if (isCancelled) {
     return (
-      <div className="rounded-3xl border border-red-100 bg-red-50 p-5">
+      <div className="rounded-[2rem] border border-red-100 bg-red-50/80 p-5">
         <p className="font-black text-red-800">Замовлення скасовано</p>
 
         {order.cancelReason && (
@@ -217,7 +221,7 @@ function OrderProgress({ order }) {
   }
 
   return (
-    <div className="rounded-3xl bg-stone-50 p-5">
+    <div className="eg-premium-card rounded-[2rem] bg-stone-50/90 p-5">
       <p className="mb-4 text-sm font-black text-stone-800">
         Прогрес замовлення
       </p>
@@ -233,7 +237,7 @@ function OrderProgress({ order }) {
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${
                   isDone
-                    ? "bg-emerald-900 text-white"
+                    ? "bg-emerald-900 text-white shadow-md shadow-emerald-900/20"
                     : "bg-white text-stone-400"
                 }`}
               >
@@ -272,7 +276,7 @@ function OrderCard({ order }) {
   const visibleStatusEvents = getVisibleStatusEvents(order);
 
   return (
-    <div className="rounded-3xl border border-stone-200 p-5">
+    <div className="eg-card eg-premium-card rounded-[2rem] border border-stone-200 bg-white/85 p-5 backdrop-blur hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-emerald-700">
@@ -301,7 +305,7 @@ function OrderCard({ order }) {
 
       <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_0.85fr]">
         <div className="space-y-4">
-          <div className="rounded-3xl bg-stone-50 p-5">
+          <div className="rounded-[2rem] bg-stone-50/90 p-5">
             <p className="mb-3 text-sm font-black text-stone-800">
               Склад замовлення
             </p>
@@ -333,7 +337,7 @@ function OrderCard({ order }) {
           </div>
 
           {order.deliveryType === "building" && (
-            <div className="rounded-3xl bg-stone-50 p-5">
+            <div className="rounded-[2rem] bg-stone-50/90 p-5">
               <p className="mb-3 text-sm font-black text-stone-800">
                 Адреса доставки
               </p>
@@ -348,7 +352,7 @@ function OrderCard({ order }) {
           )}
 
           {order.comment && (
-            <div className="rounded-3xl bg-stone-50 p-5">
+            <div className="rounded-[2rem] bg-stone-50/90 p-5">
               <p className="mb-2 text-sm font-black text-stone-800">
                 Коментар
               </p>
@@ -364,7 +368,7 @@ function OrderCard({ order }) {
       </div>
 
       {visibleStatusEvents.length > 0 && (
-        <details className="mt-5 rounded-3xl bg-white">
+        <details className="mt-5 rounded-[2rem] bg-white/70 p-4">
           <summary className="cursor-pointer text-sm font-black text-stone-700 hover:text-emerald-800">
             Детальна історія
           </summary>
@@ -482,7 +486,7 @@ function ProfileEditor({
   }
 
   return (
-    <div className="mt-6 rounded-3xl bg-stone-50 p-5">
+    <div className="eg-panel eg-premium-card mt-6 rounded-[2rem] bg-stone-50/90 p-5 backdrop-blur">
       <p className="text-lg font-black text-stone-950">
         Редагування профілю
       </p>
@@ -493,7 +497,7 @@ function ProfileEditor({
       </p>
 
       {formError && (
-        <div className="mt-4 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">
+        <div className="eg-error eg-shake mt-4 rounded-[1.4rem] border border-red-200 bg-red-50/80 p-4 text-sm font-semibold text-red-700">
           {formError}
         </div>
       )}
@@ -548,7 +552,10 @@ function ProfileEditor({
                 }
                 onBlur={() => {
                   if (form.telegram && isValidTelegram(form.telegram)) {
-                    updateField("telegram", `@${normalizeTelegram(form.telegram)}`);
+                    updateField(
+                      "telegram",
+                      `@${normalizeTelegram(form.telegram)}`
+                    );
                   }
                 }}
                 className={getInputClass(Boolean(fieldErrors.telegram))}
@@ -567,7 +574,7 @@ function ProfileEditor({
           <FieldError>{fieldErrors.contact}</FieldError>
         </div>
 
-        <div className="rounded-3xl bg-white p-4">
+        <div className="eg-premium-card rounded-[2rem] bg-white/80 p-4">
           <div className="mb-4">
             <p className="font-bold text-stone-800">Дані для доставки</p>
 
@@ -615,7 +622,7 @@ function ProfileEditor({
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="rounded-2xl bg-emerald-900 px-5 py-3 font-black text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+            className="eg-button eg-sweep rounded-2xl bg-emerald-900 px-5 py-3 font-black text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
           >
             {isSaving ? "Збереження..." : "Зберегти"}
           </button>
@@ -624,7 +631,7 @@ function ProfileEditor({
             type="button"
             onClick={onCancel}
             disabled={isSaving}
-            className="rounded-2xl border border-stone-300 px-5 py-3 font-black text-stone-900 hover:bg-stone-100 disabled:cursor-not-allowed"
+            className="eg-button rounded-2xl border border-stone-300 bg-white/80 px-5 py-3 font-black text-stone-900 hover:bg-white disabled:cursor-not-allowed"
           >
             Скасувати
           </button>
@@ -655,8 +662,8 @@ export default function AccountView({
 
   if (!customer) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-        <section className="rounded-3xl bg-white p-8 text-center shadow-sm">
+      <main className="eg-ambient mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <section className="eg-glass eg-premium-card rounded-[2.5rem] p-8 text-center">
           <h1 className="text-2xl font-black text-stone-950">
             Ви ще не увійшли
           </h1>
@@ -664,7 +671,7 @@ export default function AccountView({
           <button
             type="button"
             onClick={() => setView("customer-auth")}
-            className="mt-5 rounded-2xl bg-emerald-900 px-5 py-3 font-bold text-white hover:bg-emerald-800"
+            className="eg-button eg-sweep mt-5 rounded-2xl bg-emerald-900 px-5 py-3 font-bold text-white hover:bg-emerald-800"
           >
             Увійти або зареєструватися
           </button>
@@ -674,19 +681,19 @@ export default function AccountView({
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-      <section className="rounded-3xl bg-white p-6 shadow-sm">
+    <main className="eg-ambient mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <section className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-emerald-800 shadow-sm backdrop-blur">
               Особистий кабінет
             </p>
 
-            <h1 className="mt-2 text-3xl font-black text-stone-950">
+            <h1 className="mt-4 text-4xl font-black text-stone-950">
               {customer.name}
             </h1>
 
-            <p className="mt-2 text-stone-600">
+            <p className="mt-3 text-stone-600">
               Телефон: {customer.phone || "—"} · Telegram:{" "}
               {customer.telegram ? `@${customer.telegram}` : "—"}
             </p>
@@ -705,7 +712,7 @@ export default function AccountView({
                 setIsEditingProfile((current) => !current);
                 setProfileMessage("");
               }}
-              className="rounded-2xl border border-stone-300 px-5 py-3 font-bold text-stone-900 hover:bg-stone-100"
+              className="eg-button rounded-2xl border border-stone-300 bg-white/80 px-5 py-3 font-bold text-stone-900 hover:bg-white"
             >
               {isEditingProfile ? "Закрити" : "Редагувати"}
             </button>
@@ -713,7 +720,7 @@ export default function AccountView({
             <button
               type="button"
               onClick={() => setView("catalog")}
-              className="rounded-2xl bg-emerald-900 px-5 py-3 font-bold text-white hover:bg-emerald-800"
+              className="eg-button eg-sweep rounded-2xl bg-emerald-900 px-5 py-3 font-bold text-white hover:bg-emerald-800"
             >
               До каталогу
             </button>
@@ -721,7 +728,7 @@ export default function AccountView({
             <button
               type="button"
               onClick={customerLogout}
-              className="rounded-2xl border border-stone-300 px-5 py-3 font-bold text-stone-900 hover:bg-stone-100"
+              className="eg-button rounded-2xl border border-stone-300 bg-white/80 px-5 py-3 font-bold text-stone-900 hover:bg-white"
             >
               Вийти
             </button>
@@ -729,7 +736,7 @@ export default function AccountView({
         </div>
 
         {profileMessage && (
-          <div className="mt-5 rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+          <div className="eg-panel mt-5 rounded-[1.4rem] bg-emerald-50/90 p-4 text-sm font-semibold text-emerald-800">
             {profileMessage}
           </div>
         )}
@@ -745,23 +752,25 @@ export default function AccountView({
             }}
           />
         )}
-
-        
       </section>
+
+      <div className="mt-6">
         <TelegramVerificationCard
-            customer={customer}
-            onCustomerUpdate={setCustomer}
-          />
-      <section className="mt-8 rounded-3xl bg-white p-6 shadow-sm">
+          customer={customer}
+          onCustomerUpdate={setCustomer}
+        />
+      </div>
+
+      <section className="eg-glass eg-premium-card mt-8 rounded-[2.5rem] p-6 lg:p-8">
         <h2 className="text-2xl font-black text-stone-950">Мої замовлення</h2>
 
         {!customerOrders.length && (
-          <div className="mt-6 rounded-3xl bg-stone-50 p-8 text-center text-stone-500">
+          <div className="eg-panel mt-6 rounded-[2rem] bg-stone-50/90 p-8 text-center text-stone-500">
             У вас ще немає замовлень.
           </div>
         )}
 
-        <div className="mt-6 space-y-5">
+        <div className="eg-stagger mt-6 space-y-5">
           {customerOrders.map((order) => (
             <OrderCard key={order.id} order={order} />
           ))}

@@ -17,6 +17,7 @@ function getSubcategoryName(categories, product) {
   if (!product?.subcategory) return "";
 
   const category = categories.find((item) => item.id === product.category);
+
   const subcategory = category?.subcategories?.find(
     (item) => item.id === product.subcategory
   );
@@ -43,9 +44,12 @@ function InfoRow({ label, value }) {
   if (!value) return null;
 
   return (
-    <div className="grid grid-cols-[0.9fr_1.1fr] gap-4 border-b border-stone-200 px-0 py-4 text-sm last:border-b-0">
-      <span className="text-stone-500">{label}</span>
-      <span className="text-right font-bold text-stone-950">{value}</span>
+    <div className="grid grid-cols-[0.9fr_1.1fr] gap-4 border-b border-stone-200/70 px-0 py-4 text-sm last:border-b-0">
+      <span className="font-medium text-stone-500">{label}</span>
+
+      <span className="text-right font-black text-stone-950">
+        {value}
+      </span>
     </div>
   );
 }
@@ -64,7 +68,7 @@ export default function ProductDetailsView({
   if (!product) {
     return (
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="rounded-[2rem] bg-white p-8 shadow-sm">
+        <div className="eg-glass rounded-[2rem] p-8">
           <h1 className="text-2xl font-black text-stone-950">
             Товар не знайдено
           </h1>
@@ -76,7 +80,7 @@ export default function ProductDetailsView({
           <button
             type="button"
             onClick={() => setView("catalog")}
-            className="mt-6 rounded-2xl bg-emerald-900 px-6 py-3 font-bold text-white hover:bg-emerald-800"
+            className="eg-button eg-sweep mt-6 rounded-2xl bg-emerald-900 px-6 py-3 font-bold text-white hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20"
           >
             Повернутися до каталогу
           </button>
@@ -87,12 +91,15 @@ export default function ProductDetailsView({
 
   const category = getCategoryName(categories, product.category);
   const subcategory = getSubcategoryName(categories, product);
+
   const unit = getProductUnit(product);
   const packageInfo = getProductPackage(product);
 
   const available = isProductAvailable(product);
+
   const stockLabel = getStockLabel(product);
   const stockTone = getStockTone(product);
+
   const discountPercent = getDiscountPercent(product);
 
   const cartItem = cartItems.find((item) => {
@@ -161,12 +168,14 @@ export default function ProductDetailsView({
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <main className="eg-ambient mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* BREADCRUMBS */}
+
       <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-stone-500">
         <button
           type="button"
           onClick={() => setView("home")}
-          className="hover:text-emerald-800"
+          className="eg-button rounded-xl px-1 hover:text-emerald-800"
         >
           Головна
         </button>
@@ -195,169 +204,191 @@ export default function ProductDetailsView({
       <button
         type="button"
         onClick={() => setView("catalog")}
-        className="mb-6 rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-black text-stone-950 transition hover:bg-stone-100"
+        className="eg-button mb-6 rounded-2xl border border-stone-300 bg-white/80 px-5 py-3 text-sm font-black text-stone-950 backdrop-blur hover:bg-white"
       >
         ← Назад до каталогу
       </button>
 
-      <section className="grid gap-8 rounded-[2rem] border border-stone-200 bg-white p-5 shadow-sm lg:grid-cols-[0.95fr_1.05fr] lg:p-8">
-        <div className="relative flex min-h-[360px] items-center justify-center rounded-[2rem] bg-stone-50 p-6 lg:min-h-[520px]">
-          {discountPercent && (
-            <span className="absolute left-5 top-5 rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white shadow-sm">
-              -{discountPercent}%
-            </span>
-          )}
+      {/* PRODUCT HERO */}
 
-          {!available && (
-            <span className="absolute right-5 top-5 rounded-full bg-stone-900 px-4 py-2 text-sm font-black text-white shadow-sm">
-              Немає в наявності
-            </span>
-          )}
+      <section className="eg-glass eg-premium-card overflow-hidden rounded-[2.4rem] p-5 lg:p-8">
+        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+          {/* IMAGE */}
 
-          <img
-            src={product.image}
-            alt={product.name}
-            className="max-h-[460px] max-w-full object-contain"
-          />
-        </div>
+          <div className="relative">
+            <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-emerald-100/70 via-white to-amber-50 blur-3xl" />
 
-        <div className="flex flex-col justify-center">
-          <p className="text-sm font-black uppercase tracking-wide text-emerald-700">
-            {category}
-            {product.brand ? ` · ${product.brand}` : ""}
-          </p>
+            <div className="eg-steam relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br from-stone-50 via-white to-emerald-50/40 p-6 lg:min-h-[620px]">
+              {discountPercent && (
+                <span className="absolute left-5 top-5 z-20 rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white shadow-lg">
+                  -{discountPercent}%
+                </span>
+              )}
 
-          <h1 className="mt-3 text-3xl font-black leading-tight text-stone-950 sm:text-4xl">
-            {product.name}
-          </h1>
+              {!available && (
+                <span className="absolute right-5 top-5 z-20 rounded-full bg-stone-900 px-4 py-2 text-sm font-black text-white shadow-lg">
+                  Немає в наявності
+                </span>
+              )}
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span
-              className={`inline-flex rounded-full px-4 py-2 text-sm font-bold ${stockTone}`}
-            >
-              {available ? "✓ " : ""}
-              {stockLabel}
-            </span>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.08),transparent_60%)]" />
 
-            {subcategory && (
-              <span className="rounded-full bg-stone-100 px-4 py-2 text-sm font-bold text-stone-600">
-                {subcategory}
-              </span>
-            )}
+              <img
+                src={product.image}
+                alt={product.name}
+                className="eg-image relative z-10 max-h-[520px] max-w-full object-contain drop-shadow-[0_24px_60px_rgba(0,0,0,0.18)] hover:scale-[1.04]"
+              />
+            </div>
           </div>
 
-          <div className="mt-7 rounded-[1.75rem] border border-stone-200 p-5 sm:p-6">
-            <div className="flex flex-wrap items-end gap-3">
-              <p className="text-4xl font-black text-stone-950">
-                {formatUAH(product.price)}
-              </p>
+          {/* INFO */}
 
-              {product.oldPrice &&
-                Number(product.oldPrice) > Number(product.price) && (
-                  <p className="pb-1 text-lg text-stone-400 line-through">
-                    {formatUAH(product.oldPrice)}
-                  </p>
-                )}
+          <div className="flex flex-col justify-center">
+            <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
+              {category}
+              {product.brand ? ` · ${product.brand}` : ""}
+            </p>
 
-              {discountPercent && (
-                <span className="mb-1 rounded-full bg-red-50 px-3 py-1 text-sm font-black text-red-600">
-                  Вигода -{discountPercent}%
+            <h1 className="mt-4 text-4xl font-black leading-tight text-stone-950 sm:text-5xl">
+              {product.name}
+            </h1>
+
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <span
+                className={`inline-flex rounded-full px-4 py-2 text-sm font-black ${stockTone}`}
+              >
+                {available ? "✓ " : ""}
+                {stockLabel}
+              </span>
+
+              {subcategory && (
+                <span className="rounded-full bg-white/80 px-4 py-2 text-sm font-black text-stone-700 ring-1 ring-stone-200">
+                  {subcategory}
                 </span>
               )}
             </div>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl bg-stone-50 p-4">
-                <p className="text-xs font-black uppercase tracking-wide text-stone-500">
-                  Обʼєм / кількість
+            {/* PRICE BLOCK */}
+
+            <div className="eg-premium-card mt-8 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-lg shadow-emerald-900/5 backdrop-blur">
+              <div className="flex flex-wrap items-end gap-3">
+                <p className="text-5xl font-black tracking-tight text-stone-950">
+                  {formatUAH(product.price)}
                 </p>
 
-                <p className="mt-1 text-base font-black text-stone-950">
-                  {unit}
-                </p>
+                {product.oldPrice &&
+                  Number(product.oldPrice) > Number(product.price) && (
+                    <p className="pb-2 text-xl text-stone-400 line-through">
+                      {formatUAH(product.oldPrice)}
+                    </p>
+                  )}
               </div>
 
-              <div className="rounded-2xl bg-stone-50 p-4">
-                <p className="text-xs font-black uppercase tracking-wide text-stone-500">
-                  Упаковка
+              {discountPercent > 0 && (
+                <div className="mt-4 inline-flex rounded-full bg-red-50 px-4 py-2 text-sm font-black text-red-600">
+                  Вигода -{discountPercent}%
+                </div>
+              )}
+
+              <div className="eg-stagger mt-6 grid gap-3 sm:grid-cols-2">
+                <div className="eg-card rounded-2xl bg-stone-50/90 p-4 hover:bg-emerald-50/60">
+                  <p className="text-xs font-black uppercase tracking-wide text-stone-500">
+                    Обʼєм / кількість
+                  </p>
+
+                  <p className="mt-1 text-base font-black text-stone-950">
+                    {unit}
+                  </p>
+                </div>
+
+                <div className="eg-card rounded-2xl bg-stone-50/90 p-4 hover:bg-emerald-50/60">
+                  <p className="text-xs font-black uppercase tracking-wide text-stone-500">
+                    Упаковка
+                  </p>
+
+                  <p className="mt-1 text-base font-black text-stone-950">
+                    {packageInfo}
+                  </p>
+                </div>
+              </div>
+
+              {/* DELIVERY */}
+
+              <div className="eg-panel mt-6 rounded-2xl bg-emerald-50 p-5">
+                <p className="text-sm font-black text-emerald-950">
+                  Отримання замовлення
                 </p>
 
-                <p className="mt-1 text-base font-black text-stone-950">
-                  {packageInfo}
-                </p>
+                <div className="mt-3 grid gap-2 text-sm text-emerald-900">
+                  <p>✓ Самовивіз з Evergreen coffee</p>
+                  <p>✓ Доставка по ЖК</p>
+                  <p>✓ Підтвердження перед оплатою</p>
+                </div>
               </div>
-            </div>
 
-            <div className="mt-5 rounded-2xl bg-emerald-50 p-4">
-              <p className="text-sm font-black text-emerald-950">
-                Отримання замовлення
-              </p>
+              {/* ACTIONS */}
 
-              <div className="mt-3 grid gap-2 text-sm text-emerald-900">
-                <p>✓ Самовивіз з Evergreen coffee</p>
-                <p>✓ Доставка по ЖК</p>
-                <p>✓ Підтвердження замовлення перед оплатою</p>
-              </div>
-            </div>
+              <div className="mt-6">
+                {cartQty > 0 ? (
+                  <div className="grid gap-3 sm:grid-cols-[auto_1fr]">
+                    <div className="flex items-center overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-lg shadow-emerald-900/20">
+                      <button
+                        type="button"
+                        onClick={handleDecrease}
+                        className="eg-counter-button px-5 py-4 text-lg font-black hover:bg-emerald-800"
+                      >
+                        −
+                      </button>
 
-            <div className="mt-5">
-              {cartQty > 0 ? (
-                <div className="grid gap-3 sm:grid-cols-[auto_1fr]">
-                  <div className="flex items-center overflow-hidden rounded-2xl bg-emerald-900 text-white">
+                      <span className="min-w-12 px-2 text-center text-base font-black">
+                        {cartQty}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={handleIncrease}
+                        disabled={!available}
+                        className="eg-counter-button px-5 py-4 text-lg font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+                      >
+                        +
+                      </button>
+                    </div>
+
                     <button
                       type="button"
-                      onClick={handleDecrease}
-                      className="px-5 py-4 text-lg font-black transition hover:bg-emerald-800"
-                      aria-label="Зменшити кількість"
+                      onClick={() => setView("cart")}
+                      className="eg-button rounded-2xl border border-emerald-900 bg-white px-7 py-4 text-base font-black text-emerald-950 hover:bg-emerald-50"
                     >
-                      −
-                    </button>
-
-                    <span className="min-w-12 px-2 text-center text-base font-black">
-                      {cartQty}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={handleIncrease}
-                      disabled={!available}
-                      className="px-5 py-4 text-lg font-black transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-                      aria-label="Збільшити кількість"
-                    >
-                      +
+                      У кошику · перейти
                     </button>
                   </div>
-
+                ) : (
                   <button
                     type="button"
-                    onClick={() => setView("cart")}
-                    className="rounded-2xl border border-emerald-900 bg-white px-7 py-4 text-base font-black text-emerald-950 transition hover:bg-emerald-50"
+                    onClick={handleAdd}
+                    disabled={!available}
+                    className={`eg-button eg-sweep w-full rounded-2xl px-7 py-4 text-base font-black text-white ${
+                      available
+                        ? "bg-emerald-900 hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
+                        : "cursor-not-allowed bg-stone-400"
+                    }`}
                   >
-                    У кошику · перейти
+                    {available
+                      ? "🛒 Додати в кошик"
+                      : "Немає в наявності"}
                   </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleAdd}
-                  disabled={!available}
-                  className={`w-full rounded-2xl px-7 py-4 text-base font-black text-white transition ${
-                    available
-                      ? "bg-emerald-900 hover:bg-emerald-800"
-                      : "cursor-not-allowed bg-stone-400"
-                  }`}
-                >
-                  {available ? "🛒 Додати в кошик" : "Немає в наявності"}
-                </button>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="mt-8 grid gap-8 lg:grid-cols-[1fr_0.72fr]">
+      {/* CONTENT */}
+
+      <section className="eg-stagger mt-8 grid gap-8 lg:grid-cols-[1fr_0.72fr]">
         <div className="space-y-8">
-          <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm lg:p-8">
+          <section className="eg-glass rounded-[2rem] p-6 lg:p-8">
             <h2 className="text-2xl font-black text-stone-950">
               Опис товару
             </h2>
@@ -367,16 +398,16 @@ export default function ProductDetailsView({
             </p>
           </section>
 
-          <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm lg:p-8">
+          <section className="eg-glass rounded-[2rem] p-6 lg:p-8">
             <h2 className="text-2xl font-black text-stone-950">
               Чому варто обрати
             </h2>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="eg-stagger mt-5 grid gap-3 sm:grid-cols-2">
               {benefitItems.map((item) => (
                 <div
                   key={item}
-                  className="rounded-2xl bg-stone-50 p-4 text-sm font-semibold leading-6 text-stone-700"
+                  className="eg-card rounded-2xl bg-stone-50/90 p-4 text-sm font-semibold leading-6 text-stone-700 hover:bg-emerald-50/60"
                 >
                   ✓ {item}
                 </div>
@@ -387,7 +418,7 @@ export default function ProductDetailsView({
           {(product.composition ||
             product.allergens ||
             product.storageConditions) && (
-            <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm lg:p-8">
+            <section className="eg-glass rounded-[2rem] p-6 lg:p-8">
               <h2 className="text-2xl font-black text-stone-950">
                 Додаткова інформація
               </h2>
@@ -395,28 +426,9 @@ export default function ProductDetailsView({
               {product.composition && (
                 <div className="mt-5">
                   <h3 className="font-black text-stone-950">Склад</h3>
+
                   <p className="mt-2 whitespace-pre-line leading-7 text-stone-700">
                     {product.composition}
-                  </p>
-                </div>
-              )}
-
-              {product.allergens && (
-                <div className="mt-5">
-                  <h3 className="font-black text-stone-950">Алергени</h3>
-                  <p className="mt-2 whitespace-pre-line leading-7 text-stone-700">
-                    {product.allergens}
-                  </p>
-                </div>
-              )}
-
-              {product.storageConditions && (
-                <div className="mt-5">
-                  <h3 className="font-black text-stone-950">
-                    Умови зберігання
-                  </h3>
-                  <p className="mt-2 whitespace-pre-line leading-7 text-stone-700">
-                    {product.storageConditions}
                   </p>
                 </div>
               )}
@@ -424,8 +436,10 @@ export default function ProductDetailsView({
           )}
         </div>
 
+        {/* SIDEBAR */}
+
         <aside className="space-y-8">
-          <section className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm lg:p-8">
+          <section className="eg-glass rounded-[2rem] p-6 lg:p-8">
             <h2 className="text-2xl font-black text-stone-950">
               Характеристики
             </h2>
@@ -445,26 +459,32 @@ export default function ProductDetailsView({
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-emerald-100 bg-emerald-950 p-6 text-white shadow-sm lg:p-8">
-            <h2 className="text-xl font-black">
-              Evergreen coffee поруч з домом
-            </h2>
+          <section className="eg-premium-card overflow-hidden rounded-[2rem] bg-emerald-950 p-6 text-white shadow-xl shadow-emerald-950/20 lg:p-8">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_40%)]" />
 
-            <p className="mt-3 text-sm leading-7 text-emerald-50">
-              Додайте товари в кошик, залиште контактні дані, і ми підтвердимо
-              замовлення перед оплатою.
-            </p>
+            <div className="relative z-10">
+              <h2 className="text-xl font-black">
+                Evergreen coffee поруч
+              </h2>
 
-            <button
-              type="button"
-              onClick={() => setView("cart")}
-              className="mt-5 w-full rounded-2xl bg-white px-5 py-3 font-black text-emerald-950 transition hover:bg-emerald-50"
-            >
-              Перейти до кошика
-            </button>
+              <p className="mt-3 text-sm leading-7 text-emerald-50">
+                Додайте товари в кошик, залиште контактні дані, і ми
+                підтвердимо замовлення перед оплатою.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setView("cart")}
+                className="eg-button mt-5 w-full rounded-2xl bg-white px-5 py-3 font-black text-emerald-950 hover:bg-emerald-50"
+              >
+                Перейти до кошика
+              </button>
+            </div>
           </section>
         </aside>
       </section>
+
+      {/* SIMILAR PRODUCTS */}
 
       {similarProducts.length > 0 && (
         <section className="mt-10">
@@ -478,17 +498,9 @@ export default function ProductDetailsView({
                 Інші позиції з цієї категорії
               </p>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setView("catalog")}
-              className="hidden rounded-2xl border border-stone-300 px-5 py-3 text-sm font-bold text-stone-900 hover:bg-stone-100 sm:block"
-            >
-              До каталогу
-            </button>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="eg-stagger grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {similarProducts.map((item) => (
               <ProductCard
                 key={item.id}
@@ -501,7 +513,11 @@ export default function ProductDetailsView({
                 openProduct={(selected) => {
                   setSelectedProduct(selected);
                   setView("product");
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+
+                  window.scrollTo({
+                    top: 0,
+                    behavior: "smooth",
+                  });
                 }}
               />
             ))}

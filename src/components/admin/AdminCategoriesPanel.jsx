@@ -1,5 +1,42 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AdminMessageModal from "./AdminMessageModal.jsx";
+
+function StatCard({ label, value, tone = "stone" }) {
+  const valueClass = tone === "amber" ? "text-amber-800" : "text-stone-950";
+
+  return (
+    <div className="rounded-2xl bg-white/85 px-4 py-3 ring-1 ring-stone-100">
+      <p className="text-[11px] font-black uppercase tracking-wide text-stone-400">
+        {label}
+      </p>
+
+      <p className={`mt-0.5 text-xl font-black ${valueClass}`}>{value}</p>
+    </div>
+  );
+}
+
+function ActionButton({ children, tone = "stone", onClick }) {
+  const className =
+    tone === "red"
+      ? "bg-red-50 text-red-800 ring-1 ring-red-200 hover:bg-red-100"
+      : tone === "emerald"
+        ? "bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
+        : "bg-stone-100 text-stone-900 hover:bg-stone-200";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`eg-button rounded-xl px-3 py-2 text-xs font-black ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function getInputClass(extra = "") {
+  return `eg-field w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-700 ${extra}`;
+}
 
 export default function AdminCategoriesPanel({
   categories,
@@ -17,11 +54,8 @@ export default function AdminCategoriesPanel({
   const [modal, setModal] = useState(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const panelRef = useRef(null);
-  const lastScrollTopRef = useRef(0);
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
 
-  const categoryList  = useMemo(() => {
+  const categoryList = useMemo(() => {
     return Array.isArray(categories)
       ? categories.filter((category) => category.id !== "all")
       : [];
@@ -35,6 +69,7 @@ export default function AdminCategoriesPanel({
     return categoryList
       .map((category) => {
         const categoryName = String(category.name || "").toLowerCase();
+
         const subcategories = Array.isArray(category.subcategories)
           ? category.subcategories
           : [];
@@ -76,50 +111,6 @@ export default function AdminCategoriesPanel({
 
     return sum + hiddenCount;
   }, 0);
-
-  useEffect(() => {
-  const panel = panelRef.current;
-
-  if (!panel) return undefined;
-
-  const scrollContainer = panel.closest(".modal-scrollbar");
-
-  if (!scrollContainer) return undefined;
-
-  let ticking = false;
-
-  function handleScroll() {
-    if (ticking) return;
-
-    ticking = true;
-
-    window.requestAnimationFrame(() => {
-      const currentScrollTop = scrollContainer.scrollTop;
-      const previousScrollTop = lastScrollTopRef.current;
-      const difference = currentScrollTop - previousScrollTop;
-
-      if (currentScrollTop < 40) {
-        setIsHeaderVisible(true);
-      } else if (difference > 8) {
-        setIsHeaderVisible(false);
-      } else if (difference < -8) {
-        setIsHeaderVisible(true);
-      }
-
-      lastScrollTopRef.current = Math.max(currentScrollTop, 0);
-      ticking = false;
-    });
-  }
-
-  scrollContainer.addEventListener("scroll", handleScroll, {
-    passive: true,
-  });
-
-  return () => {
-    scrollContainer.removeEventListener("scroll", handleScroll);
-  };
-}, []);
-
 
   useEffect(() => {
     const nextCategoryDrafts = {};
@@ -359,126 +350,96 @@ export default function AdminCategoriesPanel({
   }
 
   return (
-  <section ref={panelRef} className="rounded-3xl bg-white p-0">
-    <div
-        className={`sticky top-0 z-10 rounded-3xl bg-white pb-4 transition-all duration-300 ease-out ${
-          isHeaderVisible
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none -translate-y-[105%] opacity-0"
-        }`}
-      >
-      <div className="rounded-3xl bg-stone-50 p-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
-          Каталог
-        </p>
+    <section className="space-y-4">
+      <div className="rounded-[1.5rem] bg-white/85 p-4 ring-1 ring-stone-100">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-wide text-emerald-700">
+              Каталог
+            </p>
 
-        <h2 className="mt-1 text-2xl font-black text-stone-950">
-          Категорії та підкатегорії
-        </h2>
+            <h2 className="mt-0.5 text-2xl font-black text-stone-950">
+              Категорії та підкатегорії
+            </h2>
 
-        <p className="mt-2 text-sm leading-6 text-stone-500">
-          Створюйте, редагуйте, приховуйте та повертайте категорії каталогу.
-          Приховані категорії не показуються клієнтам у магазині, але
-          залишаються доступними в адмінці.
-        </p>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-4">
-            <div className="rounded-2xl bg-white p-4 ring-1 ring-stone-100">
-              <p className="text-xs font-black uppercase text-stone-400">
-                Категорій
-              </p>
-              <p className="mt-1 text-xl font-black text-stone-950">
-                {categoryList.length}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-white p-4 ring-1 ring-stone-100">
-              <p className="text-xs font-black uppercase text-stone-400">
-                Підкатегорій
-              </p>
-              <p className="mt-1 text-xl font-black text-stone-950">
-                {subcategoriesCount}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-white p-4 ring-1 ring-stone-100">
-              <p className="text-xs font-black uppercase text-stone-400">
-                Прихованих категорій
-              </p>
-              <p className="mt-1 text-xl font-black text-amber-800">
-                {hiddenCategoriesCount}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-white p-4 ring-1 ring-stone-100">
-              <p className="text-xs font-black uppercase text-stone-400">
-                Прихованих підкатегорій
-              </p>
-              <p className="mt-1 text-xl font-black text-amber-800">
-                {hiddenSubcategoriesCount}
-              </p>
-            </div>
+            <p className="mt-1 text-xs leading-5 text-stone-500">
+              Створюйте, редагуйте, приховуйте та повертайте категорії каталогу.
+            </p>
           </div>
 
-          <div className="mt-5 space-y-4">
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                value={newCategoryName}
-                onChange={(event) => setNewCategoryName(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    handleCreateCategory();
-                  }
-                }}
-                placeholder="Нова категорія"
-                className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none focus:border-emerald-700"
-              />
-
-              <button
-                type="button"
-                onClick={handleCreateCategory}
-                className="rounded-2xl bg-emerald-900 px-5 py-3 font-black text-white hover:bg-emerald-800"
-              >
-                Додати
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Пошук категорій і підкатегорій..."
-                className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none focus:border-emerald-700"
-              />
-
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="rounded-2xl border border-stone-300 bg-white px-5 py-3 font-black text-stone-800 hover:bg-stone-100"
-                >
-                  Очистити
-                </button>
-              )}
-            </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:min-w-[520px]">
+            <StatCard label="Категорій" value={categoryList.length} />
+            <StatCard label="Підкатегорій" value={subcategoriesCount} />
+            <StatCard
+              label="Прих. категорій"
+              value={hiddenCategoriesCount}
+              tone="amber"
+            />
+            <StatCard
+              label="Прих. підкатегорій"
+              value={hiddenSubcategoriesCount}
+              tone="amber"
+            />
           </div>
-
-          <p className="mt-3 text-sm text-stone-500">
-            Показано категорій:{" "}
-            <span className="font-black text-stone-800">
-              {filteredCategories.length}
-            </span>
-          </p>
         </div>
+
+        <div className="mt-4 grid gap-2 lg:grid-cols-[1fr_auto]">
+          <input
+            value={newCategoryName}
+            onChange={(event) => setNewCategoryName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                handleCreateCategory();
+              }
+            }}
+            placeholder="Нова категорія"
+            className={getInputClass()}
+          />
+
+          <button
+            type="button"
+            onClick={handleCreateCategory}
+            className="eg-button rounded-xl bg-emerald-900 px-5 py-2.5 text-sm font-black text-white hover:bg-emerald-800"
+          >
+            Додати категорію
+          </button>
+        </div>
+
+        <div className="mt-2 grid gap-2 lg:grid-cols-[1fr_auto]">
+          <input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Пошук категорій і підкатегорій..."
+            className={getInputClass()}
+          />
+
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="eg-button rounded-xl border border-stone-200 bg-white px-5 py-2.5 text-sm font-black text-stone-800 hover:bg-stone-100"
+            >
+              Очистити
+            </button>
+          ) : (
+            <div className="hidden lg:block" />
+          )}
+        </div>
+
+        <p className="mt-2 text-xs text-stone-500">
+          Показано категорій:{" "}
+          <span className="font-black text-stone-800">
+            {filteredCategories.length}
+          </span>
+        </p>
       </div>
 
-      <div className="mt-5 space-y-4">
+      <div className="space-y-3">
         {filteredCategories.length === 0 && (
-          <div className="rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-8 text-center">
-            <p className="font-black text-stone-900">
-              Категорії не знайдено
-            </p>
-            <p className="mt-2 text-sm text-stone-500">
+          <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-white/70 p-6 text-center">
+            <p className="font-black text-stone-900">Категорії не знайдено</p>
+
+            <p className="mt-1 text-sm text-stone-500">
               Спробуйте змінити пошуковий запит або очистити пошук.
             </p>
           </div>
@@ -486,25 +447,30 @@ export default function AdminCategoriesPanel({
 
         {filteredCategories.map((category) => {
           const isCategoryHidden = category.active === false;
+          const subcategories = category.subcategories || [];
 
           return (
             <div
               key={category.id}
-              className={`rounded-3xl border p-5 ${
+              className={`rounded-[1.5rem] border p-3 ${
                 isCategoryHidden
-                  ? "border-amber-200 bg-amber-50/60"
-                  : "border-stone-200 bg-white"
+                  ? "border-amber-200 bg-amber-50/70"
+                  : "border-stone-200 bg-white/85"
               }`}
             >
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <p className="text-xs font-black uppercase tracking-wide text-stone-500">
+              <div className="grid gap-2 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div className="min-w-0">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <p className="text-[11px] font-black uppercase tracking-wide text-stone-500">
                       Категорія
                     </p>
 
+                    <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-black text-stone-600">
+                      {subcategories.length} підкат.
+                    </span>
+
                     {isCategoryHidden && (
-                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-900">
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-black text-amber-900">
                         Приховано
                       </span>
                     )}
@@ -533,56 +499,56 @@ export default function AdminCategoriesPanel({
                         event.currentTarget.blur();
                       }
                     }}
-                    className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 font-black outline-none focus:border-emerald-700 lg:max-w-md"
+                    className={getInputClass("font-black")}
                   />
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
+                <div className="flex flex-wrap gap-2 lg:justify-end">
+                  <ActionButton
+                    tone={isCategoryHidden ? "emerald" : "stone"}
                     onClick={() => handleToggleCategory(category)}
-                    className={`rounded-2xl px-4 py-3 text-sm font-black transition ${
-                      isCategoryHidden
-                        ? "bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
-                        : "bg-stone-100 text-stone-900 hover:bg-stone-200"
-                    }`}
                   >
                     {isCategoryHidden ? "Показати" : "Приховати"}
-                  </button>
+                  </ActionButton>
 
-                  <button
-                    type="button"
+                  <ActionButton
+                    tone="red"
                     onClick={() => askDeleteCategory(category)}
-                    className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-black text-red-800 ring-1 ring-red-200 hover:bg-red-100"
                   >
                     Видалити
-                  </button>
+                  </ActionButton>
                 </div>
               </div>
 
-              <div className="mt-5 rounded-3xl bg-stone-50 p-4">
-                <p className="mb-3 text-sm font-black text-stone-700">
-                  Підкатегорії
-                </p>
+              <div className="mt-3 rounded-[1.25rem] bg-stone-50/90 p-3">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <p className="text-xs font-black uppercase tracking-wide text-stone-500">
+                    Підкатегорії
+                  </p>
+
+                  <span className="text-xs font-bold text-stone-400">
+                    {subcategories.length}
+                  </span>
+                </div>
 
                 <div className="space-y-2">
-                  {(category.subcategories || []).map((subcategory) => {
+                  {subcategories.map((subcategory) => {
                     const isSubcategoryHidden =
                       subcategory.active === false;
 
                     return (
                       <div
                         key={subcategory.id}
-                        className={`flex flex-col gap-2 rounded-2xl p-3 sm:flex-row sm:items-center ${
+                        className={`grid gap-2 rounded-xl p-2 lg:grid-cols-[1fr_auto] lg:items-center ${
                           isSubcategoryHidden
                             ? "bg-amber-50 ring-1 ring-amber-100"
                             : "bg-white"
                         }`}
                       >
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0">
                           <div className="mb-1 flex flex-wrap items-center gap-2">
                             {isSubcategoryHidden && (
-                              <span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-black text-amber-900">
+                              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-black text-amber-900">
                                 Приховано
                               </span>
                             )}
@@ -616,39 +582,35 @@ export default function AdminCategoriesPanel({
                                 event.currentTarget.blur();
                               }
                             }}
-                            className="w-full rounded-xl border border-stone-200 bg-white px-3 py-2 outline-none focus:border-emerald-700"
+                            className={getInputClass()}
                           />
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleToggleSubcategory(category, subcategory)
-                          }
-                          className={`rounded-2xl px-4 py-3 text-sm font-black transition ${
-                            isSubcategoryHidden
-                              ? "bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
-                              : "bg-stone-100 text-stone-900 hover:bg-stone-200"
-                          }`}
-                        >
-                          {isSubcategoryHidden ? "Показати" : "Приховати"}
-                        </button>
+                        <div className="flex flex-wrap gap-2 lg:justify-end">
+                          <ActionButton
+                            tone={isSubcategoryHidden ? "emerald" : "stone"}
+                            onClick={() =>
+                              handleToggleSubcategory(category, subcategory)
+                            }
+                          >
+                            {isSubcategoryHidden ? "Показати" : "Приховати"}
+                          </ActionButton>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            askDeleteSubcategory(category, subcategory)
-                          }
-                          className="rounded-xl bg-red-50 px-3 py-2 text-sm font-black text-red-700 ring-1 ring-red-200 hover:bg-red-100"
-                        >
-                          Видалити
-                        </button>
+                          <ActionButton
+                            tone="red"
+                            onClick={() =>
+                              askDeleteSubcategory(category, subcategory)
+                            }
+                          >
+                            Видалити
+                          </ActionButton>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
 
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <div className="mt-2 grid gap-2 lg:grid-cols-[1fr_auto]">
                   <input
                     value={subcategoryDrafts[category.id] || ""}
                     onChange={(event) =>
@@ -663,13 +625,13 @@ export default function AdminCategoriesPanel({
                       }
                     }}
                     placeholder="Нова підкатегорія"
-                    className="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 outline-none focus:border-emerald-700"
+                    className={getInputClass()}
                   />
 
                   <button
                     type="button"
                     onClick={() => handleCreateSubcategory(category.id)}
-                    className="rounded-2xl bg-stone-900 px-5 py-3 font-black text-white hover:bg-stone-800"
+                    className="eg-button rounded-xl bg-stone-950 px-5 py-2.5 text-sm font-black text-white hover:bg-stone-800"
                   >
                     Додати
                   </button>

@@ -22,7 +22,7 @@ const CATEGORY_ICONS = {
 
 function HeroFeatureCard({ icon, title, text }) {
   return (
-    <div className="group rounded-3xl bg-white/90 p-5 shadow-sm ring-1 ring-stone-200 transition duration-200 hover:-translate-y-1 hover:shadow-md hover:ring-emerald-200">
+    <div className="eg-card eg-premium-card group rounded-3xl bg-white/90 p-5 shadow-sm ring-1 ring-stone-200 hover:shadow-md hover:ring-emerald-200">
       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-900 ring-1 ring-emerald-100 transition duration-200 group-hover:bg-emerald-900 group-hover:text-white">
         {icon}
       </div>
@@ -80,10 +80,10 @@ export default function HomeView({
   return (
     <main>
       {/* HERO */}
-      <section className="border-b border-emerald-100 bg-gradient-to-b from-emerald-50/70 to-white">
+      <section className="eg-ambient border-b border-emerald-100 bg-gradient-to-b from-emerald-50/70 to-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-20">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.24em] text-emerald-800">
+          <div className="eg-page">
+            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-emerald-800 shadow-sm backdrop-blur">
               Кава та товари поруч
             </p>
 
@@ -96,7 +96,19 @@ export default function HomeView({
               забирайте самостійно або оформлюйте доставку по ЖК.
             </p>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <div className="mt-7 flex flex-wrap gap-2 text-sm font-bold text-emerald-950">
+              <span className="rounded-full bg-white/75 px-4 py-2 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
+                Самовивіз
+              </span>
+              <span className="rounded-full bg-white/75 px-4 py-2 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
+                Локальна доставка
+              </span>
+              <span className="rounded-full bg-white/75 px-4 py-2 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
+                Без обовʼязкової реєстрації
+              </span>
+            </div>
+
+            <div className="eg-stagger mt-8 grid gap-3 sm:grid-cols-2">
               <HeroFeatureCard
                 icon={<PickupIcon />}
                 title="Самовивіз"
@@ -126,7 +138,7 @@ export default function HomeView({
               <button
                 type="button"
                 onClick={() => setView("catalog")}
-                className="rounded-2xl bg-emerald-900 px-6 py-4 text-sm font-black text-white transition hover:bg-emerald-800"
+                className="eg-button eg-sweep rounded-2xl bg-emerald-900 px-6 py-4 text-sm font-black text-white hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20"
               >
                 Перейти до каталогу
               </button>
@@ -134,7 +146,7 @@ export default function HomeView({
               <button
                 type="button"
                 onClick={scrollToContacts}
-                className="rounded-2xl border border-stone-300 bg-white px-6 py-4 text-sm font-black text-stone-950 transition hover:bg-stone-100"
+                className="eg-button rounded-2xl border border-stone-300 bg-white/80 px-6 py-4 text-sm font-black text-stone-950 backdrop-blur hover:bg-white"
               >
                 Як нас знайти
               </button>
@@ -142,14 +154,16 @@ export default function HomeView({
           </div>
 
           <div className="lg:justify-self-end">
-            <div className="rounded-[2rem] bg-white p-4 shadow-xl shadow-emerald-900/10">
-              <img
-                src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop"
-                alt="Evergreen coffee"
-                className="h-[340px] w-full rounded-[1.5rem] object-cover lg:h-[420px]"
-              />
+            <div className="eg-glass eg-premium-card eg-lift-soft rounded-[2rem] p-4">
+              <div className="eg-steam overflow-hidden rounded-[1.5rem]">
+                <img
+                  src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop"
+                  alt="Evergreen coffee"
+                  className="eg-image h-[340px] w-full object-cover hover:scale-[1.025] lg:h-[420px]"
+                />
+              </div>
 
-              <div className="mt-4 rounded-[1.5rem] bg-emerald-900 p-6 text-white">
+              <div className="eg-panel mt-4 rounded-[1.5rem] bg-emerald-900 p-6 text-white">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-100">
                   Місце, де час зупиняється на один ковток
                 </p>
@@ -165,47 +179,38 @@ export default function HomeView({
 
       {/* HOW IT WORKS */}
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm lg:p-8">
+        <div className="eg-panel eg-premium-card rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm lg:p-8">
           <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
             Як це працює
           </p>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-[1.5rem] bg-stone-50 p-5">
-              <p className="text-3xl font-black text-emerald-900">1</p>
+          <div className="eg-stagger mt-6 grid gap-4 md:grid-cols-3">
+            {[
+              ["1", "Оберіть товари", "Додайте каву, напої або продукти до кошика."],
+              [
+                "2",
+                "Залиште контакти",
+                "Вкажіть телефон або Telegram, щоб ми підтвердили замовлення.",
+              ],
+              [
+                "3",
+                "Отримайте замовлення",
+                "Заберіть самостійно або замовте доставку по ЖК.",
+              ],
+            ].map(([number, title, text]) => (
+              <div
+                key={number}
+                className="eg-card rounded-[1.5rem] bg-stone-50 p-5 hover:bg-emerald-50/60 hover:shadow-sm"
+              >
+                <p className="text-3xl font-black text-emerald-900">
+                  {number}
+                </p>
 
-              <h3 className="mt-3 font-black text-stone-950">
-                Оберіть товари
-              </h3>
+                <h3 className="mt-3 font-black text-stone-950">{title}</h3>
 
-              <p className="mt-2 text-sm leading-6 text-stone-500">
-                Додайте каву, напої або продукти до кошика.
-              </p>
-            </div>
-
-            <div className="rounded-[1.5rem] bg-stone-50 p-5">
-              <p className="text-3xl font-black text-emerald-900">2</p>
-
-              <h3 className="mt-3 font-black text-stone-950">
-                Залиште контакти
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-stone-500">
-                Вкажіть телефон або Telegram, щоб ми підтвердили замовлення.
-              </p>
-            </div>
-
-            <div className="rounded-[1.5rem] bg-stone-50 p-5">
-              <p className="text-3xl font-black text-emerald-900">3</p>
-
-              <h3 className="mt-3 font-black text-stone-950">
-                Отримайте замовлення
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-stone-500">
-                Заберіть самостійно або замовте доставку по ЖК.
-              </p>
-            </div>
+                <p className="mt-2 text-sm leading-6 text-stone-500">{text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -227,26 +232,26 @@ export default function HomeView({
             <button
               type="button"
               onClick={() => setView("catalog")}
-              className="w-fit rounded-2xl bg-emerald-900 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-800"
+              className="eg-button eg-sweep w-fit rounded-2xl bg-emerald-900 px-5 py-3 text-sm font-black text-white hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20"
             >
               Весь каталог
             </button>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="eg-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {shownCategories.map((category) => (
               <button
                 key={category.id}
                 type="button"
                 onClick={() => setView("catalog")}
-                className="group rounded-[1.5rem] border border-stone-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:shadow-md"
+                className="eg-card eg-premium-card group rounded-[1.5rem] border border-stone-200 bg-white p-5 text-left shadow-sm hover:border-emerald-200 hover:bg-emerald-50 hover:shadow-md"
               >
                 <div className="flex items-center justify-between gap-4">
                   <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-50 text-xl group-hover:bg-white">
                     {CATEGORY_ICONS[category.id] || "📦"}
                   </span>
 
-                  <span className="text-stone-300 group-hover:text-emerald-800">
+                  <span className="text-stone-300 transition group-hover:translate-x-1 group-hover:text-emerald-800">
                     →
                   </span>
                 </div>
@@ -288,7 +293,7 @@ export default function HomeView({
                 <button
                   type="button"
                   onClick={() => scrollPopularCarousel("prev")}
-                  className="h-11 w-11 rounded-2xl border border-stone-300 bg-white text-lg font-black text-stone-900 transition hover:bg-stone-100"
+                  className="eg-icon-button h-11 w-11 rounded-2xl border border-stone-300 bg-white text-lg font-black text-stone-900 hover:bg-stone-100"
                   aria-label="Попередні товари"
                 >
                   ←
@@ -297,7 +302,7 @@ export default function HomeView({
                 <button
                   type="button"
                   onClick={() => scrollPopularCarousel("next")}
-                  className="h-11 w-11 rounded-2xl border border-stone-300 bg-white text-lg font-black text-stone-900 transition hover:bg-stone-100"
+                  className="eg-icon-button h-11 w-11 rounded-2xl border border-stone-300 bg-white text-lg font-black text-stone-900 hover:bg-stone-100"
                   aria-label="Наступні товари"
                 >
                   →
@@ -308,7 +313,7 @@ export default function HomeView({
             <button
               type="button"
               onClick={() => setView("catalog")}
-              className="rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-black text-stone-900 transition hover:bg-stone-100"
+              className="eg-button rounded-2xl border border-stone-300 bg-white px-5 py-3 text-sm font-black text-stone-900 hover:bg-stone-100"
             >
               Увесь каталог
             </button>
@@ -318,7 +323,7 @@ export default function HomeView({
         {shownPopularProducts.length > 0 ? (
           <div
             ref={popularCarouselRef}
-            className="flex snap-x gap-6 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="eg-stagger flex snap-x gap-6 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {shownPopularProducts.map((product) => (
               <div
@@ -338,7 +343,7 @@ export default function HomeView({
             ))}
           </div>
         ) : (
-          <div className="rounded-[2rem] bg-white p-8 text-center text-stone-500 shadow-sm">
+          <div className="eg-panel rounded-[2rem] bg-white p-8 text-center text-stone-500 shadow-sm">
             Популярні товари поки не визначені.
           </div>
         )}
@@ -346,8 +351,8 @@ export default function HomeView({
 
       {/* CONTACT CTA */}
       <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
-        <div className="rounded-[2rem] bg-emerald-900 p-8 text-white shadow-sm lg:p-10">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="eg-ambient eg-panel overflow-hidden rounded-[2rem] bg-emerald-900 p-8 text-white shadow-sm lg:p-10">
+          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-100">
                 Завітайте до нас
@@ -368,7 +373,7 @@ export default function HomeView({
               <button
                 type="button"
                 onClick={scrollToContacts}
-                className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-emerald-950 transition hover:bg-emerald-50"
+                className="eg-button rounded-2xl bg-white px-5 py-3 text-sm font-black text-emerald-950 hover:bg-emerald-50"
               >
                 Адреса та контакти
               </button>
@@ -377,7 +382,7 @@ export default function HomeView({
                 href="https://t.me/EvergreeenCofee"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-2xl border border-white/30 px-5 py-3 text-center text-sm font-black text-white transition hover:bg-white/10"
+                className="eg-button rounded-2xl border border-white/30 px-5 py-3 text-center text-sm font-black text-white hover:bg-white/10"
               >
                 Написати в Telegram
               </a>

@@ -1,35 +1,5 @@
+import { useEffect, useState } from "react";
 import BrandLogo from "./BrandLogo.jsx";
-
-function LeafIcon({ className = "" }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      fill="none"
-      aria-hidden="true"
-    >
-      <path
-        d="M5 19c7.5-.4 12.8-5.4 14-14-7.7 1-12.9 6.2-14 14Z"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M5 19c3.4-4.8 7.4-8.2 12-10.2"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M8.2 14.5 6 12.3M11.5 11.2 9.2 8.9M14.7 8.7l-1.9-2"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 
 function HomeIcon({ className = "" }) {
   return (
@@ -158,6 +128,45 @@ export default function Header({
   isAdmin = false,
   customer = null,
 }) {
+  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    function updateHeader() {
+      const currentScrollY = window.scrollY;
+      const scrollDifference = currentScrollY - lastScrollY;
+
+      setIsScrolled(currentScrollY > 12);
+
+      if (currentScrollY < 80) {
+        setIsHeaderHidden(false);
+      } else if (scrollDifference > 8) {
+        setIsHeaderHidden(true);
+      } else if (scrollDifference < -8) {
+        setIsHeaderHidden(false);
+      }
+
+      lastScrollY = currentScrollY;
+      ticking = false;
+    }
+
+    function handleScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(updateHeader);
+        ticking = true;
+      }
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   const navItems = [
     {
       id: "home",
@@ -183,12 +192,30 @@ export default function Header({
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-stone-200/80 bg-white/95 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+    <header
+      className={`sticky top-0 z-40 overflow-hidden border-b bg-white/72 backdrop-blur-2xl transition-all duration-500 ease-out ${
+        isHeaderHidden ? "-translate-y-full" : "translate-y-0"
+      } ${
+        isScrolled
+          ? "border-stone-200/80 shadow-lg shadow-stone-900/[0.06]"
+          : "border-stone-200/60 shadow-sm shadow-stone-900/[0.02]"
+      }`}
+    >
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-[8%] top-[-120px] h-[240px] w-[240px] rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="absolute right-[12%] top-[-160px] h-[280px] w-[280px] rounded-full bg-amber-300/10 blur-3xl" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+      </div>
+
+      <div
+        className={`relative z-10 mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 transition-all duration-300 sm:px-6 lg:px-8 ${
+          isScrolled ? "py-3" : "py-4"
+        }`}
+      >
         <button
           type="button"
           onClick={() => setView("home")}
-          className="group flex min-w-0 items-center gap-3 rounded-3xl transition"
+          className="group flex min-w-0 items-center gap-3 rounded-3xl transition duration-300 hover:scale-[1.01]"
         >
           <BrandLogo size="md" showText={false} animated={true} />
 
@@ -202,7 +229,8 @@ export default function Header({
             </p>
           </div>
         </button>
-        <nav className="hidden items-center rounded-3xl border border-stone-200 bg-stone-50/90 p-1.5 shadow-sm md:flex">
+
+        <nav className="eg-glass hidden items-center rounded-[1.6rem] border border-white/70 bg-white/55 p-1.5 shadow-lg shadow-emerald-950/5 md:flex">
           {navItems.map((item) => {
             const Icon = item.Icon;
 
@@ -211,19 +239,18 @@ export default function Header({
                 key={item.id}
                 type="button"
                 onClick={item.onClick}
-                className={`group flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-black transition-all duration-200 ${
+                className={`group relative flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-black transition-all duration-300 ${
                   item.isActive
-                    ? "bg-emerald-900 text-white shadow-sm"
-                    : "text-stone-700 hover:-translate-y-0.5 hover:bg-white hover:text-emerald-900 hover:shadow-sm"
+                    ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                    : "text-stone-700 hover:-translate-y-0.5 hover:bg-white/90 hover:text-emerald-900 hover:shadow-md"
                 }`}
               >
                 <Icon
                   className={`h-[18px] w-[18px] transition duration-200 group-hover:scale-110 ${
-                    item.isActive
-                      ? "text-emerald-100"
-                      : "text-emerald-700"
+                    item.isActive ? "text-emerald-100" : "text-emerald-700"
                   }`}
                 />
+
                 <span>{item.label}</span>
               </button>
             );
@@ -231,36 +258,38 @@ export default function Header({
         </nav>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => setView("admin")}
-            className={`group hidden h-12 w-12 items-center justify-center rounded-2xl shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md md:flex ${
-              view === "admin"
-                ? "bg-stone-950 text-white"
-                : "bg-stone-100 text-emerald-800 hover:bg-emerald-50"
-            }`}
-            title="Адмін-панель"
-            aria-label="Адмін-панель"
-          >
-            <SettingsIcon className="h-5 w-5 transition duration-200 group-hover:rotate-45" />
-          </button>
-        )}
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setView("admin")}
+              className={`eg-icon-button group hidden h-12 w-12 items-center justify-center rounded-2xl shadow-sm hover:shadow-md md:flex ${
+                view === "admin"
+                  ? "bg-stone-950 text-white"
+                  : "bg-stone-100 text-emerald-800 hover:bg-emerald-50"
+              }`}
+              title="Адмін-панель"
+              aria-label="Адмін-панель"
+            >
+              <SettingsIcon className="h-5 w-5 transition duration-200 group-hover:rotate-45" />
+            </button>
+          )}
 
           <button
             type="button"
             onClick={() => setView("cart")}
-            className={`relative flex items-center gap-2 rounded-2xl px-5 py-3 font-black shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+            className={`eg-button relative flex items-center gap-2 rounded-2xl px-5 py-3 font-black shadow-sm hover:shadow-md ${
               view === "cart"
                 ? "bg-stone-950 text-white"
-                : "bg-emerald-900 text-white hover:bg-emerald-800"
+                : cartCount > 0
+                  ? "eg-cart-glow bg-emerald-900 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-800"
+                  : "bg-emerald-900 text-white hover:bg-emerald-800"
             }`}
           >
             <CartIcon className="h-5 w-5" />
             <span className="hidden sm:inline">Кошик</span>
 
             {cartCount > 0 && (
-              <span className="absolute -right-2 -top-2 flex h-7 min-w-7 items-center justify-center rounded-full bg-amber-400 px-2 text-xs font-black text-stone-950 shadow-md ring-2 ring-white">
+              <span className="eg-cart-badge absolute -right-2 -top-2 flex h-7 min-w-7 items-center justify-center rounded-full bg-amber-400 px-2 text-xs font-black text-stone-950 shadow-md ring-2 ring-white">
                 {cartCount}
               </span>
             )}
@@ -268,29 +297,29 @@ export default function Header({
         </div>
       </div>
 
-<div className="border-t border-stone-100 bg-white/95 px-4 py-2 md:hidden">
-  <nav className="mx-auto grid max-w-7xl grid-cols-3 gap-2">
-    {navItems.map((item) => {
-      const Icon = item.Icon;
+      <div className="relative z-10 border-t border-white/50 bg-white/70 px-4 py-2 backdrop-blur-xl md:hidden">
+        <nav className="mx-auto grid max-w-7xl grid-cols-3 gap-2">
+          {navItems.map((item) => {
+            const Icon = item.Icon;
 
-      return (
-        <button
-          key={item.id}
-          type="button"
-          onClick={item.onClick}
-          className={`flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-black transition-all ${
-            item.isActive
-              ? "bg-emerald-900 text-white shadow-sm"
-              : "bg-stone-50 text-stone-700 hover:bg-emerald-50 hover:text-emerald-900"
-          }`}
-        >
-          <Icon className="h-[18px] w-[18px]" />
-          <span>{item.label}</span>
-        </button>
-      );
-    })}
-  </nav>
-</div>
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={item.onClick}
+                className={`eg-button flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-black ${
+                  item.isActive
+                    ? "bg-emerald-900 text-white shadow-sm"
+                    : "bg-stone-50 text-stone-700 hover:bg-emerald-50 hover:text-emerald-900"
+                }`}
+              >
+                <Icon className="h-[18px] w-[18px]" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
     </header>
   );
 }
