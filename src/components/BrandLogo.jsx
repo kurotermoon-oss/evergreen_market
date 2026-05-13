@@ -1,7 +1,9 @@
+import logoEvergreen from "../img/logo_evergreen.png";
+
 export default function BrandLogo({
   size = "md",
   showText = true,
-  animated = true,
+  animated = false,
   className = "",
 }) {
   const sizeClasses = {
@@ -23,7 +25,7 @@ export default function BrandLogo({
         }`}
       >
         <img
-          src="src\img\logo_evergreen.png"
+          src={logoEvergreen}
           alt="Evergreen coffee"
           className="h-full w-full object-contain p-1.5"
         />
