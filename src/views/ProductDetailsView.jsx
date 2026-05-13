@@ -9,6 +9,8 @@ import {
   isProductAvailable,
 } from "../utils/products.js";
 
+const SAFE_TEXT_CLASS = "min-w-0 break-words [overflow-wrap:anywhere]";
+
 function getCategoryName(categories, categoryId) {
   return categories.find((item) => item.id === categoryId)?.name || "Товар";
 }
@@ -44,10 +46,14 @@ function InfoRow({ label, value }) {
   if (!value) return null;
 
   return (
-    <div className="grid grid-cols-[0.9fr_1.1fr] gap-4 border-b border-stone-200/70 px-0 py-4 text-sm last:border-b-0">
-      <span className="font-medium text-stone-500">{label}</span>
+    <div className="grid min-w-0 grid-cols-[0.9fr_1.1fr] gap-4 border-b border-stone-200/70 px-0 py-4 text-sm last:border-b-0">
+      <span className={`font-medium text-stone-500 ${SAFE_TEXT_CLASS}`}>
+        {label}
+      </span>
 
-      <span className="text-right font-black text-stone-950">
+      <span
+        className={`text-right font-black text-stone-950 ${SAFE_TEXT_CLASS}`}
+      >
         {value}
       </span>
     </div>
@@ -171,7 +177,7 @@ export default function ProductDetailsView({
     <main className="eg-ambient mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* BREADCRUMBS */}
 
-      <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-stone-500">
+      <nav className="mb-6 flex min-w-0 flex-wrap items-center gap-2 text-sm text-stone-500">
         <button
           type="button"
           onClick={() => setView("home")}
@@ -192,11 +198,13 @@ export default function ProductDetailsView({
 
         <span>/</span>
 
-        <span className="text-stone-700">{category}</span>
+        <span className={SAFE_TEXT_CLASS}>{category}</span>
 
         <span>/</span>
 
-        <span className="line-clamp-1 font-semibold text-stone-950">
+        <span
+          className={`line-clamp-1 font-semibold text-stone-950 ${SAFE_TEXT_CLASS}`}
+        >
           {product.name}
         </span>
       </nav>
@@ -211,11 +219,11 @@ export default function ProductDetailsView({
 
       {/* PRODUCT HERO */}
 
-      <section className="eg-glass eg-premium-card overflow-hidden rounded-[2.4rem] p-5 lg:p-8">
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+      <section className="eg-glass eg-premium-card min-w-0 overflow-hidden rounded-[2.4rem] p-5 lg:p-8">
+        <div className="grid min-w-0 gap-8 lg:grid-cols-[0.95fr_1.05fr]">
           {/* IMAGE */}
 
-          <div className="relative">
+          <div className="relative min-w-0">
             <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-emerald-100/70 via-white to-amber-50 blur-3xl" />
 
             <div className="eg-steam relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br from-stone-50 via-white to-emerald-50/40 p-6 lg:min-h-[620px]">
@@ -243,13 +251,17 @@ export default function ProductDetailsView({
 
           {/* INFO */}
 
-          <div className="flex flex-col justify-center">
-            <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
+          <div className="flex min-w-0 flex-col justify-center">
+            <p
+              className={`text-sm font-black uppercase tracking-[0.22em] text-emerald-700 ${SAFE_TEXT_CLASS}`}
+            >
               {category}
               {product.brand ? ` · ${product.brand}` : ""}
             </p>
 
-            <h1 className="mt-4 text-4xl font-black leading-tight text-stone-950 sm:text-5xl">
+            <h1
+              className={`mt-4 text-4xl font-black leading-tight text-stone-950 sm:text-5xl ${SAFE_TEXT_CLASS}`}
+            >
               {product.name}
             </h1>
 
@@ -262,7 +274,9 @@ export default function ProductDetailsView({
               </span>
 
               {subcategory && (
-                <span className="rounded-full bg-white/80 px-4 py-2 text-sm font-black text-stone-700 ring-1 ring-stone-200">
+                <span
+                  className={`rounded-full bg-white/80 px-4 py-2 text-sm font-black text-stone-700 ring-1 ring-stone-200 ${SAFE_TEXT_CLASS}`}
+                >
                   {subcategory}
                 </span>
               )}
@@ -270,7 +284,7 @@ export default function ProductDetailsView({
 
             {/* PRICE BLOCK */}
 
-            <div className="eg-premium-card mt-8 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-lg shadow-emerald-900/5 backdrop-blur">
+            <div className="eg-premium-card mt-8 min-w-0 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-lg shadow-emerald-900/5 backdrop-blur">
               <div className="flex flex-wrap items-end gap-3">
                 <p className="text-5xl font-black tracking-tight text-stone-950">
                   {formatUAH(product.price)}
@@ -290,23 +304,27 @@ export default function ProductDetailsView({
                 </div>
               )}
 
-              <div className="eg-stagger mt-6 grid gap-3 sm:grid-cols-2">
-                <div className="eg-card rounded-2xl bg-stone-50/90 p-4 hover:bg-emerald-50/60">
+              <div className="eg-stagger mt-6 grid min-w-0 gap-3 sm:grid-cols-2">
+                <div className="eg-card min-w-0 rounded-2xl bg-stone-50/90 p-4 hover:bg-emerald-50/60">
                   <p className="text-xs font-black uppercase tracking-wide text-stone-500">
                     Обʼєм / кількість
                   </p>
 
-                  <p className="mt-1 text-base font-black text-stone-950">
+                  <p
+                    className={`mt-1 text-base font-black text-stone-950 ${SAFE_TEXT_CLASS}`}
+                  >
                     {unit}
                   </p>
                 </div>
 
-                <div className="eg-card rounded-2xl bg-stone-50/90 p-4 hover:bg-emerald-50/60">
+                <div className="eg-card min-w-0 rounded-2xl bg-stone-50/90 p-4 hover:bg-emerald-50/60">
                   <p className="text-xs font-black uppercase tracking-wide text-stone-500">
                     Упаковка
                   </p>
 
-                  <p className="mt-1 text-base font-black text-stone-950">
+                  <p
+                    className={`mt-1 text-base font-black text-stone-950 ${SAFE_TEXT_CLASS}`}
+                  >
                     {packageInfo}
                   </p>
                 </div>
@@ -386,28 +404,30 @@ export default function ProductDetailsView({
 
       {/* CONTENT */}
 
-      <section className="eg-stagger mt-8 grid gap-8 lg:grid-cols-[1fr_0.72fr]">
-        <div className="space-y-8">
-          <section className="eg-glass rounded-[2rem] p-6 lg:p-8">
+      <section className="eg-stagger mt-8 grid min-w-0 gap-8 lg:grid-cols-[1fr_0.72fr]">
+        <div className="min-w-0 space-y-8">
+          <section className="eg-glass min-w-0 rounded-[2rem] p-6 lg:p-8">
             <h2 className="text-2xl font-black text-stone-950">
               Опис товару
             </h2>
 
-            <p className="mt-4 whitespace-pre-line text-base leading-8 text-stone-700">
+            <p
+              className={`mt-4 whitespace-pre-line text-base leading-8 text-stone-700 ${SAFE_TEXT_CLASS}`}
+            >
               {description}
             </p>
           </section>
 
-          <section className="eg-glass rounded-[2rem] p-6 lg:p-8">
+          <section className="eg-glass min-w-0 rounded-[2rem] p-6 lg:p-8">
             <h2 className="text-2xl font-black text-stone-950">
               Чому варто обрати
             </h2>
 
-            <div className="eg-stagger mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="eg-stagger mt-5 grid min-w-0 gap-3 sm:grid-cols-2">
               {benefitItems.map((item) => (
                 <div
                   key={item}
-                  className="eg-card rounded-2xl bg-stone-50/90 p-4 text-sm font-semibold leading-6 text-stone-700 hover:bg-emerald-50/60"
+                  className={`eg-card min-w-0 rounded-2xl bg-stone-50/90 p-4 text-sm font-semibold leading-6 text-stone-700 hover:bg-emerald-50/60 ${SAFE_TEXT_CLASS}`}
                 >
                   ✓ {item}
                 </div>
@@ -418,17 +438,45 @@ export default function ProductDetailsView({
           {(product.composition ||
             product.allergens ||
             product.storageConditions) && (
-            <section className="eg-glass rounded-[2rem] p-6 lg:p-8">
+            <section className="eg-glass min-w-0 rounded-[2rem] p-6 lg:p-8">
               <h2 className="text-2xl font-black text-stone-950">
                 Додаткова інформація
               </h2>
 
               {product.composition && (
-                <div className="mt-5">
+                <div className="mt-5 min-w-0">
                   <h3 className="font-black text-stone-950">Склад</h3>
 
-                  <p className="mt-2 whitespace-pre-line leading-7 text-stone-700">
+                  <p
+                    className={`mt-2 whitespace-pre-line leading-7 text-stone-700 ${SAFE_TEXT_CLASS}`}
+                  >
                     {product.composition}
+                  </p>
+                </div>
+              )}
+
+              {product.allergens && (
+                <div className="mt-5 min-w-0">
+                  <h3 className="font-black text-stone-950">Алергени</h3>
+
+                  <p
+                    className={`mt-2 whitespace-pre-line leading-7 text-stone-700 ${SAFE_TEXT_CLASS}`}
+                  >
+                    {product.allergens}
+                  </p>
+                </div>
+              )}
+
+              {product.storageConditions && (
+                <div className="mt-5 min-w-0">
+                  <h3 className="font-black text-stone-950">
+                    Умови зберігання
+                  </h3>
+
+                  <p
+                    className={`mt-2 whitespace-pre-line leading-7 text-stone-700 ${SAFE_TEXT_CLASS}`}
+                  >
+                    {product.storageConditions}
                   </p>
                 </div>
               )}
@@ -438,13 +486,13 @@ export default function ProductDetailsView({
 
         {/* SIDEBAR */}
 
-        <aside className="space-y-8">
-          <section className="eg-glass rounded-[2rem] p-6 lg:p-8">
+        <aside className="min-w-0 space-y-8">
+          <section className="eg-glass min-w-0 rounded-[2rem] p-6 lg:p-8">
             <h2 className="text-2xl font-black text-stone-950">
               Характеристики
             </h2>
 
-            <div className="mt-5">
+            <div className="mt-5 min-w-0">
               <InfoRow label="Категорія" value={category} />
               <InfoRow label="Підкатегорія" value={subcategory} />
               <InfoRow label="Бренд" value={product.brand} />
@@ -459,15 +507,17 @@ export default function ProductDetailsView({
             </div>
           </section>
 
-          <section className="eg-premium-card overflow-hidden rounded-[2rem] bg-emerald-950 p-6 text-white shadow-xl shadow-emerald-950/20 lg:p-8">
+          <section className="eg-premium-card relative min-w-0 overflow-hidden rounded-[2rem] bg-emerald-950 p-6 text-white shadow-xl shadow-emerald-950/20 lg:p-8">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_40%)]" />
 
-            <div className="relative z-10">
-              <h2 className="text-xl font-black">
+            <div className="relative z-10 min-w-0">
+              <h2 className={`text-xl font-black ${SAFE_TEXT_CLASS}`}>
                 Evergreen coffee поруч
               </h2>
 
-              <p className="mt-3 text-sm leading-7 text-emerald-50">
+              <p
+                className={`mt-3 text-sm leading-7 text-emerald-50 ${SAFE_TEXT_CLASS}`}
+              >
                 Додайте товари в кошик, залиште контактні дані, і ми
                 підтвердимо замовлення перед оплатою.
               </p>
@@ -487,9 +537,9 @@ export default function ProductDetailsView({
       {/* SIMILAR PRODUCTS */}
 
       {similarProducts.length > 0 && (
-        <section className="mt-10">
+        <section className="mt-10 min-w-0">
           <div className="mb-5 flex items-end justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <h2 className="text-2xl font-black text-stone-950">
                 Схожі товари
               </h2>
@@ -500,7 +550,7 @@ export default function ProductDetailsView({
             </div>
           </div>
 
-          <div className="eg-stagger grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="eg-stagger grid min-w-0 gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {similarProducts.map((item) => (
               <ProductCard
                 key={item.id}
