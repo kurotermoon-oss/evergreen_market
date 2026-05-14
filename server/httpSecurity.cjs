@@ -87,6 +87,7 @@ function buildContentSecurityPolicy() {
   const allowedOrigins = [...getAllowedOrigins()];
   const connectSrc = ["'self'", ...allowedOrigins];
   const scriptSrc = ["'self'"];
+  const frameSrc = ["'self'", "https://www.google.com", "https://maps.google.com"];
 
   if (!isProductionLike()) {
     connectSrc.push("http://localhost:*", "ws://localhost:*", "http://127.0.0.1:*", "ws://127.0.0.1:*");
@@ -100,6 +101,7 @@ function buildContentSecurityPolicy() {
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
     `connect-src ${connectSrc.join(" ")}`,
+    `frame-src ${frameSrc.join(" ")}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
