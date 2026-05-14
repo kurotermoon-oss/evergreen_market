@@ -1,6 +1,11 @@
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 
+const {
+  buildCookieOptions,
+  buildClearCookieOptions,
+} = require("./runtimeSecurity.cjs");
+
 const CUSTOMER_COOKIE_NAME = "customer_token";
 
 function cleanString(value) {
@@ -266,16 +271,15 @@ function createCustomerToken(customer, jwtSecret) {
 }
 
 function setCustomerCookie(res, token) {
-  res.cookie(CUSTOMER_COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: false,
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
+  res.cookie(
+    CUSTOMER_COOKIE_NAME,
+    token,
+    buildCookieOptions(30 * 24 * 60 * 60 * 1000)
+  );
 }
 
 function clearCustomerCookie(res) {
-  res.clearCookie(CUSTOMER_COOKIE_NAME);
+  res.clearCookie(CUSTOMER_COOKIE_NAME, buildClearCookieOptions());
 }
 
 function ensureCustomersStore(db) {

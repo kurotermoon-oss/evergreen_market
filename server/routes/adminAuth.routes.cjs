@@ -1,38 +1,60 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
 
-const { createAdminToken } = require("../middleware/adminAuth.cjs");
+const {
+  createAdminToken,
+  verifyAdminToken,
+  revokeAdminToken,
+} = require("../middleware/adminAuth.cjs");
+const {
+  getAdminCredentials,
+  timingSafeStringEqual,
+  buildCookieOptions,
+  buildClearCookieOptions,
+} = require("../runtimeSecurity.cjs");
+const {
+  createRateLimiter,
+  getRequestIp,
+} = require("../httpSecurity.cjs");
 
 const router = express.Router();
+const ADMIN_CREDENTIALS = getAdminCredentials();
 
-const ADMIN_LOGIN = process.env.ADMIN_LOGIN || "admin";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "change-this-password";
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
+const adminLoginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  keyPrefix: "admin-login",
+  keyGenerator(req) {
+    const login = String(req.body?.login || "").trim().toLowerCase();
 
-router.post("/login", (req, res) => {
-  const { login, password } = req.body;
+    return `${getRequestIp(req)}:${login}`;
+  },
+  message: "Too many admin login attempts. Please try again later.",
+});
 
-  if (login !== ADMIN_LOGIN || password !== ADMIN_PASSWORD) {
+router.post("/login", adminLoginLimiter, (req, res) => {
+  const login = String(req.body?.login || "").trim();
+  const password = String(req.body?.password || "");
+
+  const loginMatches = timingSafeStringEqual(login, ADMIN_CREDENTIALS.login);
+  const passwordMatches = timingSafeStringEqual(
+    password,
+    ADMIN_CREDENTIALS.password
+  );
+
+  if (!loginMatches || !passwordMatches) {
     return res.status(401).json({ error: "Wrong login or password" });
   }
 
   const token = createAdminToken();
 
-  res.cookie("admin_token", token, {
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+  res.cookie("admin_token", token, buildCookieOptions(7 * 24 * 60 * 60 * 1000));
 
   res.json({ ok: true });
 });
 
 router.post("/logout", (req, res) => {
-  res.clearCookie("admin_token", {
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    secure: process.env.NODE_ENV === "production",
-  });
+  revokeAdminToken(req.cookies?.admin_token);
+  res.clearCookie("admin_token", buildClearCookieOptions());
 
   res.json({ ok: true });
 });
@@ -45,10 +67,10 @@ router.get("/me", (req, res) => {
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = verifyAdminToken(token);
 
     res.json({
-      authenticated: payload.role === "admin",
+      authenticated: Boolean(payload),
     });
   } catch {
     res.json({ authenticated: false });

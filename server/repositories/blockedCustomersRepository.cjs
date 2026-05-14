@@ -113,7 +113,76 @@ async function assertCustomerNotBlocked(identity = {}) {
   };
 }
 
+async function createBlockedCustomer(payload = {}) {
+  const type = toCleanString(payload.type);
+  let value = toCleanString(payload.value);
+  const reason = toCleanString(payload.reason);
+
+  if (!type || !value) {
+    return null;
+  }
+
+  if (type === "phone") {
+    value = normalizePhone(value);
+  }
+
+  if (type === "telegram") {
+    value = normalizeTelegram(value);
+  }
+
+  const existing = await prisma.blockedCustomer.findFirst({
+    where: {
+      type,
+      value,
+    },
+  });
+
+  if (existing) {
+    return existing;
+  }
+
+  try {
+    return await prisma.blockedCustomer.create({
+      data: {
+        type,
+        value,
+        reason,
+      },
+    });
+  } catch (error) {
+    if (error.code === "P2002") {
+      return prisma.blockedCustomer.findFirst({
+        where: {
+          type,
+          value,
+        },
+      });
+    }
+
+    throw error;
+  }
+}
+
+async function createBlockedCustomers(items = [], reason = "") {
+  const blockedCustomers = [];
+
+  for (const item of items) {
+    const blockedCustomer = await createBlockedCustomer({
+      ...item,
+      reason,
+    });
+
+    if (blockedCustomer) {
+      blockedCustomers.push(blockedCustomer);
+    }
+  }
+
+  return blockedCustomers;
+}
+
 module.exports = {
   findBlockedCustomer,
   assertCustomerNotBlocked,
+  createBlockedCustomer,
+  createBlockedCustomers,
 };

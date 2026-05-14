@@ -71,6 +71,63 @@ function buildOrderOwnerConditions(identity = {}) {
   return conditions;
 }
 
+function buildSpamSourceConditions(identity = {}) {
+  const conditions = [];
+  const customerId = Number(identity.customerId);
+  const guestId = String(identity.guestId || "").trim();
+  const ip = String(identity.ip || "").trim();
+
+  if (Number.isFinite(customerId) && customerId > 0) {
+    conditions.push({
+      customerId,
+    });
+  }
+
+  if (guestId) {
+    conditions.push({
+      guestId,
+    });
+  }
+
+  if (ip) {
+    conditions.push({
+      clientIp: ip,
+    });
+  }
+
+  return conditions;
+}
+
+function buildSpamBlockTargets(identity = {}, trustLevel) {
+  const targets = [];
+  const ip = String(identity.ip || "").trim();
+  const guestId = String(identity.guestId || "").trim();
+  const customerId = String(identity.customerId || "").trim();
+
+  if (ip) {
+    targets.push({
+      type: "ip",
+      value: ip,
+    });
+  }
+
+  if (trustLevel === "guest" && guestId) {
+    targets.push({
+      type: "guestId",
+      value: guestId,
+    });
+  }
+
+  if (trustLevel === "registered_unverified" && customerId) {
+    targets.push({
+      type: "customerId",
+      value: customerId,
+    });
+  }
+
+  return targets;
+}
+
 function buildLimitResponse({
   ok = false,
   status = 429,
@@ -185,6 +242,61 @@ async function checkPostgresOrderRateLimit(identity = {}, limits = {}) {
   };
 }
 
+async function checkPostgresOrderSpamRateLimit(
+  identity = {},
+  trustLevel = "guest",
+  limits = {}
+) {
+  const sourceConditions = buildSpamSourceConditions(identity);
+  const windowMs = Number(limits.windowMs || 0);
+  const maxOrders = Number(limits.maxOrders || 0);
+
+  if (!sourceConditions.length || !windowMs || !maxOrders) {
+    return {
+      ok: true,
+    };
+  }
+
+  const recentOrdersCount = await prisma.order.count({
+    where: {
+      OR: sourceConditions,
+      createdAt: {
+        gte: getDateBeforeMs(windowMs),
+      },
+    },
+  });
+
+  if (recentOrdersCount < maxOrders) {
+    return {
+      ok: true,
+    };
+  }
+
+  const blockTargets = limits.autoBlock
+    ? buildSpamBlockTargets(identity, trustLevel)
+    : [];
+
+  return {
+    ok: false,
+    status: limits.autoBlock && blockTargets.length ? 403 : 429,
+    error:
+      limits.autoBlock && blockTargets.length
+        ? "CUSTOMER_BLOCKED"
+        : "ORDER_SPAM_LIMIT",
+    message:
+      "Замовлення тимчасово обмежено через надто часті спроби оформлення.",
+    hint:
+      limits.autoBlock && blockTargets.length
+        ? "Джерело запиту автоматично додано до блокувань як спам. Якщо це реальне замовлення, зв’яжіться з кав’ярнею напряму."
+        : "Спробуйте ще раз трохи пізніше.",
+    reason: `Автоблок: ${recentOrdersCount} замовлень за ${Math.round(
+      windowMs / 1000
+    )} секунд.`,
+    blockTargets,
+  };
+}
+
 module.exports = {
   checkPostgresOrderRateLimit,
+  checkPostgresOrderSpamRateLimit,
 };

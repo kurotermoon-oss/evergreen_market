@@ -9,6 +9,13 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const {
+  createCorsOptions,
+  applySecurityHeaders,
+  createRateLimiter,
+  getRequestIp,
+} = require("./httpSecurity.cjs");
+const { getJwtSecret } = require("./runtimeSecurity.cjs");
+const {
   getTelegramVerificationStatus,
   startTelegramVerification,
   checkTelegramVerification,
@@ -92,8 +99,10 @@ const {
   getOrCreateGuestId,
   getOrderTrustLevel,
   getOrderLimits,
+  getOrderSpamLimits,
   validateRawOrderItems,
   validateResolvedOrderItems,
+  checkOrderSpamRateLimit,
   checkOrderRateLimit,
 } = require("./orderSecurity.cjs");
 
@@ -101,8 +110,19 @@ const {
 const app = express();
 
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
+const JWT_SECRET = getJwtSecret();
 const USE_POSTGRES = process.env.USE_POSTGRES === "true";
+const customerLoginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  keyPrefix: "customer-login",
+  keyGenerator(req) {
+    const login = String(req.body?.login || "").trim().toLowerCase();
+
+    return `${getRequestIp(req)}:${login}`;
+  },
+  message: "Забагато спроб входу. Спробуйте ще раз пізніше.",
+});
 
 async function getPostgresCustomerFromRequest(req) {
   const token = req.cookies?.customer_token;
@@ -111,6 +131,8 @@ async function getPostgresCustomerFromRequest(req) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
+
+    if (payload.role !== "customer") return null;
 
     const customerId = payload.customerId || payload.id || payload.sub;
 
@@ -194,6 +216,7 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
 const DEFAULT_PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1200&auto=format&fit=crop";
+const DEFAULT_PAYMENT_METHOD = "Після підтвердження";
 
 const STOCK_STATUSES = new Set([
   "in_stock",
@@ -204,6 +227,162 @@ const STOCK_STATUSES = new Set([
 
 function toCleanString(value, fallback = "") {
   return String(value ?? fallback).trim();
+}
+
+function normalizeOrderSingleLine(value, maxLength = 80) {
+  return String(value || "")
+    .replace(/[\u0000-\u001f\u007f]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function normalizeOrderComment(value) {
+  return String(value || "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]+/g, " ")
+    .trim()
+    .slice(0, 500);
+}
+
+function normalizeOrderForm(form = {}) {
+  return {
+    ...form,
+    name: normalizeOrderSingleLine(form.name, 60),
+    phone: toCleanString(form.phone),
+    telegram: toCleanString(form.telegram),
+    building: normalizeOrderSingleLine(form.building, 40),
+    entrance: normalizeOrderSingleLine(form.entrance, 20),
+    floor: normalizeOrderSingleLine(form.floor, 20),
+    apartment: normalizeOrderSingleLine(form.apartment, 20),
+    comment: normalizeOrderComment(form.comment),
+  };
+}
+
+function ensureBlockedCustomersStore(db) {
+  if (!Array.isArray(db.blockedCustomers)) {
+    db.blockedCustomers = [];
+  }
+
+  if (!Number.isFinite(Number(db.nextBlockedCustomerId))) {
+    db.nextBlockedCustomerId = 1;
+  }
+}
+
+function normalizeBlockedValue(type, value) {
+  if (type === "phone") {
+    return normalizePhone(value);
+  }
+
+  if (type === "telegram") {
+    return normalizeTelegram(value);
+  }
+
+  return toCleanString(value);
+}
+
+function buildLocalBlockedValues(identity = {}) {
+  const values = [];
+
+  [
+    ["customerId", identity.customerId],
+    ["guestId", identity.guestId],
+    ["phone", identity.phone],
+    ["telegram", identity.telegram],
+    ["ip", identity.ip],
+  ].forEach(([type, rawValue]) => {
+    const value = normalizeBlockedValue(type, rawValue);
+
+    if (!value) return;
+
+    values.push({
+      type,
+      value,
+    });
+
+    if (type === "telegram") {
+      values.push({
+        type,
+        value: `@${value}`,
+      });
+    }
+  });
+
+  return values;
+}
+
+function findLocalBlockedCustomer(db, identity = {}) {
+  ensureBlockedCustomersStore(db);
+
+  const blockedValues = buildLocalBlockedValues(identity);
+
+  return db.blockedCustomers.find((blockedCustomer) => {
+    return blockedValues.some((item) => {
+      return (
+        blockedCustomer.type === item.type &&
+        String(blockedCustomer.value || "") === item.value
+      );
+    });
+  });
+}
+
+function buildBlockedOrderResponse(blockedCustomer) {
+  return {
+    ok: false,
+    status: 403,
+    error: "CUSTOMER_BLOCKED",
+    message:
+      "Ми не можемо оформити це замовлення автоматично. Будь ласка, зв’яжіться з кав’ярнею напряму.",
+    hint:
+      blockedCustomer?.reason ||
+      "Замовлення обмежено адміністратором або антиспам-захистом.",
+  };
+}
+
+function createLocalBlockedCustomers(db, targets = [], reason = "") {
+  ensureBlockedCustomersStore(db);
+
+  const created = [];
+
+  targets.forEach((target) => {
+    const type = toCleanString(target.type);
+    const value = normalizeBlockedValue(type, target.value);
+
+    if (!type || !value) return;
+
+    const existing = db.blockedCustomers.find((item) => {
+      return item.type === type && String(item.value || "") === value;
+    });
+
+    if (existing) {
+      created.push(existing);
+      return;
+    }
+
+    const blockedCustomer = {
+      id: db.nextBlockedCustomerId,
+      type,
+      value,
+      reason,
+      createdAt: new Date().toISOString(),
+    };
+
+    db.nextBlockedCustomerId += 1;
+    db.blockedCustomers.unshift(blockedCustomer);
+    created.push(blockedCustomer);
+  });
+
+  return created;
+}
+
+function buildSpamResponse(spamResult) {
+  return {
+    error: spamResult.error || "ORDER_SPAM_LIMIT",
+    message:
+      spamResult.message ||
+      "Замовлення тимчасово обмежено через надто часті спроби оформлення.",
+    hint: spamResult.hint || "",
+  };
 }
 
 function getFirstErrorMessage(errors = {}) {
@@ -224,6 +403,8 @@ function validateOrderContactForm(form = {}) {
     errors.name = "Вкажіть імʼя";
   } else if (name.length < 2) {
     errors.name = "Імʼя має містити щонайменше 2 символи";
+  } else if (name.length > 60) {
+    errors.name = "Імʼя занадто довге";
   }
 
   if (!rawPhone && !rawTelegram) {
@@ -652,12 +833,11 @@ async function notifyPostgresCustomerOrderReady(order) {
 }
 
 
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-  })
-);
+app.disable("x-powered-by");
+app.set("trust proxy", 1);
+
+app.use(applySecurityHeaders);
+app.use(cors(createCorsOptions()));
 
 app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
@@ -1108,7 +1288,7 @@ app.post("/api/customer/register", async (req, res) => {
   }
 });   
 
-app.post("/api/customer/login", async (req, res) => {
+app.post("/api/customer/login", customerLoginLimiter, async (req, res) => {
   try {
     if (USE_POSTGRES) {
       const validation = validateCustomerLogin(req.body);
@@ -1120,12 +1300,12 @@ app.post("/api/customer/login", async (req, res) => {
         });
       }
 
-      const { login, password } = validation.data;
+      const { phone, telegram, password } = validation.data;
 
       const customer = await customersRepository.findCustomerByContact(
         {
-          phone: login,
-          telegram: login,
+          phone,
+          telegram,
         },
         {
           includePassword: true,
@@ -1630,6 +1810,7 @@ app.post("/api/orders", async (req, res) => {
       const customer = await getPostgresCustomerFromRequest(req);
       const trustLevel = getOrderTrustLevel(customer);
       const orderLimits = getOrderLimits(trustLevel);
+      const spamLimits = getOrderSpamLimits(trustLevel);
 
       const guestId = customer ? "" : getOrCreateGuestId(req, res);
       const clientIp = getClientIp(req);
@@ -1646,24 +1827,26 @@ app.post("/api/orders", async (req, res) => {
         });
       }
 
-      const orderForm = {
-        ...(form || {}),
-      };
+      const orderForm = normalizeOrderForm(form || {});
 
       const deliveryType =
         orderForm.deliveryType === "building" ? "building" : "pickup";
 
       if (customer) {
-        orderForm.name = orderForm.name || customer.name;
-        orderForm.phone = orderForm.phone || customer.phone;
-        orderForm.telegram = orderForm.telegram || customer.telegram;
+        orderForm.name = normalizeOrderSingleLine(customer.name, 60);
+        orderForm.phone = customer.phone || "";
+        orderForm.telegram = customer.telegram || "";
 
         if (deliveryType === "building") {
-          orderForm.building = orderForm.building || customer.building || "";
-          orderForm.entrance = orderForm.entrance || customer.entrance || "";
-          orderForm.floor = orderForm.floor || customer.floor || "";
+          orderForm.building =
+            orderForm.building || normalizeOrderSingleLine(customer.building, 40);
+          orderForm.entrance =
+            orderForm.entrance || normalizeOrderSingleLine(customer.entrance, 20);
+          orderForm.floor =
+            orderForm.floor || normalizeOrderSingleLine(customer.floor, 20);
           orderForm.apartment =
-            orderForm.apartment || customer.apartment || "";
+            orderForm.apartment ||
+            normalizeOrderSingleLine(customer.apartment, 20);
         }
       }
 
@@ -1697,15 +1880,18 @@ app.post("/api/orders", async (req, res) => {
       orderForm.phone = contactValidation.data.phone;
       orderForm.telegram = contactValidation.data.telegram;
 
+      const orderIdentity = {
+        customerId: customer ? customer.id : "",
+        guestId,
+        phone: orderForm.phone,
+        telegram: orderForm.telegram,
+        ip: clientIp,
+      };
 
       const blockedResult =
-        await blockedCustomersRepository.assertCustomerNotBlocked({
-          customerId: customer ? customer.id : "",
-          guestId,
-          phone: orderForm.phone,
-          telegram: orderForm.telegram,
-          ip: clientIp,
-        });
+        await blockedCustomersRepository.assertCustomerNotBlocked(
+          orderIdentity
+        );
 
       if (!blockedResult.ok) {
         return res.status(blockedResult.status || 403).json({
@@ -1717,15 +1903,29 @@ app.post("/api/orders", async (req, res) => {
         });
       }
 
+      const spamLimitResult =
+        await orderLimitsRepository.checkPostgresOrderSpamRateLimit(
+          orderIdentity,
+          trustLevel,
+          spamLimits
+        );
+
+      if (!spamLimitResult.ok) {
+        if (spamLimitResult.blockTargets?.length) {
+          await blockedCustomersRepository.createBlockedCustomers(
+            spamLimitResult.blockTargets,
+            spamLimitResult.reason
+          );
+        }
+
+        return res
+          .status(spamLimitResult.status || 429)
+          .json(buildSpamResponse(spamLimitResult));
+      }
+
       const rateLimitResult =
         await orderLimitsRepository.checkPostgresOrderRateLimit(
-          {
-            customerId: customer ? customer.id : "",
-            guestId,
-            phone: orderForm.phone,
-            telegram: orderForm.telegram,
-            ip: clientIp,
-          },
+          orderIdentity,
           orderLimits
         );
 
@@ -1853,7 +2053,7 @@ app.post("/api/orders", async (req, res) => {
         apartment:
           deliveryType === "building" ? orderForm.apartment || "" : "",
 
-        paymentMethod: orderForm.payment || "Після підтвердження",
+        paymentMethod: DEFAULT_PAYMENT_METHOD,
         paymentStatus: PAYMENT_STATUS.UNPAID,
 
         comment: orderForm.comment || "",
@@ -1901,23 +2101,25 @@ app.post("/api/orders", async (req, res) => {
       });
     }
 
-    const orderForm = {
-      ...(form || {}),
-    };
+    const orderForm = normalizeOrderForm(form || {});
 
     const deliveryType =
       orderForm.deliveryType === "building" ? "building" : "pickup";
 
     if (customer) {
-      orderForm.name = orderForm.name || customer.name;
-      orderForm.phone = orderForm.phone || customer.phone;
-      orderForm.telegram = orderForm.telegram || customer.telegram;
+      orderForm.name = normalizeOrderSingleLine(customer.name, 60);
+      orderForm.phone = customer.phone || "";
+      orderForm.telegram = customer.telegram || "";
 
       if (deliveryType === "building") {
-        orderForm.building = orderForm.building || customer.building || "";
-        orderForm.entrance = orderForm.entrance || customer.entrance || "";
-        orderForm.floor = orderForm.floor || customer.floor || "";
-        orderForm.apartment = orderForm.apartment || customer.apartment || "";
+        orderForm.building =
+          orderForm.building || normalizeOrderSingleLine(customer.building, 40);
+        orderForm.entrance =
+          orderForm.entrance || normalizeOrderSingleLine(customer.entrance, 20);
+        orderForm.floor =
+          orderForm.floor || normalizeOrderSingleLine(customer.floor, 20);
+        orderForm.apartment =
+          orderForm.apartment || normalizeOrderSingleLine(customer.apartment, 20);
       }
     }
 
@@ -1951,15 +2153,50 @@ app.post("/api/orders", async (req, res) => {
     orderForm.phone = contactValidation.data.phone;
     orderForm.telegram = contactValidation.data.telegram;
 
+    const orderIdentity = {
+      customerId: customer ? String(customer.id) : "",
+      guestId,
+      phone: orderForm.phone,
+      telegram: orderForm.telegram,
+      ip: clientIp,
+    };
+
+    const blockedCustomer = findLocalBlockedCustomer(db, orderIdentity);
+
+    if (blockedCustomer) {
+      const blockedResponse = buildBlockedOrderResponse(blockedCustomer);
+
+      return res.status(blockedResponse.status).json({
+        error: blockedResponse.error,
+        message: blockedResponse.message,
+        hint: blockedResponse.hint,
+      });
+    }
+
+    const spamLimitResult = checkOrderSpamRateLimit(
+      db.orders || [],
+      orderIdentity,
+      trustLevel
+    );
+
+    if (!spamLimitResult.ok) {
+      if (spamLimitResult.blockTargets?.length) {
+        createLocalBlockedCustomers(
+          db,
+          spamLimitResult.blockTargets,
+          spamLimitResult.reason
+        );
+        writeDatabase(db);
+      }
+
+      return res
+        .status(spamLimitResult.status || 429)
+        .json(buildSpamResponse(spamLimitResult));
+    }
+
     const rateLimitResult = checkOrderRateLimit(
       db,
-      {
-        customerId: customer ? String(customer.id) : "",
-        guestId,
-        phone: orderForm.phone,
-        telegram: orderForm.telegram,
-        ip: clientIp,
-      },
+      orderIdentity,
       trustLevel
     );
 
@@ -2084,7 +2321,7 @@ app.post("/api/orders", async (req, res) => {
       floor: deliveryType === "building" ? orderForm.floor || "" : "",
       apartment: deliveryType === "building" ? orderForm.apartment || "" : "",
 
-      paymentMethod: orderForm.payment || "Після підтвердження",
+      paymentMethod: DEFAULT_PAYMENT_METHOD,
       paymentStatus: PAYMENT_STATUS.UNPAID,
 
       comment: orderForm.comment || "",

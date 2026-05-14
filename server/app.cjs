@@ -1,6 +1,12 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const {
+  createCorsOptions,
+  applySecurityHeaders,
+} = require("./httpSecurity.cjs");
 
 const publicRoutes = require("./routes/public.routes.cjs");
 const customerRoutes = require("./routes/customer.routes.cjs");
@@ -15,12 +21,11 @@ const adminTelegramRoutes = require("./routes/adminTelegram.routes.cjs");
 
 const app = express();
 
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-  })
-);
+app.disable("x-powered-by");
+app.set("trust proxy", 1);
+
+app.use(applySecurityHeaders);
+app.use(cors(createCorsOptions()));
 
 app.use(express.json());
 app.use(cookieParser());

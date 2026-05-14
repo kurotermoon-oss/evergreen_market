@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 
 const { normalizePhone, normalizeTelegram } = require("./customerAuth.cjs");
+const { buildCookieOptions } = require("./runtimeSecurity.cjs");
 
 const GUEST_COOKIE_NAME = "guest_token";
 
@@ -59,17 +60,31 @@ const ORDER_LIMITS_BY_TRUST = {
   },
 };
 
+const ORDER_SPAM_LIMITS_BY_TRUST = {
+  [TRUST_LEVELS.GUEST]: {
+    windowMs: 60 * 1000,
+    maxOrders: 10,
+    autoBlock: true,
+  },
+
+  [TRUST_LEVELS.REGISTERED_UNVERIFIED]: {
+    windowMs: 60 * 1000,
+    maxOrders: 15,
+    autoBlock: true,
+  },
+
+  [TRUST_LEVELS.REGISTERED_VERIFIED]: {
+    windowMs: 60 * 1000,
+    maxOrders: 30,
+    autoBlock: false,
+  },
+};
+
 function toCleanString(value) {
   return String(value || "").trim();
 }
 
 function getClientIp(req) {
-  const forwardedFor = req.headers["x-forwarded-for"];
-
-  if (forwardedFor) {
-    return String(forwardedFor).split(",")[0].trim();
-  }
-
   return (
     req.ip ||
     req.socket?.remoteAddress ||
@@ -91,12 +106,11 @@ function getOrCreateGuestId(req, res) {
 
   const guestId = createGuestId();
 
-  res.cookie(GUEST_COOKIE_NAME, guestId, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 180 * 24 * 60 * 60 * 1000,
-  });
+  res.cookie(
+    GUEST_COOKIE_NAME,
+    guestId,
+    buildCookieOptions(180 * 24 * 60 * 60 * 1000)
+  );
 
   return guestId;
 }
@@ -122,6 +136,13 @@ function getOrderLimits(trustLevel) {
   return (
     ORDER_LIMITS_BY_TRUST[trustLevel] ||
     ORDER_LIMITS_BY_TRUST[TRUST_LEVELS.GUEST]
+  );
+}
+
+function getOrderSpamLimits(trustLevel) {
+  return (
+    ORDER_SPAM_LIMITS_BY_TRUST[trustLevel] ||
+    ORDER_SPAM_LIMITS_BY_TRUST[TRUST_LEVELS.GUEST]
   );
 }
 
@@ -196,6 +217,102 @@ function getOrderIdentity(order) {
     phone: normalizePhone(order.customerPhone || ""),
     telegram: normalizeTelegram(order.customerTelegram || ""),
     ip: String(order.clientIp || ""),
+  };
+}
+
+function buildSpamBlockTargets(identity = {}, trustLevel) {
+  const targets = [];
+  const ip = toCleanString(identity.ip);
+  const guestId = toCleanString(identity.guestId);
+  const customerId = toCleanString(identity.customerId);
+
+  if (ip) {
+    targets.push({
+      type: "ip",
+      value: ip,
+    });
+  }
+
+  if (trustLevel === TRUST_LEVELS.GUEST && guestId) {
+    targets.push({
+      type: "guestId",
+      value: guestId,
+    });
+  }
+
+  if (trustLevel === TRUST_LEVELS.REGISTERED_UNVERIFIED && customerId) {
+    targets.push({
+      type: "customerId",
+      value: customerId,
+    });
+  }
+
+  return targets;
+}
+
+function orderMatchesSpamIdentity(order, identity = {}) {
+  const orderIdentity = getOrderIdentity(order);
+
+  return (
+    (identity.ip && orderIdentity.ip === identity.ip) ||
+    (identity.guestId && orderIdentity.guestId === identity.guestId) ||
+    (identity.customerId &&
+      orderIdentity.customerId === String(identity.customerId))
+  );
+}
+
+function buildSpamLimitResult(identity, trustLevel, limits, recentOrdersCount) {
+  const autoBlock = Boolean(limits.autoBlock);
+  const blockTargets = autoBlock
+    ? buildSpamBlockTargets(identity, trustLevel)
+    : [];
+
+  return {
+    ok: false,
+    status: autoBlock && blockTargets.length ? 403 : 429,
+    error: autoBlock && blockTargets.length ? "CUSTOMER_BLOCKED" : "ORDER_SPAM_LIMIT",
+    message:
+      "Замовлення тимчасово обмежено через надто часті спроби оформлення.",
+    hint: autoBlock
+      ? "Джерело запиту автоматично додано до блокувань як спам. Якщо це реальне замовлення, зв’яжіться з кав’ярнею напряму."
+      : "Спробуйте ще раз трохи пізніше.",
+    reason: `Автоблок: ${recentOrdersCount} замовлень за ${Math.round(
+      limits.windowMs / 1000
+    )} секунд.`,
+    blockTargets,
+  };
+}
+
+function checkOrderSpamRateLimit(orders = [], identity = {}, trustLevel) {
+  const limits = getOrderSpamLimits(trustLevel);
+  const windowMs = Number(limits.windowMs || 0);
+  const maxOrders = Number(limits.maxOrders || 0);
+
+  if (!windowMs || !maxOrders) {
+    return {
+      ok: true,
+    };
+  }
+
+  const since = Date.now() - windowMs;
+  const recentOrdersCount = (Array.isArray(orders) ? orders : []).filter(
+    (order) => {
+      const createdAt = new Date(order.createdAt || "").getTime();
+
+      return (
+        Number.isFinite(createdAt) &&
+        createdAt >= since &&
+        orderMatchesSpamIdentity(order, identity)
+      );
+    }
+  ).length;
+
+  if (recentOrdersCount >= maxOrders) {
+    return buildSpamLimitResult(identity, trustLevel, limits, recentOrdersCount);
+  }
+
+  return {
+    ok: true,
   };
 }
 
@@ -453,9 +570,11 @@ module.exports = {
 
   getOrderTrustLevel,
   getOrderLimits,
+  getOrderSpamLimits,
 
   getNormalizedRawItems,
   validateRawOrderItems,
   validateResolvedOrderItems,
+  checkOrderSpamRateLimit,
   checkOrderRateLimit,
 };

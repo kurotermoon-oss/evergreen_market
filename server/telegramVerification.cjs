@@ -1,9 +1,11 @@
+const crypto = require("crypto");
+
 const { normalizePhone, normalizeTelegram } = require("./customerAuth.cjs");
 
 const TELEGRAM_CODE_TTL_MS = 10 * 60 * 1000;
 
 function generateTelegramCode() {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  return String(crypto.randomInt(100000, 1000000));
 }
 
 function normalizePhoneForCompare(value) {
