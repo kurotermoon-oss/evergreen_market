@@ -29,31 +29,18 @@ function HomeIcon({ className = "" }) {
   );
 }
 
-function CoffeeIcon({ className = "" }) {
+function CatalogIcon({ className = "" }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
       <path
-        d="M7 8h9v6a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4V8Z"
+        d="M4.5 6.5A1.5 1.5 0 0 1 6 5h4.5v6H4.5V6.5ZM13.5 5H18a1.5 1.5 0 0 1 1.5 1.5V11h-6V5ZM4.5 14h6v5h-4.5A1.5 1.5 0 0 1 4.5 17.5V14ZM13.5 14h6v3.5A1.5 1.5 0 0 1 18 19h-4.5v-5Z"
         stroke="currentColor"
         strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M16 10h1.2a2.3 2.3 0 0 1 0 4.6H16"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M8 21h8"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-      <path
-        d="M9 4c-.5.7-.5 1.3 0 2M12 3.5c-.5.8-.5 1.5 0 2.3M15 4c-.5.7-.5 1.3 0 2"
+        d="M10.5 5v14M13.5 5v14M4.5 11h15M4.5 14h15"
         stroke="currentColor"
         strokeWidth="1.8"
         strokeLinecap="round"
@@ -178,7 +165,7 @@ export default function Header({
     {
       id: "catalog",
       label: "Товари",
-      Icon: CoffeeIcon,
+      Icon: CatalogIcon,
       isActive: view === "catalog",
       onClick: () => setView("catalog"),
     },

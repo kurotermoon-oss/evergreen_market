@@ -184,28 +184,28 @@ export default function ProductCard({
               )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_auto]">
+          <div className="grid grid-cols-2 items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(132px,auto)]">
             <button
               type="button"
               onClick={() => openProduct?.(product)}
-              className="eg-button min-w-0 rounded-xl border border-stone-300 px-2 py-2 text-xs font-bold text-stone-900 hover:bg-stone-100 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm"
+              className="eg-button flex h-10 min-w-0 items-center justify-center rounded-xl border border-stone-300 px-2 text-xs font-bold text-stone-900 hover:bg-stone-100 sm:h-11 sm:rounded-2xl sm:px-4 sm:text-sm"
             >
               <span className="sm:hidden">Деталі</span>
               <span className="hidden sm:inline">Детальніше</span>
             </button>
 
             {cartQty > 0 ? (
-              <div className="flex h-9 items-center overflow-hidden rounded-xl bg-emerald-900 text-white shadow-sm sm:h-11 sm:rounded-2xl">
+              <div className="flex h-10 w-full min-w-0 items-center justify-between overflow-hidden rounded-xl bg-emerald-900 text-white shadow-sm sm:h-11 sm:min-w-[132px] sm:rounded-2xl">
                 <button
                   type="button"
                   onClick={handleDecrease}
-                  className="eg-counter-button flex h-9 w-8 items-center justify-center text-sm font-black hover:bg-emerald-800 sm:h-11 sm:w-11"
+                  className="eg-counter-button flex h-full w-9 shrink-0 items-center justify-center text-sm font-black hover:bg-emerald-800 sm:w-11"
                   aria-label="Зменшити кількість"
                 >
                   <Icon name="minus" size={12} />
                 </button>
 
-                <span className="flex h-9 min-w-6 items-center justify-center px-1 text-center text-xs font-black sm:h-11 sm:min-w-8 sm:text-sm">
+                <span className="flex h-full min-w-0 flex-1 items-center justify-center px-1 text-center text-xs font-black sm:text-sm">
                   {cartQty}
                 </span>
 
@@ -213,7 +213,7 @@ export default function ProductCard({
                   type="button"
                   onClick={handleIncrease}
                   disabled={!available}
-                  className="eg-counter-button flex h-9 w-8 items-center justify-center text-sm font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400 sm:h-11 sm:w-11"
+                  className="eg-counter-button flex h-full w-9 shrink-0 items-center justify-center text-sm font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400 sm:w-11"
                   aria-label="Збільшити кількість"
                 >
                   <Icon name="plus" size={12} />
@@ -224,7 +224,7 @@ export default function ProductCard({
                 type="button"
                 onClick={handleAdd}
                 disabled={!available}
-                className={`eg-button eg-sweep min-w-0 rounded-xl px-2 py-2 text-xs font-black text-white sm:rounded-2xl sm:px-5 sm:py-3 sm:text-sm ${
+                className={`eg-button eg-sweep flex h-10 min-w-0 items-center justify-center rounded-xl px-2 text-xs font-black text-white sm:h-11 sm:rounded-2xl sm:px-5 sm:text-sm ${
                   available
                     ? "bg-emerald-900 hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20"
                     : "cursor-not-allowed bg-stone-400"
