@@ -136,7 +136,7 @@ export default function ProductCard({
         />
       </button>
 
-      <div className="flex flex-1 flex-col p-3 sm:p-4 lg:p-5">
+      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4 lg:p-5">
         <div className="mb-2 flex items-start justify-between gap-2 sm:mb-3">
           <div className="min-w-0">
             <p className="line-clamp-1 text-[10px] font-black uppercase tracking-wide text-emerald-700 sm:text-xs">
@@ -184,13 +184,14 @@ export default function ProductCard({
               )}
           </div>
 
-          <div className="grid grid-cols-[1fr_auto] gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_auto]">
             <button
               type="button"
               onClick={() => openProduct?.(product)}
-              className="eg-button rounded-xl border border-stone-300 px-3 py-2 text-xs font-bold text-stone-900 hover:bg-stone-100 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm"
+              className="eg-button min-w-0 rounded-xl border border-stone-300 px-2 py-2 text-xs font-bold text-stone-900 hover:bg-stone-100 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm"
             >
-              Детальніше
+              <span className="sm:hidden">Деталі</span>
+              <span className="hidden sm:inline">Детальніше</span>
             </button>
 
             {cartQty > 0 ? (
@@ -223,7 +224,7 @@ export default function ProductCard({
                 type="button"
                 onClick={handleAdd}
                 disabled={!available}
-                className={`eg-button eg-sweep rounded-xl px-3 py-2 text-xs font-black text-white sm:rounded-2xl sm:px-5 sm:py-3 sm:text-sm ${
+                className={`eg-button eg-sweep min-w-0 rounded-xl px-2 py-2 text-xs font-black text-white sm:rounded-2xl sm:px-5 sm:py-3 sm:text-sm ${
                   available
                     ? "bg-emerald-900 hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20"
                     : "cursor-not-allowed bg-stone-400"

@@ -139,7 +139,7 @@ export default function MobileNav({
   ];
 
   return (
-    <nav className="eg-panel fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-2 shadow-2xl shadow-emerald-950/10 backdrop-blur-2xl md:hidden">
+    <nav className="eg-panel fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-1.5 overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-1.5 shadow-2xl shadow-emerald-950/10 backdrop-blur-2xl md:hidden">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_55%)]" />
 
       {navItems.map((item) => {

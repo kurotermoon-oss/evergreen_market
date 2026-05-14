@@ -297,29 +297,6 @@ export default function Header({
         </div>
       </div>
 
-      <div className="relative z-10 border-t border-white/50 bg-white/70 px-4 py-2 backdrop-blur-xl md:hidden">
-        <nav className="mx-auto grid max-w-7xl grid-cols-3 gap-2">
-          {navItems.map((item) => {
-            const Icon = item.Icon;
-
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={item.onClick}
-                className={`eg-button flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-sm font-black ${
-                  item.isActive
-                    ? "bg-emerald-900 text-white shadow-sm"
-                    : "bg-stone-50 text-stone-700 hover:bg-emerald-50 hover:text-emerald-900"
-                }`}
-              >
-                <Icon className="h-[18px] w-[18px]" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-      </div>
     </header>
   );
 }

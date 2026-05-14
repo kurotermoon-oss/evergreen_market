@@ -11,6 +11,17 @@ const CATEGORY_MARKS = {
   drinks: "НА",
 };
 
+function getCategoryMark(category) {
+  if (CATEGORY_MARKS[category.id]) {
+    return CATEGORY_MARKS[category.id];
+  }
+
+  return (category.name || "")
+    .trim()
+    .slice(0, 2)
+    .toUpperCase() || "•";
+}
+
 export default function CatalogView({
   categories,
   selectedCategory,
@@ -110,19 +121,19 @@ export default function CatalogView({
   return (
     <main
       id="catalog"
-      className="scroll-mt-24 mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8"
+      className="scroll-mt-24 mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8"
     >
-      <section className="relative mb-10">
-        <div className="eg-glass eg-premium-card rounded-[2rem] p-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+      <section className="relative mb-7 sm:mb-10">
+        <div className="eg-glass eg-premium-card rounded-[1.5rem] p-3 sm:rounded-[2rem] sm:p-4">
+          <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center">
             <button
               type="button"
               onClick={() =>
                 isCatalogMenuOpen ? closeCatalogMenu() : openCatalogMenu()
               }
-              className="eg-button eg-sweep flex w-full items-center justify-center gap-3 rounded-[28px] bg-emerald-900 px-7 py-4 text-base font-black text-white shadow-sm hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20 lg:w-[320px]"
+              className="eg-button eg-sweep flex w-full items-center justify-center gap-2 rounded-[22px] bg-emerald-900 px-4 py-3 text-sm font-black text-white shadow-sm hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20 sm:gap-3 sm:rounded-[28px] sm:px-7 sm:py-4 sm:text-base lg:w-[320px]"
             >
-              <span className="text-xl leading-none">
+              <span className="text-lg leading-none sm:text-xl">
                 {isCatalogMenuOpen ? "×" : "☰"}
               </span>
               <span>Каталог товарів</span>
@@ -136,7 +147,7 @@ export default function CatalogView({
                   setCurrentPage(1);
                 }}
                 placeholder="Пошук"
-                className="eg-field min-h-[56px] flex-1 rounded-[28px] border border-white/80 bg-white/80 px-6 text-base outline-none backdrop-blur focus:border-emerald-700"
+                className="eg-field min-h-12 flex-1 rounded-[22px] border border-white/80 bg-white/80 px-4 text-sm outline-none backdrop-blur focus:border-emerald-700 sm:min-h-[56px] sm:rounded-[28px] sm:px-6 sm:text-base"
               />
 
               <div className="flex flex-wrap gap-3">
@@ -148,7 +159,7 @@ export default function CatalogView({
                   }}
                   type="number"
                   placeholder="від"
-                  className="eg-field min-h-[56px] w-28 rounded-[22px] border border-white/80 bg-white/80 px-5 outline-none backdrop-blur focus:border-emerald-700"
+                  className="eg-field min-h-12 min-w-0 flex-1 rounded-[20px] border border-white/80 bg-white/80 px-4 text-sm outline-none backdrop-blur focus:border-emerald-700 sm:min-h-[56px] sm:w-28 sm:flex-none sm:rounded-[22px] sm:px-5 sm:text-base"
                 />
 
                 <input
@@ -159,7 +170,7 @@ export default function CatalogView({
                   }}
                   type="number"
                   placeholder="до"
-                  className="eg-field min-h-[56px] w-28 rounded-[22px] border border-white/80 bg-white/80 px-5 outline-none backdrop-blur focus:border-emerald-700"
+                  className="eg-field min-h-12 min-w-0 flex-1 rounded-[20px] border border-white/80 bg-white/80 px-4 text-sm outline-none backdrop-blur focus:border-emerald-700 sm:min-h-[56px] sm:w-28 sm:flex-none sm:rounded-[22px] sm:px-5 sm:text-base"
                 />
 
                 <select
@@ -168,7 +179,7 @@ export default function CatalogView({
                     setSortBy(event.target.value);
                     setCurrentPage(1);
                   }}
-                  className="eg-field min-h-[56px] rounded-[22px] border border-white/80 bg-white/80 px-5 outline-none backdrop-blur focus:border-emerald-700"
+                  className="eg-field min-h-12 w-full rounded-[20px] border border-white/80 bg-white/80 px-4 text-sm outline-none backdrop-blur focus:border-emerald-700 sm:min-h-[56px] sm:w-auto sm:rounded-[22px] sm:px-5 sm:text-base"
                 >
                   <option value="default">За замовчуванням</option>
                   <option value="price-asc">Спочатку дешевші</option>
@@ -186,9 +197,9 @@ export default function CatalogView({
               onClick={closeCatalogMenu}
             />
 
-            <div className="eg-menu eg-glass absolute left-0 top-full z-40 mt-4 w-full overflow-hidden rounded-[34px] border border-white/70 shadow-2xl shadow-emerald-950/10">
-              <div className="grid min-h-[460px] lg:grid-cols-[360px_1fr]">
-                <div className="bg-stone-50/80 p-5 backdrop-blur">
+            <div className="eg-menu eg-glass fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+7.5rem)] top-24 z-40 w-auto overflow-y-auto rounded-[28px] border border-white/70 shadow-2xl shadow-emerald-950/10 lg:absolute lg:left-0 lg:top-full lg:bottom-auto lg:mt-4 lg:w-full lg:overflow-hidden lg:rounded-[34px]">
+              <div className="grid lg:min-h-[460px] lg:grid-cols-[360px_1fr]">
+                <div className="bg-stone-50/80 p-3 backdrop-blur sm:p-5">
                   <button
                     type="button"
                     onClick={resetCatalogFilters}
@@ -206,7 +217,7 @@ export default function CatalogView({
                     {catalogCategories.map((category) => {
                       const isPreviewed = previewCategoryId === category.id;
                       const isActive = selectedCategory === category.id;
-                      const mark = CATEGORY_MARKS[category.id] || "•";
+                      const mark = getCategoryMark(category);
                       const hasSubcategories =
                         (category.subcategories || []).filter(
                           (subcategory) => subcategory.active !== false
@@ -221,7 +232,7 @@ export default function CatalogView({
                           }
                           onFocus={() => setHoveredCategoryId(category.id)}
                           onClick={() => selectCategory(category.id)}
-                          className={`eg-button flex w-full items-center justify-between rounded-[24px] px-4 py-4 text-left ${
+                          className={`eg-button flex w-full items-center justify-between rounded-[20px] px-3 py-3 text-left sm:rounded-[24px] sm:px-4 sm:py-4 ${
                             isPreviewed
                               ? "bg-emerald-100 text-emerald-950 shadow-sm"
                               : "text-stone-900 hover:bg-white/95"
@@ -260,7 +271,7 @@ export default function CatalogView({
                   </div>
                 </div>
 
-                <div className="bg-white/90 p-7 backdrop-blur">
+                <div className="hidden bg-white/90 p-7 backdrop-blur lg:block">
                   {previewCategory ? (
                     <>
                       <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -338,7 +349,7 @@ export default function CatalogView({
         )}
       </section>
 
-      <section className="mb-10">
+      <section className="mb-8 sm:mb-10">
         <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-stone-500">
           <button
             type="button"
@@ -371,8 +382,8 @@ export default function CatalogView({
           )}
         </div>
 
-        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <h1 className="text-4xl font-black uppercase tracking-wide text-stone-950">
+        <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center">
+          <h1 className="text-3xl font-black uppercase tracking-wide text-stone-950 sm:text-4xl">
             {pageTitle}
           </h1>
 
@@ -431,7 +442,7 @@ export default function CatalogView({
 
       <section>
         {visibleProducts.length > 0 ? (
-          <div className="eg-stagger grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
+          <div className="eg-stagger grid grid-cols-1 gap-3 min-[430px]:grid-cols-2 sm:gap-5 xl:grid-cols-3">
             {visibleProducts.map((product) => (
               <ProductCard
                 key={product.id}

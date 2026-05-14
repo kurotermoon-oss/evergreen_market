@@ -346,7 +346,7 @@ return (
         isAdmin={isAdmin}
         customer={customer}
       />
-<div key={view} className="eg-page">
+<div key={view} className="eg-page pb-24 md:pb-0">
 
       {view === "home" && (
       <HomeView
@@ -482,13 +482,16 @@ return (
       />
       )}
 </div>
-      <Footer />
+      <div className={view === "home" ? "" : "hidden md:block"}>
+        <Footer />
+      </div>
 
       <MobileNav
         view={view}
         setView={setView}
         cartCount={cartCount}
         isAdmin={isAdmin}
+        customer={customer}
       />
     </div>
   );
