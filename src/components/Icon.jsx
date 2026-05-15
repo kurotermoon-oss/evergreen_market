@@ -117,6 +117,19 @@ export default function Icon({ name, className = "", size = 20, title }) {
         </SvgIcon>
       );
 
+    case "arrowRight":
+      return (
+        <SvgIcon {...commonProps}>
+          <path
+            d="M5 12h14M13 6l6 6-6 6"
+            stroke="currentColor"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </SvgIcon>
+      );
+
     case "trash":
       return (
         <SvgIcon {...commonProps}>

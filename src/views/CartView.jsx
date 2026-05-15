@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getRecentOrders, clearRecentOrders } from "../utils/recentOrders.js";
 import Icon from "../components/Icon.jsx";
 import OrderRulesModal from "../components/OrderRulesModal.jsx";
@@ -182,6 +182,8 @@ export default function CartView({
 }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const checkoutRef = useRef(null);
 
   const needsDelivery = form.deliveryType === "building";
   const isEmpty = cartItems.length === 0;
@@ -209,6 +211,17 @@ export default function CartView({
     const nextQuantity = Number(item.quantity || 0) + 1;
 
     changeQuantity(productId, nextQuantity);
+  }
+
+  function openCheckout() {
+    setIsCheckoutOpen(true);
+
+    window.setTimeout(() => {
+      checkoutRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
   }
 
   function updateFormAndClearError(field, value) {
@@ -424,7 +437,47 @@ export default function CartView({
 
             <FieldError>{fieldErrors.cart}</FieldError>
 
-            <div className="eg-premium-card mt-6 overflow-hidden rounded-[2rem] bg-emerald-950 p-7 text-white shadow-xl shadow-emerald-950/20">
+            <button
+              type="button"
+              onClick={openCheckout}
+              className="eg-button eg-sweep group mt-6 block w-full overflow-hidden rounded-[2rem] bg-[linear-gradient(135deg,#064e3b_0%,#022c22_58%,#0f766e_100%)] p-0 text-left text-white shadow-[0_22px_46px_rgba(6,78,59,0.28)] ring-1 ring-emerald-900/15 lg:hidden"
+              aria-expanded={isCheckoutOpen}
+              aria-controls="checkout-form"
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.22),transparent_34%),radial-gradient(circle_at_88%_88%,rgba(253,186,116,0.18),transparent_36%)]" />
+              <div className="absolute inset-x-5 top-0 h-px bg-white/35" />
+
+              <div className="relative z-10 grid gap-4 p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-black uppercase tracking-wide text-emerald-100">
+                      До сплати
+                    </span>
+
+                    <span className="mt-1 block text-base font-black">
+                      Разом у кошику
+                    </span>
+                  </div>
+
+                  <span className="shrink-0 text-3xl font-black leading-none">
+                    {formatUAH(total)}
+                  </span>
+                </div>
+
+                <span className="flex items-center justify-between gap-3 rounded-[1.35rem] bg-white/12 px-4 py-3 text-sm font-black text-white shadow-inner shadow-white/5 ring-1 ring-white/15">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <Icon name="send" size={17} />
+                    <span className="truncate">Оформити замовлення</span>
+                  </span>
+
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-300 text-emerald-950 shadow-lg shadow-black/15 transition group-hover:translate-x-0.5">
+                    <Icon name="arrowRight" size={17} />
+                  </span>
+                </span>
+              </div>
+            </button>
+
+            <div className="eg-premium-card mt-6 hidden overflow-hidden rounded-[2rem] bg-emerald-950 p-7 text-white shadow-xl shadow-emerald-950/20 lg:block">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_40%)]" />
 
               <div className="relative z-10 flex items-center justify-between">
@@ -437,7 +490,13 @@ export default function CartView({
             </div>
           </section>
 
-          <section className="eg-glass eg-premium-card rounded-[2.2rem] p-6 lg:p-8">
+          <section
+            id="checkout-form"
+            ref={checkoutRef}
+            className={`eg-glass eg-premium-card rounded-[2.2rem] p-6 lg:block lg:p-8 ${
+              isCheckoutOpen ? "block" : "hidden"
+            }`}
+          >
             <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
               Оформлення
             </p>
