@@ -60,6 +60,7 @@ function getInitialView() {
 
 export default function App() {
   const [view, setView] = useState(getInitialView);
+  const [shouldScrollToContacts, setShouldScrollToContacts] = useState(false);
 
   const {
     categories,
@@ -266,10 +267,46 @@ useEffect(() => {
   window.scrollTo({ top: 0, behavior: "auto" });
 }, [view]);
 
+useEffect(() => {
+  if (!shouldScrollToContacts || view !== "home") return;
+
+  const timeoutId = window.setTimeout(() => {
+    scrollToContacts();
+    setShouldScrollToContacts(false);
+  }, 120);
+
+  return () => window.clearTimeout(timeoutId);
+}, [shouldScrollToContacts, view]);
+
 
   function updateForm(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
   }
+
+function scrollToContacts() {
+  const contacts = document.getElementById("contacts");
+
+  if (!contacts) return false;
+
+  contacts.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+
+  return true;
+}
+
+function openContacts() {
+  const contacts = document.getElementById("contacts");
+
+  if (contacts?.getClientRects().length) {
+    scrollToContacts();
+    return;
+  }
+
+  setShouldScrollToContacts(true);
+  setView("home");
+}
 
 
 function applyCustomerToForm(customerData) {
@@ -342,6 +379,7 @@ return (
     <Header
         view={view}
         setView={setView}
+        onContactsClick={openContacts}
         cartCount={cartCount}
         isAdmin={isAdmin}
         customer={customer}
@@ -489,6 +527,7 @@ return (
       <MobileNav
         view={view}
         setView={setView}
+        onContactsClick={openContacts}
         cartCount={cartCount}
         isAdmin={isAdmin}
         customer={customer}

@@ -49,6 +49,26 @@ function CatalogIcon({ className = "" }) {
   );
 }
 
+function ContactIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
+      <path
+        d="M12 21s6-5.3 6-11a6 6 0 1 0-12 0c0 5.7 6 11 6 11Z"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx="12"
+        cy="10"
+        r="2.2"
+        stroke="currentColor"
+        strokeWidth="2.2"
+      />
+    </svg>
+  );
+}
+
 function UserIcon({ className = "" }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
@@ -111,6 +131,7 @@ function CartIcon({ className = "" }) {
 export default function Header({
   view,
   setView,
+  onContactsClick,
   cartCount = 0,
   isAdmin = false,
   customer = null,
@@ -170,6 +191,13 @@ export default function Header({
       onClick: () => setView("catalog"),
     },
     {
+      id: "contacts",
+      label: "Контакти",
+      Icon: ContactIcon,
+      isActive: false,
+      onClick: onContactsClick,
+    },
+    {
       id: "account",
       label: customer ? "Кабінет" : "Увійти",
       Icon: UserIcon,
@@ -226,7 +254,7 @@ export default function Header({
                 key={item.id}
                 type="button"
                 onClick={item.onClick}
-                className={`group relative flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-black transition-all duration-300 ${
+                className={`group relative flex items-center gap-2 rounded-2xl px-3 py-3 text-sm font-black transition-all duration-300 lg:px-5 ${
                   item.isActive
                     ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
                     : "text-stone-700 hover:-translate-y-0.5 hover:bg-white/90 hover:text-emerald-900 hover:shadow-md"
