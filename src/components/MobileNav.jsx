@@ -154,8 +154,8 @@ export default function MobileNav({
   ];
 
   return (
-    <nav className="eg-panel fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-1/2 z-40 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-1.5 overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-1.5 shadow-2xl shadow-emerald-950/10 backdrop-blur-2xl md:hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.12),transparent_55%)]" />
+    <nav className="eg-mobile-nav eg-panel fixed left-1/2 z-[70] flex w-[calc(100vw-1rem)] max-w-[430px] -translate-x-1/2 items-center gap-1 rounded-[1.6rem] border border-emerald-700/50 bg-emerald-950/95 p-1.5 shadow-[0_18px_44px_rgba(2,44,34,0.38)] backdrop-blur-2xl md:hidden">
+      <div className="pointer-events-none absolute inset-0 rounded-[1.6rem] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_55%)]" />
 
       {navItems.map((item) => {
         const Icon = item.Icon;
@@ -165,20 +165,23 @@ export default function MobileNav({
             key={item.id}
             type="button"
             onClick={item.onClick}
-            className={`eg-icon-button relative z-10 flex h-12 w-12 items-center justify-center rounded-2xl ${
+            className={`eg-icon-button relative z-10 flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[1.15rem] px-1 ${
               item.isActive
-                ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                ? "bg-white text-emerald-950 shadow-lg shadow-black/20"
                 : item.hasGlow
-                  ? "eg-cart-glow bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
-                  : "text-emerald-800 hover:bg-emerald-50"
+                  ? "eg-cart-glow bg-emerald-800 text-white hover:bg-emerald-700"
+                  : "text-emerald-50/85 hover:bg-white/10 hover:text-white"
             }`}
             aria-label={item.label}
             title={item.label}
           >
             <Icon className="h-5 w-5" />
+            <span className="max-w-full truncate text-[10px] font-black leading-none">
+              {item.label}
+            </span>
 
             {item.badge > 0 && (
-              <span className="eg-cart-badge absolute -right-1.5 -top-1.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-black text-stone-950 shadow-md ring-2 ring-white">
+              <span className="eg-cart-badge absolute -right-1 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-amber-400 px-1.5 text-xs font-black text-stone-950 shadow-md ring-2 ring-emerald-950">
                 {item.badge}
               </span>
             )}

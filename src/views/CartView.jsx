@@ -301,7 +301,7 @@ export default function CartView({
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-10 lg:px-8">
         {isEmpty ? (
           <div className="space-y-5">
             <div className="eg-glass eg-premium-card mx-auto max-w-2xl rounded-[2.5rem] px-16 py-24 text-center">
@@ -327,15 +327,15 @@ export default function CartView({
             <RecentOrdersCard customer={customer} setView={setView} />
           </div>
         ) : (
-        <div className="eg-stagger grid gap-8 lg:grid-cols-[1fr_0.88fr]">
-          <section className="eg-glass eg-premium-card rounded-[2.2rem] p-6 lg:p-8">
-            <div className="mb-6 flex items-center justify-between gap-4">
+        <div className="eg-stagger grid gap-5 sm:gap-8 lg:grid-cols-[1fr_0.88fr]">
+          <section className="eg-glass eg-premium-card rounded-[1.7rem] p-4 sm:rounded-[2.2rem] sm:p-6 lg:p-8">
+            <div className="mb-5 flex items-start justify-between gap-3 sm:mb-6 sm:items-center sm:gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
                   Кошик
                 </p>
 
-                <h1 className="mt-2 text-3xl font-black text-stone-950">
+                <h1 className="mt-2 text-[2rem] font-black leading-tight text-stone-950 sm:text-3xl">
                   Ваше замовлення
                 </h1>
               </div>
@@ -347,7 +347,7 @@ export default function CartView({
                   setFieldErrors({});
                   setFormError("");
                 }}
-                className="eg-button rounded-2xl border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-700 hover:bg-stone-100"
+                className="eg-button shrink-0 rounded-2xl border border-stone-300 px-3 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-100 sm:px-4 sm:py-3"
               >
                 Очистити
               </button>
@@ -362,51 +362,51 @@ export default function CartView({
                 return (
                   <div
                     key={productId}
-                    className="eg-card eg-premium-card flex gap-4 rounded-[2rem] border border-stone-200 bg-white/85 p-4 backdrop-blur hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10"
+                    className="eg-card eg-premium-card flex gap-3 rounded-[1.55rem] border border-stone-200 bg-white/85 p-3 backdrop-blur hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10 sm:gap-4 sm:rounded-[2rem] sm:p-4"
                   >
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="eg-image h-24 w-24 rounded-[1.4rem] object-cover hover:scale-[1.05]"
+                      className="eg-image h-20 w-20 shrink-0 rounded-[1.15rem] object-cover hover:scale-[1.05] sm:h-24 sm:w-24 sm:rounded-[1.4rem]"
                     />
 
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-bold text-stone-950">
+                      <h3 className="line-clamp-2 text-base font-bold leading-snug text-stone-950">
                         {item.name}
                       </h3>
 
                       {(item.brand || item.unit || item.packageInfo) && (
-                        <p className="mt-1 text-sm text-stone-500">
+                        <p className="mt-1 line-clamp-2 text-sm leading-5 text-stone-500">
                           {[item.brand, item.unit, item.packageInfo]
                             .filter(Boolean)
                             .join(" · ")}
                         </p>
                       )}
 
-                      <p className="mt-1 text-sm text-stone-500">
+                      <p className="mt-1 text-sm leading-5 text-stone-500">
                         {formatUAH(item.price)} за одиницю
                       </p>
 
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                      <div className="mt-4 flex flex-col gap-3 min-[390px]:flex-row min-[390px]:items-center min-[390px]:justify-between">
                         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 shadow-sm">
-                          <div className="flex h-12 items-center">
+                          <div className="flex h-11 items-center sm:h-12">
                             <button
                               type="button"
                               onClick={() => decreaseItem(item)}
-                              className="eg-counter-button flex h-12 w-12 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900"
+                              className="eg-counter-button flex h-11 w-11 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900 sm:h-12 sm:w-12"
                               aria-label="Зменшити кількість"
                             >
                               <Icon name="minus" size={16} />
                             </button>
 
-                            <span className="flex h-12 min-w-12 items-center justify-center bg-white px-1 text-center font-black text-stone-950">
+                            <span className="flex h-11 min-w-11 items-center justify-center bg-white px-1 text-center font-black text-stone-950 sm:h-12 sm:min-w-12">
                               {quantity}
                             </span>
 
                             <button
                               type="button"
                               onClick={() => increaseItem(item)}
-                              className="eg-counter-button flex h-12 w-12 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900"
+                              className="eg-counter-button flex h-11 w-11 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900 sm:h-12 sm:w-12"
                               aria-label="Збільшити кількість"
                             >
                               <Icon name="plus" size={16} />
@@ -414,8 +414,8 @@ export default function CartView({
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                          <p className="font-black text-stone-950">
+                        <div className="flex items-center justify-between gap-3 min-[390px]:justify-start">
+                          <p className="text-lg font-black leading-none text-stone-950 sm:text-base">
                             {formatUAH(itemTotal)}
                           </p>
 
@@ -440,37 +440,37 @@ export default function CartView({
             <button
               type="button"
               onClick={openCheckout}
-              className="eg-button eg-sweep group mt-6 block w-full overflow-hidden rounded-[2rem] bg-[linear-gradient(135deg,#064e3b_0%,#022c22_58%,#0f766e_100%)] p-0 text-left text-white shadow-[0_22px_46px_rgba(6,78,59,0.28)] ring-1 ring-emerald-900/15 lg:hidden"
+              className="eg-button eg-sweep group mt-5 block w-full overflow-hidden rounded-[1.7rem] bg-[linear-gradient(135deg,#064e3b_0%,#022c22_58%,#0f766e_100%)] p-0 text-left text-white shadow-[0_18px_36px_rgba(6,78,59,0.24)] ring-1 ring-emerald-900/15 sm:mt-6 sm:rounded-[2rem] lg:hidden"
               aria-expanded={isCheckoutOpen}
               aria-controls="checkout-form"
             >
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.22),transparent_34%),radial-gradient(circle_at_88%_88%,rgba(253,186,116,0.18),transparent_36%)]" />
               <div className="absolute inset-x-5 top-0 h-px bg-white/35" />
 
-              <div className="relative z-10 grid gap-4 p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
+              <div className="relative z-10 grid gap-3 p-4 sm:gap-4 sm:p-5">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                  <div className="min-w-0">
                     <span className="text-xs font-black uppercase tracking-wide text-emerald-100">
                       До сплати
                     </span>
 
-                    <span className="mt-1 block text-base font-black">
+                    <span className="mt-1 block text-sm font-black leading-snug sm:text-base">
                       Разом у кошику
                     </span>
                   </div>
 
-                  <span className="shrink-0 text-3xl font-black leading-none">
+                  <span className="min-w-0 shrink text-right text-2xl font-black leading-none sm:text-3xl">
                     {formatUAH(total)}
                   </span>
                 </div>
 
-                <span className="flex items-center justify-between gap-3 rounded-[1.35rem] bg-white/12 px-4 py-3 text-sm font-black text-white shadow-inner shadow-white/5 ring-1 ring-white/15">
+                <span className="flex items-center justify-between gap-3 rounded-[1.2rem] bg-white/12 px-3.5 py-3 text-sm font-black text-white shadow-inner shadow-white/5 ring-1 ring-white/15 sm:rounded-[1.35rem] sm:px-4">
                   <span className="flex min-w-0 items-center gap-2">
                     <Icon name="send" size={17} />
                     <span className="truncate">Оформити замовлення</span>
                   </span>
 
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-300 text-emerald-950 shadow-lg shadow-black/15 transition group-hover:translate-x-0.5">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-300 text-emerald-950 shadow-lg shadow-black/15 transition group-hover:translate-x-0.5">
                     <Icon name="arrowRight" size={17} />
                   </span>
                 </span>

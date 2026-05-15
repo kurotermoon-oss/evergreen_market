@@ -146,8 +146,16 @@ export default function Header({
     function updateHeader() {
       const currentScrollY = window.scrollY;
       const scrollDifference = currentScrollY - lastScrollY;
+      const isMobileViewport = window.matchMedia("(max-width: 767px)").matches;
 
       setIsScrolled(currentScrollY > 12);
+
+      if (isMobileViewport) {
+        setIsHeaderHidden(false);
+        lastScrollY = currentScrollY;
+        ticking = false;
+        return;
+      }
 
       if (currentScrollY < 80) {
         setIsHeaderHidden(false);
@@ -208,7 +216,7 @@ export default function Header({
 
   return (
     <header
-      className={`sticky top-0 z-40 overflow-hidden border-b bg-white/72 backdrop-blur-2xl transition-all duration-500 ease-out ${
+      className={`eg-site-header sticky top-0 z-40 overflow-hidden border-b bg-white/80 backdrop-blur-2xl transition-all duration-500 ease-out ${
         isHeaderHidden ? "-translate-y-full" : "translate-y-0"
       } ${
         isScrolled

@@ -356,6 +356,14 @@
   animation: egCartGlow 2.4s ease-in-out infinite;
 }
 
+.eg-site-header {
+  padding-top: env(safe-area-inset-top);
+}
+
+.eg-mobile-nav {
+  bottom: max(1rem, calc(env(safe-area-inset-bottom) + 1rem));
+}
+
 
 
 /* =========================
