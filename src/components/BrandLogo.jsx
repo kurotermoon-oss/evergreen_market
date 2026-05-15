@@ -1,4 +1,4 @@
-import logoEvergreen from "../img/logo_evergreen.png";
+import logoEvergreen from "../img/logo_evergreen.webp";
 
 export default function BrandLogo({
   size = "md",
