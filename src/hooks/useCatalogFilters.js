@@ -16,6 +16,11 @@ export function useCatalogFilters({
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [sortBy, setSortBy] = useState("default");
+  const [selectedBrands, setSelectedBrands] = useState([]);
+  const [selectedProductTypes, setSelectedProductTypes] = useState([]);
+  const [selectedCountries, setSelectedCountries] = useState([]);
+  const [selectedStockStatuses, setSelectedStockStatuses] = useState([]);
+  const [showPopularOnly, setShowPopularOnly] = useState(false);
 
   useEffect(() => {
     setSelectedSubcategory("all");
@@ -31,6 +36,11 @@ export function useCatalogFilters({
     minPrice,
     maxPrice,
     sortBy,
+    selectedBrands,
+    selectedProductTypes,
+    selectedCountries,
+    selectedStockStatuses,
+    showPopularOnly,
   ]);
 
   const productsWithPopularity = useMemo(() => {
@@ -85,13 +95,37 @@ export function useCatalogFilters({
       const maxPriceMatch =
         maxPrice === "" || Number(product.price) <= Number(maxPrice);
 
+      const brandMatch =
+        selectedBrands.length === 0 ||
+        selectedBrands.includes(String(product.brand || "").trim());
+
+      const productTypeMatch =
+        selectedProductTypes.length === 0 ||
+        selectedProductTypes.includes(String(product.productType || "").trim());
+
+      const countryMatch =
+        selectedCountries.length === 0 ||
+        selectedCountries.includes(String(product.countryOfOrigin || "").trim());
+
+      const stockStatus = product.stockStatus || "in_stock";
+      const stockStatusMatch =
+        selectedStockStatuses.length === 0 ||
+        selectedStockStatuses.includes(stockStatus);
+
+      const popularMatch = !showPopularOnly || Boolean(product.isPopular);
+
       return (
         product.active !== false &&
         categoryMatch &&
         subcategoryMatch &&
         queryMatch &&
         minPriceMatch &&
-        maxPriceMatch
+        maxPriceMatch &&
+        brandMatch &&
+        productTypeMatch &&
+        countryMatch &&
+        stockStatusMatch &&
+        popularMatch
       );
     });
 
@@ -128,6 +162,11 @@ export function useCatalogFilters({
     minPrice,
     maxPrice,
     sortBy,
+    selectedBrands,
+    selectedProductTypes,
+    selectedCountries,
+    selectedStockStatuses,
+    showPopularOnly,
   ]);
 
   const totalProductPages =
@@ -163,6 +202,21 @@ export function useCatalogFilters({
 
     sortBy,
     setSortBy,
+
+    selectedBrands,
+    setSelectedBrands,
+
+    selectedProductTypes,
+    setSelectedProductTypes,
+
+    selectedCountries,
+    setSelectedCountries,
+
+    selectedStockStatuses,
+    setSelectedStockStatuses,
+
+    showPopularOnly,
+    setShowPopularOnly,
 
     filteredProducts,
     paginatedProducts,

@@ -118,6 +118,21 @@ const {
   sortBy,
   setSortBy,
 
+  selectedBrands,
+  setSelectedBrands,
+
+  selectedProductTypes,
+  setSelectedProductTypes,
+
+  selectedCountries,
+  setSelectedCountries,
+
+  selectedStockStatuses,
+  setSelectedStockStatuses,
+
+  showPopularOnly,
+  setShowPopularOnly,
+
   filteredProducts,
   paginatedProducts,
   totalProductPages,
@@ -426,6 +441,7 @@ return (
       {view === "catalog" && (
         <CatalogView
           categories={categories}
+          products={products}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
           selectedSubcategory={selectedSubcategory}
@@ -438,6 +454,16 @@ return (
           setMaxPrice={setMaxPrice}
           sortBy={sortBy}
           setSortBy={setSortBy}
+          selectedBrands={selectedBrands}
+          setSelectedBrands={setSelectedBrands}
+          selectedProductTypes={selectedProductTypes}
+          setSelectedProductTypes={setSelectedProductTypes}
+          selectedCountries={selectedCountries}
+          setSelectedCountries={setSelectedCountries}
+          selectedStockStatuses={selectedStockStatuses}
+          setSelectedStockStatuses={setSelectedStockStatuses}
+          showPopularOnly={showPopularOnly}
+          setShowPopularOnly={setShowPopularOnly}
           visibleProducts={paginatedProducts}
           totalProducts={filteredProducts.length}
           currentPage={currentPage}
