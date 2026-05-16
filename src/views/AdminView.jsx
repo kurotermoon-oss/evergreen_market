@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 
 import AdminOrdersPanel from "../components/admin/AdminOrdersPanel.jsx";
 import AdminAnalyticsPanel from "../components/admin/AdminAnalyticsPanel.jsx";
-import AdminProductEditModal from "../components/admin/AdminProductEditModal.jsx";
 import AdminCatalogPanel from "../components/admin/AdminCatalogPanel.jsx";
 import AdminCustomersPanel from "../components/admin/AdminCustomersPanel.jsx";
 import AdminSecurityPanel from "../components/admin/AdminSecurityPanel.jsx";
@@ -16,14 +15,10 @@ export default function AdminView({
   draftProduct,
   setDraftProduct,
 
-  editingProduct,
-  setEditingProduct,
-
   startEditProduct,
-  cancelEditProduct,
-  saveEditedProduct,
 
   addDraftProduct,
+  importProductsCsv,
   toggleProductActive,
   deleteProduct,
 
@@ -205,6 +200,7 @@ export default function AdminView({
           draftProduct={draftProduct}
           setDraftProduct={setDraftProduct}
           addDraftProduct={addDraftProduct}
+          importProductsCsv={importProductsCsv}
           startEditProduct={startEditProduct}
           toggleProductActive={toggleProductActive}
           deleteProduct={deleteProduct}
@@ -229,15 +225,6 @@ export default function AdminView({
         />
       )}
 
-      {editingProduct && (
-        <AdminProductEditModal
-          categories={categories}
-          editingProduct={editingProduct}
-          setEditingProduct={setEditingProduct}
-          saveEditedProduct={saveEditedProduct}
-          cancelEditProduct={cancelEditProduct}
-        />
-      )}
     </main>
   );
 }

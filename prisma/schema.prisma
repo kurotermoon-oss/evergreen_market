@@ -32,7 +32,7 @@ model Subcategory {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category Category  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   products Product[]
 
   @@unique([categoryId, slug])
@@ -40,26 +40,30 @@ model Subcategory {
 }
 
 model Product {
-  id          String   @id
-  name        String
-  brand       String   @default("")
-  image       String   @default("")
+  id              String @id
+  name            String
+  brand           String @default("")
+  productType     String @default("")
+  countryOfOrigin String @default("")
+  image           String @default("")
 
   categoryId    String
   subcategoryId String?
 
-  price      Int
-  oldPrice   Int?
-  costPrice  Int      @default(0)
+  price     Int
+  oldPrice  Int?
+  costPrice Int  @default(0)
 
-  unit        String   @default("1 шт")
-  packageInfo String   @default("продається поштучно")
+  unit        String @default("1 шт")
+  packageInfo String @default("продається поштучно")
 
-  description String @default("")
-  details     String @default("")
-  composition String @default("")
-  allergens   String @default("")
-  storage     String @default("")
+  description       String @default("")
+  details           String @default("")
+  benefits          String @default("")
+  composition       String @default("")
+  allergens         String @default("")
+  storage           String @default("")
+  storageConditions String @default("")
 
   statusLabel   String @default("")
   stockStatus   String @default("in_stock")
@@ -97,15 +101,15 @@ model Customer {
   floor     String @default("")
   apartment String @default("")
 
-  telegramChatId     String @default("")
+  telegramChatId     String    @default("")
   telegramVerifiedAt DateTime?
   phoneVerifiedAt    DateTime?
 
-  telegramVerificationCode               String @default("")
+  telegramVerificationCode               String    @default("")
   telegramVerificationExpiresAt          DateTime?
   telegramVerificationStartedAt          DateTime?
-  telegramVerificationChatId             String @default("")
-  telegramVerificationUsername           String @default("")
+  telegramVerificationChatId             String    @default("")
+  telegramVerificationUsername           String    @default("")
   telegramVerificationCodeConfirmedAt    DateTime?
   telegramVerificationContactRequestedAt DateTime?
 
@@ -121,7 +125,7 @@ model Customer {
 
 model Order {
   id          String @id
-  orderNumber Int   @unique
+  orderNumber Int    @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -130,8 +134,8 @@ model Order {
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
   guestId    String?
-  clientIp   String @default("")
-  trustLevel String @default("guest")
+  clientIp   String  @default("")
+  trustLevel String  @default("guest")
 
   customerName     String
   customerPhone    String @default("")
@@ -148,11 +152,11 @@ model Order {
 
   comment String @default("")
 
-  status       String @default("new")
-  isFinal      Boolean @default(false)
+  status       String    @default("new")
+  isFinal      Boolean   @default(false)
   finalType    String?
   finalizedAt  DateTime?
-  cancelReason String @default("")
+  cancelReason String    @default("")
 
   stockRestoredAt DateTime?
 
@@ -223,7 +227,7 @@ model BlockedCustomer {
 
   type      String
   value     String
-  reason    String @default("")
+  reason    String   @default("")
   createdAt DateTime @default(now())
 
   @@unique([type, value])

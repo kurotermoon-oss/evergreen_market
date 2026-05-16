@@ -1,3 +1,4 @@
+import Icon from "../components/Icon.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import { formatUAH } from "../utils/formatUAH.js";
 import {
@@ -70,6 +71,8 @@ export default function ProductDetailsView({
   removeFromCart,
   setView,
   setSelectedProduct,
+  isAdmin = false,
+  onAdminEditProduct,
 }) {
   if (!product) {
     return (
@@ -173,6 +176,10 @@ export default function ProductDetailsView({
     changeQuantity?.(product.id, nextQuantity);
   }
 
+  function handleAdminEdit() {
+    onAdminEditProduct?.(product);
+  }
+
   return (
     <main className="eg-ambient mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* BREADCRUMBS */}
@@ -209,13 +216,32 @@ export default function ProductDetailsView({
         </span>
       </nav>
 
-      <button
-        type="button"
-        onClick={() => setView("catalog")}
-        className="eg-button mb-6 rounded-2xl border border-stone-300 bg-white/80 px-5 py-3 text-sm font-black text-stone-950 backdrop-blur hover:bg-white"
-      >
-        ← Назад до каталогу
-      </button>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="button"
+          onClick={() => setView("catalog")}
+          className="eg-button w-fit rounded-2xl border border-stone-300 bg-white/80 px-5 py-3 text-sm font-black text-stone-950 backdrop-blur hover:bg-white"
+        >
+          ← Назад до каталогу
+        </button>
+
+        {isAdmin && (
+          <div className="eg-glass flex min-w-0 flex-col gap-2 rounded-[1.35rem] border border-emerald-100 bg-white/85 p-2 shadow-sm sm:flex-row sm:items-center">
+            <span className="px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
+              Адмін
+            </span>
+
+            <button
+              type="button"
+              onClick={handleAdminEdit}
+              className="eg-button eg-sweep inline-flex items-center justify-center gap-2 rounded-[1.1rem] bg-emerald-900 px-4 py-3 text-sm font-black text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-800"
+            >
+              <Icon name="edit" size={17} />
+              <span>Редагувати товар</span>
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* PRODUCT HERO */}
 

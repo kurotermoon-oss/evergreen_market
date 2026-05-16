@@ -1,9 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import AdminProductForm from "./AdminProductForm.jsx";
 import AdminProductsPanel from "./AdminProductsPanel.jsx";
 import AdminCategoriesPanel from "./AdminCategoriesPanel.jsx";
+import {
+  buildProductTemplateCsv,
+  buildProductsCsv,
+  downloadCsv,
+  parseProductsCsv,
+} from "../../utils/productCsv.js";
 
 function normalizeText(value) {
   return String(value || "").trim().toLowerCase();
@@ -106,6 +112,99 @@ function buildCategoryStats(categories, products) {
   });
 }
 
+function CsvImportDialog({ dialog, onClose, onPrimary }) {
+  if (!dialog) return null;
+
+  const toneClasses = {
+    success: "bg-emerald-100 text-emerald-950 ring-emerald-200",
+    warning: "bg-amber-100 text-amber-950 ring-amber-200",
+    error: "bg-red-100 text-red-950 ring-red-200",
+  };
+
+  const iconByTone = {
+    success: "✓",
+    warning: "!",
+    error: "×",
+  };
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[1400] flex items-center justify-center bg-stone-950/55 px-4 py-6 backdrop-blur-md"
+      onClick={onClose}
+    >
+      <div
+        className="eg-glass eg-premium-card w-full max-w-xl overflow-hidden rounded-[2rem] bg-white/95 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.28)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start gap-4">
+          <span
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl font-black ring-1 ${
+              toneClasses[dialog.tone || "success"]
+            }`}
+          >
+            {iconByTone[dialog.tone || "success"]}
+          </span>
+
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">
+              Імпорт CSV
+            </p>
+
+            <h3 className="mt-2 text-2xl font-black leading-tight text-stone-950">
+              {dialog.title}
+            </h3>
+
+            {dialog.message && (
+              <p className="mt-3 text-sm leading-6 text-stone-600">
+                {dialog.message}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {dialog.details?.length > 0 && (
+          <div className="modal-scrollbar mt-5 max-h-52 overflow-y-auto rounded-[1.4rem] bg-stone-50 p-4 ring-1 ring-stone-100">
+            <div className="space-y-2">
+              {dialog.details.map((detail, index) => (
+                <p
+                  key={`${detail.rowNumber || "row"}-${index}`}
+                  className="text-sm leading-5 text-stone-700"
+                >
+                  <span className="font-black text-stone-950">
+                    Рядок {detail.rowNumber || "?"}:
+                  </span>{" "}
+                  {detail.message}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          {dialog.secondaryLabel && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="eg-button rounded-[1.2rem] border border-stone-300 bg-white px-5 py-3 text-sm font-black text-stone-800 hover:bg-stone-50"
+            >
+              {dialog.secondaryLabel}
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onPrimary}
+            className="eg-button eg-sweep rounded-[1.2rem] bg-emerald-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-800"
+          >
+            {dialog.primaryLabel || "Готово"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 export default function AdminCatalogPanel({
   categories,
   products,
@@ -113,6 +212,7 @@ export default function AdminCatalogPanel({
   draftProduct,
   setDraftProduct,
   addDraftProduct,
+  importProductsCsv,
 
   startEditProduct,
   toggleProductActive,
@@ -129,6 +229,13 @@ export default function AdminCatalogPanel({
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [catalogQuery, setCatalogQuery] = useState("");
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [importStatus, setImportStatus] = useState({
+    isLoading: false,
+    message: "",
+  });
+  const [importDialog, setImportDialog] = useState(null);
+  const [pendingImport, setPendingImport] = useState(null);
+  const importInputRef = useRef(null);
 
   const [catalogFilter, setCatalogFilter] = useState({
     type: "all",
@@ -140,14 +247,14 @@ export default function AdminCatalogPanel({
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
 
-    if (showAddProductForm || showCategoryManager) {
+    if (showAddProductForm || showCategoryManager || importDialog) {
       document.body.style.overflow = "hidden";
     }
 
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [showAddProductForm, showCategoryManager]);
+  }, [showAddProductForm, showCategoryManager, importDialog]);
 
   const visibleCategories = useMemo(() => {
     return getVisibleCategories(categories);
@@ -185,6 +292,174 @@ export default function AdminCatalogPanel({
     setShowAddProductForm(false);
   }
 
+  function handleExportProducts() {
+    downloadCsv("evergreen-products.csv", buildProductsCsv(products, categories));
+  }
+
+  function handleDownloadTemplate() {
+    downloadCsv("evergreen-products-template.csv", buildProductTemplateCsv());
+  }
+
+  function getImportMessage(summary, clientErrorsCount = 0) {
+    const created = Number(summary?.created || 0);
+    const updated = Number(summary?.updated || 0);
+    const skipped = Number(summary?.skipped || 0) + clientErrorsCount;
+
+    return `Імпорт завершено: створено ${created}, оновлено ${updated}, пропущено ${skipped}.`;
+  }
+
+  function showImportDialog(nextDialog) {
+    setImportDialog({
+      tone: "success",
+      primaryLabel: "Готово",
+      ...nextDialog,
+    });
+  }
+
+  function closeImportDialog() {
+    setImportDialog(null);
+    setPendingImport(null);
+  }
+
+  async function runProductsImport(productsToImport, clientErrorsCount = 0) {
+    setImportStatus({
+      isLoading: true,
+      message: `Імпортуємо товари: ${productsToImport.length}...`,
+    });
+
+    try {
+      const result = await importProductsCsv(productsToImport);
+      const summary = result?.summary || {};
+      const message = getImportMessage(summary, clientErrorsCount);
+      const serverErrors = summary.errors || [];
+
+      setImportStatus({
+        isLoading: false,
+        message:
+          serverErrors.length > 0
+            ? `${message} Помилок сервера: ${serverErrors.length}.`
+            : message,
+      });
+
+      showImportDialog({
+        tone: serverErrors.length > 0 ? "warning" : "success",
+        title:
+          serverErrors.length > 0
+            ? "Імпорт завершено з помилками"
+            : "Імпорт завершено",
+        message:
+          serverErrors.length > 0
+            ? `${message} Нижче перші рядки, які не вдалося імпортувати.`
+            : message,
+        details: serverErrors.slice(0, 8),
+        primaryLabel: "Готово",
+      });
+    } catch (error) {
+      const message = error.message || "Не вдалося імпортувати CSV.";
+
+      setImportStatus({
+        isLoading: false,
+        message,
+      });
+
+      showImportDialog({
+        tone: "error",
+        title: "Не вдалося імпортувати CSV",
+        message,
+        primaryLabel: "Зрозуміло",
+      });
+    }
+  }
+
+  async function handleImportDialogPrimary() {
+    if (importDialog?.action === "continue-import" && pendingImport) {
+      const nextImport = pendingImport;
+
+      setImportDialog(null);
+      setPendingImport(null);
+      await runProductsImport(nextImport.products, nextImport.errorsCount);
+      return;
+    }
+
+    closeImportDialog();
+  }
+
+  async function handleImportProductsFile(event) {
+    const file = event.target.files?.[0];
+
+    event.target.value = "";
+
+    if (!file) return;
+
+    setImportStatus({
+      isLoading: true,
+      message: `Читаємо файл “${file.name}”...`,
+    });
+
+    try {
+      const text = await file.text();
+      const parsed = parseProductsCsv(text);
+
+      if (!parsed.products.length) {
+        const message =
+          parsed.errors[0]?.message || "У CSV не знайдено товарів для імпорту.";
+
+        setImportStatus({
+          isLoading: false,
+          message,
+        });
+
+        showImportDialog({
+          tone: "error",
+          title: "Файл не готовий до імпорту",
+          message:
+            "Перевірте, що файл має рядок із заголовками та хоча б один рядок товару. Порожній шаблон CSV потрібно спочатку заповнити.",
+          details: parsed.errors,
+          primaryLabel: "Зрозуміло",
+        });
+        return;
+      }
+
+      if (parsed.errors.length > 0) {
+        setImportStatus({
+          isLoading: false,
+          message: `Знайдено ${parsed.products.length} коректних товарів і ${parsed.errors.length} рядків з помилками.`,
+        });
+
+        setPendingImport({
+          products: parsed.products,
+          errorsCount: parsed.errors.length,
+        });
+
+        showImportDialog({
+          tone: "warning",
+          title: "У файлі є рядки з помилками",
+          message: `Можна імпортувати ${parsed.products.length} коректних товарів, а проблемні рядки пропустити.`,
+          details: parsed.errors.slice(0, 8),
+          primaryLabel: "Імпортувати коректні",
+          secondaryLabel: "Скасувати",
+          action: "continue-import",
+        });
+        return;
+      }
+
+      await runProductsImport(parsed.products, 0);
+    } catch (error) {
+      const message = error.message || "Не вдалося імпортувати CSV.";
+
+      setImportStatus({
+        isLoading: false,
+        message,
+      });
+      showImportDialog({
+        tone: "error",
+        title: "Не вдалося імпортувати CSV",
+        message,
+        primaryLabel: "Зрозуміло",
+      });
+    }
+  }
+
   return (
     <section className="eg-ambient space-y-6">
       <div className="eg-glass eg-premium-card overflow-hidden rounded-[2.5rem] p-6 lg:p-8">
@@ -205,7 +480,7 @@ export default function AdminCatalogPanel({
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
             <button
               type="button"
               onClick={() => setShowCategoryManager((current) => !current)}
@@ -222,6 +497,39 @@ export default function AdminCatalogPanel({
 
             <button
               type="button"
+              onClick={handleDownloadTemplate}
+              className="eg-button rounded-[1.3rem] border border-stone-300 bg-white/80 px-5 py-3 text-sm font-black text-stone-900 backdrop-blur hover:bg-white"
+            >
+              Шаблон CSV
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportProducts}
+              className="eg-button rounded-[1.3rem] border border-stone-300 bg-white/80 px-5 py-3 text-sm font-black text-stone-900 backdrop-blur hover:bg-white"
+            >
+              Експорт CSV
+            </button>
+
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              onChange={handleImportProductsFile}
+              className="hidden"
+            />
+
+            <button
+              type="button"
+              onClick={() => importInputRef.current?.click()}
+              disabled={importStatus.isLoading}
+              className="eg-button rounded-[1.3rem] border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-black text-emerald-950 backdrop-blur hover:bg-emerald-100 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400"
+            >
+              {importStatus.isLoading ? "Імпортуємо..." : "Імпорт CSV"}
+            </button>
+
+            <button
+              type="button"
               onClick={() => setShowAddProductForm(true)}
               className="eg-button rounded-[1.3rem] bg-emerald-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-900/20 transition-all duration-300 hover:-translate-y-[2px] hover:bg-emerald-800 hover:shadow-xl hover:shadow-emerald-900/30 active:translate-y-0"
             >
@@ -229,6 +537,18 @@ export default function AdminCatalogPanel({
             </button>
           </div>
         </div>
+
+        {importStatus.message && (
+          <div className="mt-5 rounded-[1.3rem] bg-white/75 px-4 py-3 text-sm font-semibold text-stone-700 ring-1 ring-stone-100">
+            {importStatus.message}
+          </div>
+        )}
+
+        <p className="mt-4 rounded-[1.3rem] bg-emerald-50/70 px-4 py-3 text-sm leading-6 text-emerald-950 ring-1 ring-emerald-100">
+          Для створення нових товарів використовуйте шаблон CSV без id. id
+          потрібен тільки в експортованому файлі, якщо ви хочете оновити вже
+          існуючі товари.
+        </p>
 
         <div className="eg-stagger mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
@@ -562,6 +882,12 @@ export default function AdminCatalogPanel({
     </div>,
     document.body
   )}
+
+      <CsvImportDialog
+        dialog={importDialog}
+        onClose={closeImportDialog}
+        onPrimary={handleImportDialogPrimary}
+      />
     </section>
   );
 }

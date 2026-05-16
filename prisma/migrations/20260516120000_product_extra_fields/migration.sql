@@ -1,0 +1,4 @@
+ALTER TABLE "products" ADD COLUMN "productType" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "products" ADD COLUMN "countryOfOrigin" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "products" ADD COLUMN "benefits" TEXT NOT NULL DEFAULT '';
+ALTER TABLE "products" ADD COLUMN "storageConditions" TEXT NOT NULL DEFAULT '';

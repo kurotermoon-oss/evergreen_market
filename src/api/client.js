@@ -144,6 +144,13 @@ checkTelegramVerification() {
     });
   },
 
+  importAdminProducts(payload) {
+    return request("/api/admin/products/import", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
   getAdminOrders() {
     return request("/api/admin/orders");
   },

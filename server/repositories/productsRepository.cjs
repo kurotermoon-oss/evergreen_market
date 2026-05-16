@@ -69,6 +69,8 @@ function mapProductForPublic(product) {
 
     name: product.name,
     brand: product.brand || "",
+    productType: product.productType || "",
+    countryOfOrigin: product.countryOfOrigin || "",
     image: product.image || "",
 
     category: product.categoryId,
@@ -82,9 +84,11 @@ function mapProductForPublic(product) {
 
     description: product.description || "",
     details: product.details || "",
+    benefits: product.benefits || "",
     composition: product.composition || "",
     allergens: product.allergens || "",
-    storage: product.storage || "",
+    storage: product.storage || product.storageConditions || "",
+    storageConditions: product.storageConditions || product.storage || "",
 
     statusLabel: product.statusLabel || "",
     stockStatus: product.stockStatus || "in_stock",
@@ -316,6 +320,12 @@ async function buildProductData(payload, existingProduct = null) {
   return {
     name,
     brand: toCleanString(payload.brand ?? existingProduct?.brand),
+    productType: toCleanString(
+      payload.productType ?? existingProduct?.productType
+    ),
+    countryOfOrigin: toCleanString(
+      payload.countryOfOrigin ?? existingProduct?.countryOfOrigin
+    ),
     image: toCleanString(payload.image ?? existingProduct?.image),
 
     categoryId,
@@ -341,11 +351,23 @@ async function buildProductData(payload, existingProduct = null) {
       payload.description ?? existingProduct?.description
     ),
     details: toCleanString(payload.details ?? existingProduct?.details),
+    benefits: toCleanString(payload.benefits ?? existingProduct?.benefits),
     composition: toCleanString(
       payload.composition ?? existingProduct?.composition
     ),
     allergens: toCleanString(payload.allergens ?? existingProduct?.allergens),
-    storage: toCleanString(payload.storage ?? existingProduct?.storage),
+    storage: toCleanString(
+      payload.storage ??
+        payload.storageConditions ??
+        existingProduct?.storage ??
+        existingProduct?.storageConditions
+    ),
+    storageConditions: toCleanString(
+      payload.storageConditions ??
+        payload.storage ??
+        existingProduct?.storageConditions ??
+        existingProduct?.storage
+    ),
 
     statusLabel: toCleanString(
       payload.statusLabel ?? existingProduct?.statusLabel
@@ -446,6 +468,62 @@ async function deleteAdminProduct(id) {
   };
 }
 
+async function importAdminProducts(rows = []) {
+  const productRows = Array.isArray(rows) ? rows : [];
+  const summary = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    errors: [],
+  };
+
+  for (const [index, row] of productRows.entries()) {
+    const rowNumber = Number(row.rowNumber || index + 2);
+
+    try {
+      const productId = toCleanString(row.id);
+      const name = toCleanString(row.name);
+
+      if (!name) {
+        summary.skipped += 1;
+        summary.errors.push({
+          rowNumber,
+          message: "Назва товару обовʼязкова.",
+        });
+        continue;
+      }
+
+      if (productId) {
+        const existingProduct = await prisma.product.findUnique({
+          where: {
+            id: productId,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (existingProduct) {
+          await updateAdminProduct(productId, row);
+          summary.updated += 1;
+          continue;
+        }
+      }
+
+      await createAdminProduct(row);
+      summary.created += 1;
+    } catch (error) {
+      summary.skipped += 1;
+      summary.errors.push({
+        rowNumber,
+        message: error.message || "Не вдалося імпортувати товар.",
+      });
+    }
+  }
+
+  return summary;
+}
+
 module.exports = {
   getPublicProducts,
 
@@ -453,4 +531,5 @@ module.exports = {
   createAdminProduct,
   updateAdminProduct,
   deleteAdminProduct,
+  importAdminProducts,
 };

@@ -839,7 +839,7 @@ app.set("trust proxy", 1);
 app.use(applySecurityHeaders);
 app.use(cors(createCorsOptions()));
 
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "8mb" }));
 app.use(cookieParser());
 
 app.use("/uploads", uploadsRoutes);
@@ -2670,6 +2670,107 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
     return res.status(error.status || 500).json({
       error: "Failed to create product",
       message: error.message || "Не вдалося створити товар.",
+    });
+  }
+});
+
+app.post("/api/admin/products/import", requireAdmin, async (req, res) => {
+  try {
+    const rows = Array.isArray(req.body?.products) ? req.body.products : [];
+
+    if (!rows.length) {
+      return res.status(400).json({
+        error: "EMPTY_IMPORT",
+        message: "Файл не містить товарів для імпорту.",
+      });
+    }
+
+    if (USE_POSTGRES) {
+      const summary = await productsRepository.importAdminProducts(rows);
+
+      return res.json({
+        ok: true,
+        summary,
+      });
+    }
+
+    const db = readDatabase();
+
+    db.products = Array.isArray(db.products) ? db.products : [];
+    db.nextProductId = Number(db.nextProductId || 1);
+
+    const summary = {
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      errors: [],
+    };
+
+    for (const [index, row] of rows.entries()) {
+      const rowNumber = Number(row.rowNumber || index + 2);
+
+      try {
+        const productId = String(row.id || "").trim();
+        const name = toCleanString(row.name);
+
+        if (!name) {
+          summary.skipped += 1;
+          summary.errors.push({
+            rowNumber,
+            message: "Назва товару обовʼязкова.",
+          });
+          continue;
+        }
+
+        const existingIndex = productId
+          ? db.products.findIndex((product) => {
+              return String(product.id) === productId;
+            })
+          : -1;
+
+        if (existingIndex >= 0) {
+          const categoryData = resolveProductCategory(db, row);
+
+          db.products[existingIndex] = buildUpdatedProduct(
+            db.products[existingIndex],
+            row,
+            categoryData
+          );
+
+          summary.updated += 1;
+          continue;
+        }
+
+        const product = buildProductFromRequest(db, row);
+
+        if (productId) {
+          product.id = productId;
+        }
+
+        db.products.unshift(product);
+        db.nextProductId += 1;
+        summary.created += 1;
+      } catch (error) {
+        summary.skipped += 1;
+        summary.errors.push({
+          rowNumber,
+          message: error.message || "Не вдалося імпортувати товар.",
+        });
+      }
+    }
+
+    writeDatabase(db);
+
+    return res.json({
+      ok: true,
+      summary,
+    });
+  } catch (error) {
+    console.error("Import admin products error:", error);
+
+    return res.status(error.status || 500).json({
+      error: "PRODUCT_IMPORT_FAILED",
+      message: error.message || "Не вдалося імпортувати товари.",
     });
   }
 });

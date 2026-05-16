@@ -19,6 +19,7 @@ import { useOrderSubmit } from "./hooks/useOrderSubmit.js";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import MobileNav from "./components/MobileNav.jsx";
+import AdminProductEditModal from "./components/admin/AdminProductEditModal.jsx";
 
 
 import HomeView from "./views/HomeView.jsx";
@@ -173,6 +174,7 @@ const {
   logoutAdmin,
 
   addDraftProduct,
+  importProductsCsv,
   toggleProductActive,
   deleteProduct,
 
@@ -278,6 +280,21 @@ useEffect(() => {
   return () => window.clearTimeout(timeoutId);
 }, [shouldScrollToContacts, view]);
 
+useEffect(() => {
+  const sourceProducts =
+    isAdmin && adminProducts.length ? adminProducts : products;
+
+  setSelectedProduct((currentProduct) => {
+    if (!currentProduct?.id) return currentProduct;
+
+    const freshProduct = sourceProducts.find((item) => {
+      return String(item.id) === String(currentProduct.id);
+    });
+
+    return freshProduct || currentProduct;
+  });
+}, [adminProducts, isAdmin, products, selectedProduct?.id]);
+
 
   function updateForm(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -337,6 +354,16 @@ function applyCustomerToForm(customerData) {
     setSelectedProduct(product);
     setView("product");
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function openAdminProductEditor(product) {
+    if (!isAdmin || !product) return;
+
+    const adminProduct = adminProducts.find((item) => {
+      return String(item.id) === String(product.id);
+    });
+
+    startEditProduct(adminProduct || product);
   }
 
 
@@ -427,14 +454,18 @@ return (
       {view === "product" && (
         <ProductDetailsView
           product={selectedProduct}
-          categories={categories}
-          products={products}
+          categories={
+            isAdmin && adminCategories.length ? adminCategories : categories
+          }
+          products={isAdmin && adminProducts.length ? adminProducts : products}
           cartItems={cartItems}
           addToCart={addToCart}
           changeQuantity={changeQuantity}
           removeFromCart={removeFromCart}
           setView={setView}
           setSelectedProduct={setSelectedProduct}
+          isAdmin={isAdmin}
+          onAdminEditProduct={openAdminProductEditor}
         />
       )}
 
@@ -498,12 +529,9 @@ return (
         orders={orders}
         draftProduct={draftProduct}
         setDraftProduct={setDraftProduct}
-        editingProduct={editingProduct}
-        setEditingProduct={setEditingProduct}
         startEditProduct={startEditProduct}
-        cancelEditProduct={cancelEditProduct}
-        saveEditedProduct={saveEditedProduct}
         addDraftProduct={addDraftProduct}
+        importProductsCsv={importProductsCsv}
         toggleProductActive={toggleProductActive}
         deleteProduct={deleteProduct}
         updateOrderAction={updateOrderAction}
@@ -520,6 +548,16 @@ return (
       />
       )}
 </div>
+      {isAdmin && editingProduct && (
+        <AdminProductEditModal
+          categories={adminCategories.length ? adminCategories : categories}
+          editingProduct={editingProduct}
+          setEditingProduct={setEditingProduct}
+          saveEditedProduct={saveEditedProduct}
+          cancelEditProduct={cancelEditProduct}
+        />
+      )}
+
       <div className={view === "home" ? "" : "hidden md:block"}>
         <Footer />
       </div>

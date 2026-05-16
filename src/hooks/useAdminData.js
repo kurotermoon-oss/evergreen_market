@@ -121,6 +121,17 @@ async function addDraftProduct() {
     setView("admin");
   }
 
+  async function importProductsCsv(products) {
+    const result = await api.importAdminProducts({
+      products,
+    });
+
+    await loadPublicData();
+    await loadAdminData();
+
+    return result;
+  }
+
   function startEditProduct(product) {
     setEditingProduct({
       ...product,
@@ -247,6 +258,7 @@ return {
   logoutAdmin,
 
   addDraftProduct,
+  importProductsCsv,
   toggleProductActive,
   deleteProduct,
 
