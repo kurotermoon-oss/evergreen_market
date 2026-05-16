@@ -1,3 +1,12 @@
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  MoreHorizontal,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import ProductCard from "../components/ProductCard.jsx";
 
@@ -10,25 +19,6 @@ const CATEGORY_MARKS = {
   snacks: "СН",
   drinks: "НА",
 };
-
-const STOCK_FILTERS = [
-  {
-    value: "in_stock",
-    label: "У наявності",
-  },
-  {
-    value: "limited",
-    label: "Мало в наявності",
-  },
-  {
-    value: "preorder",
-    label: "Під замовлення",
-  },
-  {
-    value: "out_of_stock",
-    label: "Немає в наявності",
-  },
-];
 
 function getCategoryMark(category) {
   if (CATEGORY_MARKS[category.id]) {
@@ -51,51 +41,91 @@ function getUniqueOptions(products, key) {
   ].sort((a, b) => a.localeCompare(b, "uk"));
 }
 
+function getPaginationItems(currentPage, totalPages) {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 3) {
+    return [1, 2, 3, "end-ellipsis", totalPages];
+  }
+
+  if (currentPage >= totalPages - 2) {
+    return [1, "start-ellipsis", totalPages - 2, totalPages - 1, totalPages];
+  }
+
+  return [1, "start-ellipsis", currentPage, "end-ellipsis", totalPages];
+}
+
 function FilterSection({ title, children }) {
   if (!children) return null;
 
   return (
-    <div className="border-t border-stone-200/80 py-5 first:border-t-0 first:pt-0 last:pb-0">
-      <p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-stone-500">
-        {title}
-      </p>
+    <details
+      open
+      className="group border-b border-stone-200 py-4 last:border-b-0"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-stone-800 [&::-webkit-details-marker]:hidden">
+        <span>{title}</span>
+        <ChevronDown
+          size={17}
+          className="text-stone-700 transition group-open:rotate-180"
+        />
+      </summary>
 
-      {children}
-    </div>
+      <div className="mt-3">{children}</div>
+    </details>
   );
 }
 
 function FilterCheckbox({ checked, label, onChange }) {
   return (
     <label
-      className={`eg-button flex cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition ${
-        checked
-          ? "bg-emerald-50 text-emerald-950 ring-1 ring-emerald-100"
-          : "text-stone-700 hover:bg-stone-50"
+      className={`flex cursor-pointer items-center gap-2.5 rounded-xl py-1.5 text-sm transition ${
+        checked ? "font-semibold text-emerald-950" : "text-stone-700"
       }`}
     >
       <input
         type="checkbox"
         checked={checked}
         onChange={onChange}
-        className="h-4 w-4 shrink-0 accent-emerald-900"
+        className="peer sr-only"
       />
-      <span className="min-w-0 break-words">{label}</span>
+      <span
+        className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border transition ${
+          checked
+            ? "border-emerald-900 bg-emerald-900 shadow-sm shadow-emerald-900/20"
+            : "border-emerald-900/25 bg-white"
+        }`}
+      >
+        <span
+          className={`text-[11px] font-black leading-none text-white transition ${
+            checked ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          ✓
+        </span>
+      </span>
+      <span className="min-w-0 leading-5">{label}</span>
     </label>
   );
 }
 
-function OptionList({ options, selectedValues, onToggle }) {
+function OptionList({ options, selectedValues, onToggle, maxHeight = false }) {
   if (!options.length) {
     return (
-      <p className="rounded-2xl bg-stone-50 px-4 py-3 text-sm font-semibold text-stone-500">
+      <p className="rounded-xl bg-white px-3 py-2 text-sm text-stone-500">
         Немає варіантів
       </p>
     );
   }
 
   return (
-    <div className="space-y-1.5">
+    <div
+      className={`space-y-1 ${
+        maxHeight ? "modal-scrollbar max-h-56 overflow-y-auto pr-2" : ""
+      }`}
+    >
       {options.map((option) => (
         <FilterCheckbox
           key={option}
@@ -110,51 +140,40 @@ function OptionList({ options, selectedValues, onToggle }) {
 
 function CatalogFilterPanel({
   className = "",
-  categories,
-  activeCategory,
-  activeSubcategories,
-  selectedCategory,
-  selectedSubcategory,
-  selectCategory,
-  selectSubcategory,
+  onClose,
   resetAllFilters,
-  minPrice,
-  setMinPrice,
-  maxPrice,
-  setMaxPrice,
   brandOptions,
   selectedBrands,
   toggleBrand,
   productTypeOptions,
   selectedProductTypes,
   toggleProductType,
-  countryOptions,
-  selectedCountries,
-  toggleCountry,
-  selectedStockStatuses,
-  toggleStockStatus,
-  showPopularOnly,
-  setShowPopularOnly,
   activeFilterCount,
   totalProducts,
 }) {
   return (
     <aside className={className}>
-      <div className="eg-glass eg-premium-card overflow-hidden rounded-[2rem] bg-white/90 shadow-sm ring-1 ring-white/70">
-        <div className="flex items-start justify-between gap-3 border-b border-stone-200/80 px-5 py-5">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">
-              Фільтри
-            </p>
+      <div className="eg-glass eg-premium-card h-full overflow-hidden rounded-[1.6rem] border border-emerald-100/80 bg-white/92 shadow-sm shadow-emerald-950/5">
+        <div className="flex items-center justify-between gap-3 border-b border-emerald-100/80 bg-gradient-to-br from-emerald-50/90 via-white to-white px-4 py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-900 text-white shadow-sm shadow-emerald-900/25">
+              <SlidersHorizontal size={15} />
+            </span>
 
-            <p className="mt-1 text-sm font-semibold text-stone-500">
-              {totalProducts} товарів
-            </p>
+            <div className="min-w-0">
+              <p className="text-xl font-black leading-tight text-emerald-950">
+                Фільтр
+              </p>
+
+              <p className="mt-0.5 text-xs font-semibold text-emerald-900/65">
+                {totalProducts} товарів
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
             {activeFilterCount > 0 && (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-950">
+              <span className="rounded-full bg-emerald-900 px-2.5 py-1 text-xs font-semibold text-white">
                 {activeFilterCount}
               </span>
             )}
@@ -162,149 +181,40 @@ function CatalogFilterPanel({
             <button
               type="button"
               onClick={resetAllFilters}
-              className="eg-button rounded-xl px-2 py-1 text-xs font-black text-emerald-800 hover:bg-emerald-50"
+              className="rounded-lg px-2 py-1 text-xs font-black text-emerald-800 hover:bg-emerald-50 hover:text-emerald-950"
             >
               Скинути
             </button>
+
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Закрити фільтри"
+                className="grid h-9 w-9 place-items-center rounded-full bg-white text-emerald-900 shadow-sm ring-1 ring-emerald-100 hover:bg-emerald-50 lg:hidden"
+              >
+                <X size={18} />
+              </button>
+            )}
           </div>
         </div>
 
-        <div className="modal-scrollbar max-h-[calc(100dvh-9rem)] overflow-y-auto px-5 py-5">
-          <FilterSection title="Категорія">
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => selectCategory("all")}
-                className={`eg-button flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-black ${
-                  selectedCategory === "all"
-                    ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
-                    : "bg-stone-50 text-stone-900 hover:bg-emerald-50"
-                }`}
-              >
-                <span>Усі товари</span>
-                {selectedCategory === "all" && <span>✓</span>}
-              </button>
-
-              {categories.map((category) => {
-                const isActive = selectedCategory === category.id;
-
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    onClick={() => selectCategory(category.id)}
-                    className={`eg-button flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left ${
-                      isActive
-                        ? "bg-emerald-50 text-emerald-950 ring-1 ring-emerald-100"
-                        : "text-stone-800 hover:bg-stone-50"
-                    }`}
-                  >
-                    <span
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[11px] font-black ${
-                        isActive
-                          ? "bg-emerald-900 text-white"
-                          : "bg-white text-emerald-900 shadow-sm"
-                      }`}
-                    >
-                      {getCategoryMark(category)}
-                    </span>
-
-                    <span className="min-w-0 break-words text-sm font-black">
-                      {category.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </FilterSection>
-
-          {selectedCategory !== "all" && (
-            <FilterSection title={activeCategory?.name || "Підкатегорії"}>
-              <div className="space-y-1.5">
-                <FilterCheckbox
-                  checked={selectedSubcategory === "all"}
-                  label="Усі підкатегорії"
-                  onChange={() => selectSubcategory(selectedCategory, "all")}
-                />
-
-                {activeSubcategories.map((subcategory) => (
-                  <FilterCheckbox
-                    key={subcategory.id}
-                    checked={selectedSubcategory === subcategory.id}
-                    label={subcategory.name}
-                    onChange={() =>
-                      selectSubcategory(selectedCategory, subcategory.id)
-                    }
-                  />
-                ))}
-              </div>
-            </FilterSection>
-          )}
-
-          <FilterSection title="Ціна">
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                value={minPrice}
-                onChange={(event) => setMinPrice(event.target.value)}
-                type="number"
-                min="0"
-                placeholder="від"
-                className="eg-field min-h-11 min-w-0 rounded-2xl border border-stone-200 bg-white px-4 text-sm outline-none focus:border-emerald-700"
-              />
-
-              <input
-                value={maxPrice}
-                onChange={(event) => setMaxPrice(event.target.value)}
-                type="number"
-                min="0"
-                placeholder="до"
-                className="eg-field min-h-11 min-w-0 rounded-2xl border border-stone-200 bg-white px-4 text-sm outline-none focus:border-emerald-700"
-              />
-            </div>
-          </FilterSection>
-
-          <FilterSection title="Наявність">
-            <div className="space-y-1.5">
-              {STOCK_FILTERS.map((item) => (
-                <FilterCheckbox
-                  key={item.value}
-                  checked={selectedStockStatuses.includes(item.value)}
-                  label={item.label}
-                  onChange={() => toggleStockStatus(item.value)}
-                />
-              ))}
-            </div>
-          </FilterSection>
-
-          <FilterSection title="Добірки">
-            <FilterCheckbox
-              checked={showPopularOnly}
-              label="Популярні товари"
-              onChange={() => setShowPopularOnly(!showPopularOnly)}
-            />
-          </FilterSection>
-
-          <FilterSection title="Бренд">
-            <OptionList
-              options={brandOptions}
-              selectedValues={selectedBrands}
-              onToggle={toggleBrand}
-            />
-          </FilterSection>
-
+        <div className="modal-scrollbar max-h-[calc(100dvh-8rem)] overflow-y-auto px-4 py-1">
           <FilterSection title="Тип товару">
             <OptionList
               options={productTypeOptions}
               selectedValues={selectedProductTypes}
               onToggle={toggleProductType}
+              maxHeight={productTypeOptions.length > 6}
             />
           </FilterSection>
 
-          <FilterSection title="Країна">
+          <FilterSection title="Торгова марка">
             <OptionList
-              options={countryOptions}
-              selectedValues={selectedCountries}
-              onToggle={toggleCountry}
+              options={brandOptions}
+              selectedValues={selectedBrands}
+              onToggle={toggleBrand}
+              maxHeight={brandOptions.length > 6}
             />
           </FilterSection>
         </div>
@@ -380,6 +290,7 @@ export default function CatalogView({
   const activeSubcategories = (activeCategory?.subcategories || []).filter(
     (subcategory) => subcategory.active !== false
   );
+  const paginationItems = getPaginationItems(currentPage, totalProductPages);
 
   const filterOptions = useMemo(() => {
     const activeProducts = products.filter((product) => product.active !== false);
@@ -397,16 +308,7 @@ export default function CatalogView({
       : activeCategory?.name || "Каталог товарів";
 
   const activeFilterCount =
-    Number(Boolean(query.trim())) +
-    Number(Boolean(minPrice)) +
-    Number(Boolean(maxPrice)) +
-    Number(selectedCategory !== "all") +
-    Number(selectedSubcategory !== "all") +
-    selectedBrands.length +
-    selectedProductTypes.length +
-    selectedCountries.length +
-    selectedStockStatuses.length +
-    Number(showPopularOnly);
+    selectedBrands.length + selectedProductTypes.length;
 
   function closeCatalogMenu() {
     setIsCatalogMenuOpen(false);
@@ -446,6 +348,13 @@ export default function CatalogView({
     closeCatalogMenu();
   }
 
+  function resetProductFilters() {
+    setSelectedBrands([]);
+    setSelectedProductTypes([]);
+    setCurrentPage(1);
+    setIsFiltersOpen(false);
+  }
+
   function selectCategory(categoryId) {
     setSelectedCategory(categoryId);
     setSelectedSubcategory("all");
@@ -469,30 +378,8 @@ export default function CatalogView({
     setCurrentPage(1);
   }
 
-  function setPopularOnly(nextValue) {
-    setShowPopularOnly(nextValue);
-    setCurrentPage(1);
-  }
-
   const filterPanelProps = {
-    categories: catalogCategories,
-    activeCategory,
-    activeSubcategories,
-    selectedCategory,
-    selectedSubcategory,
-    selectCategory,
-    selectSubcategory,
-    resetAllFilters,
-    minPrice,
-    setMinPrice(value) {
-      setMinPrice(value);
-      setCurrentPage(1);
-    },
-    maxPrice,
-    setMaxPrice(value) {
-      setMaxPrice(value);
-      setCurrentPage(1);
-    },
+    resetAllFilters: resetProductFilters,
     brandOptions: filterOptions.brands,
     selectedBrands,
     toggleBrand(value) {
@@ -503,17 +390,6 @@ export default function CatalogView({
     toggleProductType(value) {
       toggleFilterValue(setSelectedProductTypes, value);
     },
-    countryOptions: filterOptions.countries,
-    selectedCountries,
-    toggleCountry(value) {
-      toggleFilterValue(setSelectedCountries, value);
-    },
-    selectedStockStatuses,
-    toggleStockStatus(value) {
-      toggleFilterValue(setSelectedStockStatuses, value);
-    },
-    showPopularOnly,
-    setShowPopularOnly: setPopularOnly,
     activeFilterCount,
     totalProducts,
   };
@@ -524,21 +400,21 @@ export default function CatalogView({
       className="scroll-mt-24 mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8"
     >
       <section className="relative mb-7 sm:mb-10">
-        <div className="eg-glass eg-premium-card rounded-[1.5rem] p-3 sm:rounded-[2rem] sm:p-4">
-          <div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-center">
+        <div className="grid gap-3 lg:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] lg:items-start">
+          <div className="eg-glass eg-premium-card rounded-[1.5rem] p-3 sm:rounded-[2rem]">
             <button
               type="button"
               onClick={() =>
                 isCatalogMenuOpen ? closeCatalogMenu() : openCatalogMenu()
               }
-              className="eg-button eg-sweep flex w-full items-center justify-center gap-2 rounded-[22px] bg-emerald-900 px-4 py-3 text-sm font-black text-white shadow-sm hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20 sm:gap-3 sm:rounded-[28px] sm:px-7 sm:py-4 sm:text-base lg:hidden"
+              className="eg-button eg-sweep flex w-full items-center justify-center gap-2 rounded-[22px] bg-emerald-900 px-4 py-3 text-sm font-black text-white shadow-sm hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20 sm:gap-3 sm:rounded-[28px] sm:px-7 sm:py-4 sm:text-base"
             >
-              <span className="text-lg leading-none sm:text-xl">
-                {isCatalogMenuOpen ? "×" : "☰"}
-              </span>
+              {isCatalogMenuOpen ? <X size={20} /> : <Menu size={21} />}
               <span>Каталог товарів</span>
             </button>
+          </div>
 
+          <div className="eg-glass eg-premium-card rounded-[1.5rem] p-3 sm:rounded-[2rem] sm:p-4">
             <div className="flex min-w-0 flex-1 flex-col gap-3 xl:flex-row">
               <input
                 value={query}
@@ -550,12 +426,14 @@ export default function CatalogView({
                 className="eg-field min-h-12 flex-1 rounded-[22px] border border-white/80 bg-white/80 px-4 text-sm outline-none backdrop-blur focus:border-emerald-700 sm:min-h-[56px] sm:rounded-[28px] sm:px-6 sm:text-base"
               />
 
-              <div className="grid gap-3 sm:grid-cols-[auto_minmax(180px,auto)] xl:grid-cols-[auto_minmax(220px,auto)]">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 sm:gap-3 xl:grid-cols-[auto_minmax(220px,auto)]">
                 <button
                   type="button"
                   onClick={() => setIsFiltersOpen((current) => !current)}
-                  className="eg-button flex min-h-12 items-center justify-center gap-2 rounded-[20px] border border-emerald-100 bg-emerald-50 px-4 text-sm font-black text-emerald-950 hover:bg-emerald-100 sm:min-h-[56px] sm:rounded-[22px] sm:px-5 lg:hidden"
+                  aria-label="Відкрити фільтри"
+                  className="eg-button relative flex min-h-12 items-center justify-center gap-2 rounded-[20px] border border-emerald-100 bg-emerald-50 px-4 text-sm font-black text-emerald-950 hover:bg-emerald-100 sm:min-h-[56px] sm:rounded-[22px] sm:px-5 lg:hidden"
                 >
+                  <SlidersHorizontal size={18} />
                   <span>Фільтри</span>
                   {activeFilterCount > 0 && (
                     <span className="rounded-full bg-emerald-900 px-2 py-0.5 text-xs text-white">
@@ -584,25 +462,36 @@ export default function CatalogView({
         </div>
 
         {isFiltersOpen && (
-          <div className="mt-4 lg:hidden">
-            <CatalogFilterPanel {...filterPanelProps} />
-          </div>
+          <>
+            <div
+              className="eg-overlay fixed inset-0 z-[80] bg-emerald-950/25 backdrop-blur-[2px] lg:hidden"
+              onClick={() => setIsFiltersOpen(false)}
+            />
+
+            <div className="fixed bottom-0 left-0 top-0 z-[90] w-[min(88vw,360px)] max-w-full overflow-hidden rounded-r-[2rem] bg-white/95 shadow-2xl shadow-emerald-950/25 lg:hidden">
+              <CatalogFilterPanel
+                {...filterPanelProps}
+                className="h-full"
+                onClose={() => setIsFiltersOpen(false)}
+              />
+            </div>
+          </>
         )}
 
         {isCatalogMenuOpen && (
           <>
             <div
-              className="eg-overlay fixed inset-0 z-30 bg-emerald-950/20 backdrop-blur-[2px]"
+              className="eg-overlay fixed inset-0 z-[80] bg-emerald-950/20 backdrop-blur-[2px] lg:z-30"
               onClick={closeCatalogMenu}
             />
 
-            <div className="eg-menu eg-glass fixed inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+7.5rem)] top-24 z-40 w-auto overflow-y-auto rounded-[28px] border border-white/70 shadow-2xl shadow-emerald-950/10 lg:absolute lg:left-0 lg:top-full lg:bottom-auto lg:mt-4 lg:w-full lg:overflow-hidden lg:rounded-[34px]">
+            <div className="eg-menu eg-glass fixed left-3 right-3 top-24 z-[90] max-h-[calc(100dvh-11rem)] w-auto overflow-y-auto overscroll-contain rounded-[24px] border border-white/70 shadow-2xl shadow-emerald-950/10 sm:left-4 sm:right-4 sm:rounded-[28px] lg:absolute lg:left-0 lg:right-auto lg:top-full lg:z-[60] lg:mt-4 lg:max-h-none lg:w-full lg:overflow-hidden lg:rounded-[34px]">
               <div className="grid lg:min-h-[460px] lg:grid-cols-[360px_1fr]">
                 <div className="bg-stone-50/80 p-3 backdrop-blur sm:p-5">
                   <button
                     type="button"
                     onClick={resetCatalogFilters}
-                    className={`eg-button mb-3 flex w-full items-center justify-between rounded-[24px] px-5 py-4 text-left font-black ${
+                    className={`eg-button mb-2 flex w-full items-center justify-between rounded-[18px] px-4 py-3 text-left text-sm font-black sm:mb-3 sm:rounded-[24px] sm:px-5 sm:py-4 sm:text-base ${
                       selectedCategory === "all"
                         ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
                         : "bg-white/85 text-stone-950 hover:bg-emerald-50"
@@ -631,15 +520,15 @@ export default function CatalogView({
                           }
                           onFocus={() => setHoveredCategoryId(category.id)}
                           onClick={() => selectCategory(category.id)}
-                          className={`eg-button flex w-full items-center justify-between rounded-[20px] px-3 py-3 text-left sm:rounded-[24px] sm:px-4 sm:py-4 ${
+                          className={`eg-button flex w-full items-center justify-between rounded-[18px] px-2.5 py-2.5 text-left sm:rounded-[24px] sm:px-4 sm:py-4 ${
                             isPreviewed
                               ? "bg-emerald-100 text-emerald-950 shadow-sm"
                               : "text-stone-900 hover:bg-white/95"
                           }`}
                         >
-                          <span className="flex min-w-0 items-center gap-3">
+                          <span className="flex min-w-0 items-center gap-2.5 sm:gap-3">
                             <span
-                              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xs font-black shadow-sm ${
+                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[10px] font-black shadow-sm sm:h-11 sm:w-11 sm:rounded-2xl sm:text-xs ${
                                 isPreviewed
                                   ? "bg-white text-emerald-900"
                                   : "bg-white/85 text-emerald-900"
@@ -648,12 +537,12 @@ export default function CatalogView({
                               {mark}
                             </span>
 
-                            <span className="truncate text-sm font-black uppercase tracking-wide">
+                            <span className="min-w-0 text-[13px] font-black uppercase leading-5 tracking-normal sm:text-sm sm:tracking-wide">
                               {category.name}
                             </span>
                           </span>
 
-                          <span className="ml-3 flex items-center gap-2">
+                          <span className="ml-2 flex shrink-0 items-center gap-2 sm:ml-3">
                             {isActive && (
                               <span className="hidden rounded-full bg-white/70 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-800 sm:inline">
                                 Активна
@@ -792,21 +681,19 @@ export default function CatalogView({
         </div>
 
         {selectedCategory !== "all" && activeSubcategories.length > 0 && (
-          <div className="eg-stagger mb-8 grid gap-4 sm:grid-cols-2 lg:hidden">
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedSubcategory("all");
-                setCurrentPage(1);
-              }}
-              className={`eg-button eg-premium-card min-h-[76px] rounded-[24px] px-6 py-4 text-left text-sm font-black uppercase tracking-wide ${
-                selectedSubcategory === "all"
-                  ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
-                  : "bg-white text-stone-950 shadow-sm hover:bg-emerald-50"
-              }`}
-            >
-              Усі товари категорії
-            </button>
+          <div className="eg-stagger mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:max-w-5xl">
+            {selectedSubcategory !== "all" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedSubcategory("all");
+                  setCurrentPage(1);
+                }}
+                className="eg-button min-h-12 rounded-[22px] bg-emerald-900 px-5 text-left text-sm font-black uppercase tracking-wide text-white shadow-lg shadow-emerald-900/15 hover:bg-emerald-800"
+              >
+                Усі товари категорії
+              </button>
+            )}
 
             {activeSubcategories.map((subcategory) => (
               <button
@@ -816,10 +703,10 @@ export default function CatalogView({
                   setSelectedSubcategory(subcategory.id);
                   setCurrentPage(1);
                 }}
-                className={`eg-button eg-premium-card min-h-[76px] rounded-[24px] px-6 py-4 text-left text-sm font-black uppercase tracking-wide ${
+                className={`eg-button min-h-12 rounded-[22px] px-5 text-left text-sm font-black uppercase tracking-wide shadow-sm ring-1 ${
                   selectedSubcategory === subcategory.id
-                    ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
-                    : "bg-white text-stone-950 shadow-sm hover:bg-emerald-50"
+                    ? "bg-emerald-900 text-white ring-emerald-900 shadow-lg shadow-emerald-900/15"
+                    : "bg-white/90 text-stone-950 ring-stone-100 hover:bg-emerald-50 hover:text-emerald-950 hover:ring-emerald-100"
                 }`}
               >
                 {subcategory.name}
@@ -881,26 +768,68 @@ export default function CatalogView({
           )}
 
           {totalProductPages > 1 && (
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-              {Array.from({ length: totalProductPages }, (_, index) => {
-                const page = index + 1;
+            <nav
+              className="mt-8 flex flex-col items-center justify-center gap-3"
+              aria-label="Пагінація товарів"
+            >
+              <p className="rounded-full bg-emerald-50 px-4 py-2 text-xs font-black uppercase tracking-wide text-emerald-900">
+                Сторінка {currentPage} з {totalProductPages}
+              </p>
 
-                return (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => setCurrentPage(page)}
-                    className={`eg-button h-10 min-w-10 rounded-xl px-3 text-sm font-bold ${
-                      currentPage === page
-                        ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
-                        : "bg-white text-stone-700 shadow-sm hover:bg-stone-100"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
-            </div>
+              <div className="flex max-w-full items-center justify-center gap-1.5 rounded-[22px] bg-white/85 p-1.5 shadow-sm ring-1 ring-stone-200/70">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  aria-label="Попередня сторінка"
+                  className="eg-button grid h-10 w-10 place-items-center rounded-2xl text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+
+                {paginationItems.map((item) => {
+                  if (typeof item === "string") {
+                    return (
+                      <span
+                        key={item}
+                        className="grid h-10 w-8 place-items-center text-stone-400"
+                        aria-hidden="true"
+                      >
+                        <MoreHorizontal size={18} />
+                      </span>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setCurrentPage(item)}
+                      aria-current={currentPage === item ? "page" : undefined}
+                      className={`eg-button h-10 min-w-10 rounded-2xl px-3 text-sm font-black ${
+                        currentPage === item
+                          ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                          : "text-stone-700 hover:bg-stone-100"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalProductPages, currentPage + 1))
+                  }
+                  disabled={currentPage === totalProductPages}
+                  aria-label="Наступна сторінка"
+                  className="eg-button grid h-10 w-10 place-items-center rounded-2xl text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </nav>
           )}
         </section>
       </div>

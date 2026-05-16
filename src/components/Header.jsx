@@ -142,15 +142,16 @@ export default function Header({
   useEffect(() => {
     let lastScrollY = window.scrollY;
     let ticking = false;
+    const desktopQuery = window.matchMedia("(min-width: 768px)");
 
     function updateHeader() {
-      const currentScrollY = window.scrollY;
+      const currentScrollY = Math.max(window.scrollY, 0);
       const scrollDifference = currentScrollY - lastScrollY;
-      const isMobileViewport = window.matchMedia("(max-width: 767px)").matches;
+      const isDesktopViewport = desktopQuery.matches;
 
       setIsScrolled(currentScrollY > 12);
 
-      if (isMobileViewport) {
+      if (!isDesktopViewport) {
         setIsHeaderHidden(false);
         lastScrollY = currentScrollY;
         ticking = false;
@@ -159,9 +160,9 @@ export default function Header({
 
       if (currentScrollY < 80) {
         setIsHeaderHidden(false);
-      } else if (scrollDifference > 8) {
+      } else if (scrollDifference > 6) {
         setIsHeaderHidden(true);
-      } else if (scrollDifference < -8) {
+      } else if (scrollDifference < -2) {
         setIsHeaderHidden(false);
       }
 
@@ -176,10 +177,19 @@ export default function Header({
       }
     }
 
+    function handleViewportChange() {
+      setIsHeaderHidden(false);
+      lastScrollY = Math.max(window.scrollY, 0);
+      handleScroll();
+    }
+
     window.addEventListener("scroll", handleScroll, { passive: true });
+    desktopQuery.addEventListener("change", handleViewportChange);
+    handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      desktopQuery.removeEventListener("change", handleViewportChange);
     };
   }, []);
 
