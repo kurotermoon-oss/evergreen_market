@@ -20,6 +20,7 @@ import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import MobileNav from "./components/MobileNav.jsx";
 import AdminProductEditModal from "./components/admin/AdminProductEditModal.jsx";
+import BrandLogo from "./components/BrandLogo.jsx";
 
 
 import HomeView from "./views/HomeView.jsx";
@@ -253,7 +254,7 @@ useEffect(() => {
     } catch (error) {
       console.error("Bootstrap error:", error);
       setAppError(
-        "Не вдалося підключитися до backend. Перевір, чи запущено npm.cmd run server."
+        "Тимчасово не вдалося завантажити каталог. Спробуйте оновити сторінку трохи пізніше."
       );
     } finally {
       setIsAppLoading(false);
@@ -385,30 +386,57 @@ function applyCustomerToForm(customerData) {
 
   if (appError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-stone-50 px-4 text-stone-950">
-        <div className="eg-panel max-w-xl rounded-3xl bg-white p-8 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-wide text-red-600">
-            Backend error
-          </p>
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f7f5ef] px-4 py-10 text-stone-950">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.16),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(245,158,11,0.16),transparent_38%)]" />
+        <div className="absolute left-1/2 top-10 h-72 w-72 -translate-x-1/2 rounded-full bg-white/70 blur-3xl" />
 
-          <h1 className="mt-2 text-2xl font-black">
-            Сайт запустився, але backend не відповідає
-          </h1>
+        <div className="eg-glass eg-premium-card relative w-full max-w-3xl overflow-hidden rounded-[2.2rem] border border-white/80 bg-white/90 p-6 shadow-[0_28px_90px_rgba(20,83,45,0.16)] sm:p-8 lg:p-10">
+          <div className="absolute right-0 top-0 h-40 w-40 translate-x-12 -translate-y-12 rounded-full bg-emerald-100/80 blur-2xl" />
 
-          <p className="mt-3 text-stone-600">{appError}</p>
+          <div className="relative z-10">
+            <BrandLogo size="lg" animated />
 
-          <div className="mt-5 rounded-2xl bg-stone-950 p-4 text-sm text-white">
-            <p>1. Відкрий другий термінал</p>
-            <p>2. Запусти: npm.cmd run server</p>
-            <p>3. Перевір: http://localhost:3001/api/health</p>
+            <div className="mt-8 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-900">
+              Evergreen coffee поруч
+            </div>
+
+            <h1 className="mt-4 max-w-2xl text-3xl font-black leading-tight text-stone-950 sm:text-4xl">
+              Кавова пауза: ми оновлюємо каталог
+            </h1>
+
+            <p className="mt-4 max-w-2xl text-base leading-7 text-stone-600">
+              Evergreen coffee зовсім скоро повернеться до роботи. Ми вже
+              готуємо вітрину, товари та замовлення, щоб ви могли зручно
+              обрати каву й маркет поруч із домом.
+            </p>
+
+            <p className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold leading-6 text-amber-900 ring-1 ring-amber-100">
+              Напис на вітрині: готуємо каву, оновлюємо полиці, повертаємося
+              зовсім скоро.
+            </p>
+
+            <div className="mt-6 rounded-[1.6rem] bg-stone-50/90 p-5 ring-1 ring-stone-100">
+              <p className="text-sm font-black uppercase tracking-[0.18em] text-emerald-800">
+                Що можна зробити
+              </p>
+
+              <p className="mt-3 text-sm leading-7 text-stone-600">
+                Спробуйте оновити сторінку за кілька хвилин. Якщо вам потрібно
+                швидко зробити замовлення, напишіть нам у Telegram або
+                зверніться до кавʼярні напряму.
+              </p>
+            </div>
+
+            <div className="mt-7">
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="eg-button eg-sweep w-full rounded-2xl bg-emerald-900 px-6 py-4 text-sm font-black text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-800 sm:w-auto"
+              >
+                Оновити сторінку
+              </button>
+            </div>
           </div>
-
-          <button
-            onClick={() => window.location.reload()}
-            className="eg-button mt-6 rounded-2xl bg-emerald-900 px-5 py-3 font-bold text-white hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20"
-          >
-            Оновити сторінку
-          </button>
         </div>
       </div>
     );
