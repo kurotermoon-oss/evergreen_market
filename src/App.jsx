@@ -461,7 +461,10 @@ return (
         setView={setView}
         popularProducts={popularProducts}
         categories={categories}
+        cartItems={cartItems}
         addToCart={addToCart}
+        changeQuantity={changeQuantity}
+        removeFromCart={removeFromCart}
         openProduct={openProduct}
       />
       )}
