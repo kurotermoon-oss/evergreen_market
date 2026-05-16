@@ -485,13 +485,13 @@ export default function CatalogView({
               onClick={closeCatalogMenu}
             />
 
-            <div className="eg-menu eg-glass fixed left-3 right-3 top-24 z-[90] max-h-[calc(100dvh-11rem)] w-auto overflow-y-auto overscroll-contain rounded-[24px] border border-white/70 shadow-2xl shadow-emerald-950/10 sm:left-4 sm:right-4 sm:rounded-[28px] lg:absolute lg:left-0 lg:right-auto lg:top-full lg:z-[60] lg:mt-4 lg:max-h-none lg:w-full lg:overflow-hidden lg:rounded-[34px]">
-              <div className="grid lg:min-h-[460px] lg:grid-cols-[360px_1fr]">
-                <div className="bg-stone-50/80 p-3 backdrop-blur sm:p-5">
+            <div className="eg-menu eg-glass fixed left-3 right-3 top-24 z-[90] max-h-[calc(100dvh-11rem)] w-auto overflow-y-auto overscroll-contain rounded-[24px] border border-white/70 shadow-2xl shadow-emerald-950/10 sm:left-4 sm:right-4 sm:rounded-[28px] lg:absolute lg:left-0 lg:right-auto lg:top-full lg:z-[60] lg:mt-4 lg:h-[calc(100dvh-11rem)] lg:max-h-[640px] lg:w-full lg:overflow-hidden lg:rounded-[34px]">
+              <div className="grid h-full min-h-0 lg:grid-cols-[360px_1fr]">
+                <div className="flex min-h-0 flex-col bg-stone-50/80 p-3 backdrop-blur sm:p-5">
                   <button
                     type="button"
                     onClick={resetCatalogFilters}
-                    className={`eg-button mb-2 flex w-full items-center justify-between rounded-[18px] px-4 py-3 text-left text-sm font-black sm:mb-3 sm:rounded-[24px] sm:px-5 sm:py-4 sm:text-base ${
+                    className={`eg-button mb-2 flex w-full shrink-0 items-center justify-between rounded-[18px] px-4 py-3 text-left text-sm font-black sm:mb-3 sm:rounded-[24px] sm:px-5 sm:py-4 sm:text-base ${
                       selectedCategory === "all"
                         ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
                         : "bg-white/85 text-stone-950 hover:bg-emerald-50"
@@ -501,7 +501,7 @@ export default function CatalogView({
                     {selectedCategory === "all" && <span>✓</span>}
                   </button>
 
-                  <div className="space-y-2">
+                  <div className="modal-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1">
                     {catalogCategories.map((category) => {
                       const isPreviewed = previewCategoryId === category.id;
                       const isActive = selectedCategory === category.id;
@@ -559,7 +559,7 @@ export default function CatalogView({
                   </div>
                 </div>
 
-                <div className="hidden bg-white/90 p-7 backdrop-blur lg:block">
+                <div className="modal-scrollbar hidden min-h-0 overflow-y-auto bg-white/90 p-7 backdrop-blur lg:block">
                   {previewCategory ? (
                     <>
                       <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
