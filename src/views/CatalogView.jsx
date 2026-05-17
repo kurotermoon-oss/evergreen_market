@@ -8,6 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import BrandLogo from "../components/BrandLogo.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 
 const CATEGORY_MARKS = {
@@ -257,6 +258,7 @@ export default function CatalogView({
   const [isCatalogToolbarPinned, setIsCatalogToolbarPinned] = useState(false);
   const [catalogToolbarHeight, setCatalogToolbarHeight] = useState(0);
   const [hoveredCategoryId, setHoveredCategoryId] = useState(null);
+  const [mobileCategoryId, setMobileCategoryId] = useState(null);
   const [catalogMenuTop, setCatalogMenuTop] = useState(96);
 
   const catalogCategories = useMemo(() => {
@@ -280,6 +282,14 @@ export default function CatalogView({
   );
 
   const previewSubcategories = (previewCategory?.subcategories || []).filter(
+    (subcategory) => subcategory.active !== false
+  );
+
+  const mobileCategory = categories.find(
+    (category) => category.id === mobileCategoryId
+  );
+
+  const mobileSubcategories = (mobileCategory?.subcategories || []).filter(
     (subcategory) => subcategory.active !== false
   );
 
@@ -356,13 +366,34 @@ export default function CatalogView({
   useEffect(() => {
     if (!isCatalogMenuOpen) return undefined;
 
+    const lockedScrollY = window.scrollY;
     const previousOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousPosition = document.body.style.position;
+    const previousTop = document.body.style.top;
+    const previousLeft = document.body.style.left;
+    const previousRight = document.body.style.right;
+    const previousWidth = document.body.style.width;
+
+    document.documentElement.style.overflow = "hidden";
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${lockedScrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
     document.body.classList.add("eg-catalog-open");
 
     return () => {
+      document.documentElement.style.overflow = previousHtmlOverflow;
       document.body.style.overflow = previousOverflow;
+      document.body.style.position = previousPosition;
+      document.body.style.top = previousTop;
+      document.body.style.left = previousLeft;
+      document.body.style.right = previousRight;
+      document.body.style.width = previousWidth;
       document.body.classList.remove("eg-catalog-open");
+      window.scrollTo({ top: lockedScrollY, behavior: "auto" });
     };
   }, [isCatalogMenuOpen]);
 
@@ -409,11 +440,13 @@ export default function CatalogView({
   function closeCatalogMenu() {
     setIsCatalogMenuOpen(false);
     setHoveredCategoryId(null);
+    setMobileCategoryId(null);
   }
 
   function openCatalogMenu() {
     updateCatalogMenuMetrics();
     setIsCatalogMenuOpen(true);
+    setMobileCategoryId(null);
     setHoveredCategoryId(
       selectedCategory !== "all"
         ? selectedCategory
@@ -423,6 +456,19 @@ export default function CatalogView({
 
   function showCategoryPreview(categoryId) {
     setHoveredCategoryId(categoryId);
+  }
+
+  function openMobileCategory(category) {
+    const visibleSubcategories = (category.subcategories || []).filter(
+      (subcategory) => subcategory.active !== false
+    );
+
+    if (visibleSubcategories.length > 0) {
+      setMobileCategoryId(category.id);
+      return;
+    }
+
+    selectCategory(category.id);
   }
 
   function resetCatalogFilters() {
@@ -560,15 +606,128 @@ export default function CatalogView({
 
         {isCatalogMenuOpen && (
           <>
+            <div className="fixed inset-0 z-[120] overflow-hidden bg-stone-50 text-stone-950 md:hidden">
+              <div className="flex h-16 items-center justify-between border-b border-emerald-100/70 bg-white/95 px-4 shadow-sm shadow-emerald-950/5 backdrop-blur-xl">
+                <BrandLogo
+                  size="sm"
+                  showText={false}
+                  animated={false}
+                  className="gap-0"
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    mobileCategory ? setMobileCategoryId(null) : closeCatalogMenu()
+                  }
+                  className="eg-button min-h-10 min-w-[120px] rounded-full bg-emerald-900 px-5 text-sm font-black text-white shadow-sm shadow-emerald-900/20 hover:bg-emerald-800"
+                >
+                  Каталог
+                </button>
+
+                <div className="h-11 w-11 shrink-0" aria-hidden="true" />
+              </div>
+
+              {mobileCategory ? (
+                <div className="flex h-[calc(100dvh-4rem)] min-h-0 flex-col">
+                  <div className="flex min-h-14 shrink-0 items-center gap-3 border-b border-emerald-100/70 bg-white px-5 text-left">
+                    <button
+                      type="button"
+                      onClick={() => setMobileCategoryId(null)}
+                      aria-label="Назад до категорій"
+                      className="eg-icon-button grid h-10 w-10 shrink-0 place-items-center rounded-xl text-emerald-950 hover:bg-emerald-50"
+                    >
+                      <ChevronLeft size={22} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => selectCategory(mobileCategory.id)}
+                      className="min-w-0 text-left text-base font-black uppercase tracking-normal text-emerald-950"
+                    >
+                      {mobileCategory.name}
+                    </button>
+                  </div>
+
+                  <div className="eg-catalog-mobile-scroll modal-scrollbar min-h-0 flex-1 overflow-y-auto bg-stone-50 py-2">
+                    <button
+                      type="button"
+                      onClick={() => selectCategory(mobileCategory.id)}
+                      className="flex min-h-14 w-full items-center border-b border-stone-100/80 bg-white px-7 text-left text-sm font-black uppercase tracking-wide text-emerald-950 hover:bg-emerald-50"
+                    >
+                      Усі товари категорії
+                    </button>
+
+                    {mobileSubcategories.map((subcategory) => (
+                      <button
+                        key={subcategory.id}
+                        type="button"
+                        onClick={() =>
+                          selectSubcategory(mobileCategory.id, subcategory.id)
+                        }
+                        className="flex min-h-14 w-full items-center border-b border-stone-100/80 bg-white px-7 text-left text-sm font-semibold uppercase tracking-wide text-stone-950 hover:bg-emerald-50 hover:text-emerald-950"
+                      >
+                        {subcategory.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="eg-catalog-mobile-scroll modal-scrollbar h-[calc(100dvh-4rem)] overflow-y-auto bg-white px-5 py-4">
+                  <button
+                    type="button"
+                    onClick={resetCatalogFilters}
+                    className="flex min-h-14 w-full items-center gap-4 rounded-2xl px-2 text-left text-base font-black uppercase text-emerald-950 hover:bg-emerald-50"
+                  >
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-[10px] font-black text-emerald-900 shadow-sm ring-1 ring-emerald-100">
+                      УС
+                    </span>
+                    <span className="min-w-0 flex-1">Усі товари</span>
+                  </button>
+
+                  {catalogCategories.map((category) => {
+                    const visibleSubcategories = (
+                      category.subcategories || []
+                    ).filter((subcategory) => subcategory.active !== false);
+                    const hasSubcategories = visibleSubcategories.length > 0;
+
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => openMobileCategory(category)}
+                        className="flex min-h-14 w-full items-center gap-4 rounded-2xl px-2 text-left text-base font-semibold uppercase text-stone-800 hover:bg-emerald-50 hover:text-emerald-950"
+                      >
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-[10px] font-black text-emerald-900 shadow-sm ring-1 ring-emerald-100">
+                          {getCategoryMark(category)}
+                        </span>
+
+                        <span className="min-w-0 flex-1 leading-5">
+                          {category.name}
+                        </span>
+
+                        {hasSubcategories && (
+                          <ChevronRight
+                            size={21}
+                            className="shrink-0 text-emerald-800/70"
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             <div
-              className="eg-overlay fixed inset-x-0 bottom-0 z-[70] bg-emerald-950/20 backdrop-blur-[5px]"
+              className="eg-overlay fixed inset-0 z-[80] hidden bg-stone-950/35 backdrop-blur-[6px] md:block"
               style={{ top: `${Math.max(catalogMenuTop - 8, 0)}px` }}
               onClick={closeCatalogMenu}
             />
 
             <div
               id="catalog-menu-panel"
-              className="eg-menu eg-glass fixed inset-x-3 z-[90] mx-auto max-w-7xl overflow-hidden rounded-[1.6rem] border border-white/80 bg-white/95 shadow-2xl shadow-emerald-950/20 sm:inset-x-4 sm:rounded-[2rem]"
+              className="eg-menu eg-glass fixed inset-x-3 z-[90] mx-auto hidden max-w-7xl overflow-hidden rounded-[1.6rem] border border-white/80 bg-white/95 shadow-2xl shadow-emerald-950/20 sm:inset-x-4 sm:rounded-[2rem] md:block"
               style={{
                 top: `${catalogMenuTop}px`,
                 height: `calc(100dvh - ${catalogMenuTop + 12}px)`,

@@ -387,6 +387,15 @@ body.eg-catalog-open .eg-mobile-nav {
   pointer-events: none;
 }
 
+body.eg-catalog-open {
+  overscroll-behavior: none;
+}
+
+.eg-catalog-mobile-scroll {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 @media (min-width: 1024px) {
   .eg-catalog-sheet-grid {
     grid-template-columns: 340px minmax(0, 1fr);
