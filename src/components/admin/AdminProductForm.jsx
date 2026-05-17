@@ -1,4 +1,5 @@
 import ProductImageCropUploader from "./ProductImageCropUploader.jsx";
+import ProductBenefitsEditor from "./ProductBenefitsEditor.jsx";
 
 function FormSection({ title, description, children }) {
   return (
@@ -336,11 +337,9 @@ export default function AdminProductForm({
               placeholder="Детальний опис товару"
             />
 
-            <TextArea
+            <ProductBenefitsEditor
               value={draftProduct.benefits || ""}
-              onChange={(event) => updateField("benefits", event.target.value)}
-              rows={4}
-              placeholder="Переваги товару. Кожну перевагу краще писати з нового рядка"
+              onChange={(value) => updateField("benefits", value)}
             />
           </FormSection>
 

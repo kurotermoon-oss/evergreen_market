@@ -9,6 +9,7 @@ import {
   getStockTone,
   isProductAvailable,
 } from "../utils/products.js";
+import { parseTextList } from "../utils/textList.js";
 
 const SAFE_TEXT_CLASS = "min-w-0 break-words [overflow-wrap:anywhere]";
 
@@ -26,21 +27,6 @@ function getSubcategoryName(categories, product) {
   );
 
   return subcategory?.name || "";
-}
-
-function normalizeTextList(value) {
-  if (Array.isArray(value)) {
-    return value.filter(Boolean);
-  }
-
-  if (typeof value === "string") {
-    return value
-      .split(/\n|;|,/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-
-  return [];
 }
 
 function InfoRow({ label, value }) {
@@ -130,7 +116,7 @@ export default function ProductDetailsView({
     })
     .slice(0, 3);
 
-  const benefits = normalizeTextList(product.benefits);
+  const benefits = parseTextList(product.benefits);
 
   const defaultBenefits = [
     "Зручно замовити без обовʼязкової реєстрації",

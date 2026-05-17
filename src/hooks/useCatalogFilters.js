@@ -23,9 +23,29 @@ export function useCatalogFilters({
   const [showPopularOnly, setShowPopularOnly] = useState(false);
 
   useEffect(() => {
-    setSelectedSubcategory("all");
+    setSelectedSubcategory((currentSubcategory) => {
+      if (currentSubcategory === "all") {
+        return currentSubcategory;
+      }
+
+      if (selectedCategory === "all") {
+        return "all";
+      }
+
+      const activeCategory = categories.find(
+        (category) => category.id === selectedCategory
+      );
+
+      const subcategoryExists = activeCategory?.subcategories?.some(
+        (subcategory) =>
+          subcategory.id === currentSubcategory &&
+          subcategory.active !== false
+      );
+
+      return subcategoryExists ? currentSubcategory : "all";
+    });
     setCurrentPage(1);
-  }, [selectedCategory]);
+  }, [categories, selectedCategory]);
 
   useEffect(() => {
     setCurrentPage(1);

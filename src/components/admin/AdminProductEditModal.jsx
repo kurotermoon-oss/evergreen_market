@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
+import ProductBenefitsEditor from "./ProductBenefitsEditor.jsx";
 import ProductImageCropUploader from "./ProductImageCropUploader.jsx";
 
 function FormSection({ title, description, children, className = "" }) {
@@ -483,13 +484,10 @@ export default function AdminProductEditModal({
                   placeholder="Детальний опис"
                 />
 
-                <TextArea
+                <ProductBenefitsEditor
                   value={editingProduct.benefits || ""}
-                  onChange={(event) =>
-                    updateField("benefits", event.target.value)
-                  }
-                  rows={3}
-                  placeholder="Переваги"
+                  onChange={(value) => updateField("benefits", value)}
+                  compact
                 />
               </div>
             </FormSection>
