@@ -454,7 +454,12 @@ return (
         isAdmin={isAdmin}
         customer={customer}
       />
-<div key={view} className="eg-page pb-24 md:pb-0">
+<div
+  key={view}
+  className={`eg-page pb-24 md:pb-0 ${
+    view === "catalog" ? "eg-catalog-page" : ""
+  }`}
+>
 
       {view === "home" && (
       <HomeView
