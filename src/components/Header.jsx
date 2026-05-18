@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo.jsx";
 
 function HomeIcon({ className = "" }) {
@@ -108,34 +108,14 @@ function SettingsIcon({ className = "" }) {
   );
 }
 
-function CartIcon({ className = "" }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
-      <path
-        d="M4 5h2l1.7 9.2a2 2 0 0 0 2 1.6h6.9a2 2 0 0 0 1.9-1.4L20 8H7"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10 20h.1M17 20h.1"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 export default function Header({
   view,
   setView,
   onContactsClick,
-  cartCount = 0,
   isAdmin = false,
   customer = null,
 }) {
+  const headerRef = useRef(null);
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -193,6 +173,26 @@ export default function Header({
     };
   }, []);
 
+  useEffect(() => {
+    function updateHeaderOffset() {
+      const headerHeight = headerRef.current?.getBoundingClientRect().height || 0;
+      const headerOffset = isHeaderHidden ? 0 : Math.ceil(headerHeight);
+
+      document.documentElement.style.setProperty(
+        "--eg-header-offset",
+        `${headerOffset}px`
+      );
+    }
+
+    updateHeaderOffset();
+    window.addEventListener("resize", updateHeaderOffset);
+
+    return () => {
+      window.removeEventListener("resize", updateHeaderOffset);
+      document.documentElement.style.removeProperty("--eg-header-offset");
+    };
+  }, [isHeaderHidden, isScrolled]);
+
   const navItems = [
     {
       id: "home",
@@ -226,6 +226,7 @@ export default function Header({
 
   return (
     <header
+      ref={headerRef}
       className={`eg-site-header sticky top-0 z-40 overflow-hidden border-b bg-white/80 backdrop-blur-2xl transition-all duration-500 ease-out ${
         isHeaderHidden ? "-translate-y-full" : "translate-y-0"
       } ${
@@ -307,26 +308,6 @@ export default function Header({
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => setView("cart")}
-            className={`eg-button relative flex items-center gap-2 rounded-2xl px-5 py-3 font-black shadow-sm hover:shadow-md ${
-              view === "cart"
-                ? "bg-stone-950 text-white"
-                : cartCount > 0
-                  ? "eg-cart-glow bg-emerald-900 text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-800"
-                  : "bg-emerald-900 text-white hover:bg-emerald-800"
-            }`}
-          >
-            <CartIcon className="h-5 w-5" />
-            <span className="hidden sm:inline">Кошик</span>
-
-            {cartCount > 0 && (
-              <span className="eg-cart-badge absolute -right-2 -top-2 flex h-7 min-w-7 items-center justify-center rounded-full bg-amber-400 px-2 text-xs font-black text-stone-950 shadow-md ring-2 ring-white">
-                {cartCount}
-              </span>
-            )}
-          </button>
         </div>
       </div>
 

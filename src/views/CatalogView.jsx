@@ -1,5 +1,4 @@
 import {
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -10,37 +9,6 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import BrandLogo from "../components/BrandLogo.jsx";
 import ProductCard from "../components/ProductCard.jsx";
-
-const CATEGORY_MARKS = {
-  coffee: "КА",
-  milk: "МЛ",
-  "alt-milk": "РМ",
-  syrups: "СИ",
-  sweets: "СЛ",
-  snacks: "СН",
-  drinks: "НА",
-};
-
-function getCategoryMark(category) {
-  if (CATEGORY_MARKS[category.id]) {
-    return CATEGORY_MARKS[category.id];
-  }
-
-  return (category.name || "")
-    .trim()
-    .slice(0, 2)
-    .toUpperCase() || "•";
-}
-
-function getUniqueOptions(products, key) {
-  return [
-    ...new Set(
-      products
-        .map((product) => String(product[key] || "").trim())
-        .filter(Boolean)
-    ),
-  ].sort((a, b) => a.localeCompare(b, "uk"));
-}
 
 function getPaginationItems(currentPage, totalPages) {
   if (totalPages <= 5) {
@@ -56,27 +24,6 @@ function getPaginationItems(currentPage, totalPages) {
   }
 
   return [1, "start-ellipsis", currentPage, "end-ellipsis", totalPages];
-}
-
-function FilterSection({ title, children }) {
-  if (!children) return null;
-
-  return (
-    <details
-      open
-      className="group border-b border-stone-200 py-4 last:border-b-0"
-    >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-stone-800 [&::-webkit-details-marker]:hidden">
-        <span>{title}</span>
-        <ChevronDown
-          size={17}
-          className="text-stone-700 transition group-open:rotate-180"
-        />
-      </summary>
-
-      <div className="mt-3">{children}</div>
-    </details>
-  );
 }
 
 function getProductWord(count) {
@@ -99,124 +46,6 @@ function getProductWord(count) {
   return "товарів";
 }
 
-function FilterCheckbox({ checked, label, onChange }) {
-  return (
-    <label
-      className={`flex cursor-pointer items-center gap-2.5 rounded-xl py-1.5 text-sm transition ${
-        checked ? "font-semibold text-emerald-950" : "text-stone-700"
-      }`}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={onChange}
-        className="peer sr-only"
-      />
-      <span
-        className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border transition ${
-          checked
-            ? "border-emerald-900 bg-emerald-900 shadow-sm shadow-emerald-900/20"
-            : "border-emerald-900/25 bg-white"
-        }`}
-      >
-        <span
-          className={`text-[11px] font-black leading-none text-white transition ${
-            checked ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          ✓
-        </span>
-      </span>
-      <span className="min-w-0 leading-5">{label}</span>
-    </label>
-  );
-}
-
-function OptionList({ options, selectedValues, onToggle, maxHeight = false }) {
-  if (!options.length) {
-    return (
-      <p className="rounded-xl bg-white px-3 py-2 text-sm text-stone-500">
-        Немає варіантів
-      </p>
-    );
-  }
-
-  return (
-    <div
-      className={`space-y-1 ${
-        maxHeight ? "modal-scrollbar max-h-56 overflow-y-auto pr-2" : ""
-      }`}
-    >
-      {options.map((option) => (
-        <FilterCheckbox
-          key={option}
-          label={option}
-          checked={selectedValues.includes(option)}
-          onChange={() => onToggle(option)}
-        />
-      ))}
-    </div>
-  );
-}
-
-function BrandFilterPanel({
-  className = "",
-  resetBrands,
-  brandOptions,
-  selectedBrands,
-  toggleBrand,
-  activeFilterCount,
-  totalProducts,
-}) {
-  if (!brandOptions.length) return null;
-
-  return (
-    <aside className={className}>
-      <div className="eg-glass eg-premium-card h-full overflow-hidden rounded-[1.4rem] border border-emerald-100/80 bg-white/92 shadow-sm shadow-emerald-950/5">
-        <div className="flex items-center justify-between gap-3 border-b border-emerald-100/80 bg-gradient-to-br from-emerald-50/90 via-white to-white px-4 py-4">
-          <div className="min-w-0">
-            <p className="text-lg font-black leading-tight text-emerald-950">
-              Торгова марка
-            </p>
-
-            <p className="mt-0.5 text-xs font-semibold text-emerald-900/65">
-              {totalProducts} товарів
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {activeFilterCount > 0 && (
-              <span className="rounded-full bg-emerald-900 px-2.5 py-1 text-xs font-semibold text-white">
-                {activeFilterCount}
-              </span>
-            )}
-
-            <button
-              type="button"
-              onClick={resetBrands}
-              disabled={activeFilterCount === 0}
-              className="rounded-lg px-2 py-1 text-xs font-black text-emerald-800 hover:bg-emerald-50 hover:text-emerald-950"
-            >
-              Скинути
-            </button>
-          </div>
-        </div>
-
-        <div className="modal-scrollbar max-h-[calc(100dvh-10rem)] overflow-y-auto px-4 py-1">
-          <FilterSection title="Торгова марка">
-            <OptionList
-              options={brandOptions}
-              selectedValues={selectedBrands}
-              onToggle={toggleBrand}
-              maxHeight={brandOptions.length > 6}
-            />
-          </FilterSection>
-        </div>
-      </div>
-    </aside>
-  );
-}
-
 export default function CatalogView({
   categories,
   products = [],
@@ -232,7 +61,6 @@ export default function CatalogView({
   setMaxPrice,
   sortBy,
   setSortBy,
-  selectedBrands,
   setSelectedBrands,
   setSelectedProductTypes,
   selectedCountries,
@@ -320,20 +148,14 @@ export default function CatalogView({
     return { categories: categoryCounts, subcategories: subcategoryCounts };
   }, [products]);
 
-  const filterOptions = useMemo(() => {
-    const activeProducts = products.filter((product) => product.active !== false);
-
-    return {
-      brands: getUniqueOptions(activeProducts, "brand"),
-    };
-  }, [products]);
-
   const pageTitle =
     selectedCategory === "all"
       ? "Каталог товарів"
       : activeCategory?.name || "Каталог товарів";
 
-  const activeFilterCount = selectedBrands.length;
+  useEffect(() => {
+    setSelectedBrands([]);
+  }, [setSelectedBrands]);
 
   useEffect(() => {
     function updateCatalogToolbarPin() {
@@ -494,11 +316,6 @@ export default function CatalogView({
     closeCatalogMenu();
   }
 
-  function resetBrands() {
-    setSelectedBrands([]);
-    setCurrentPage(1);
-  }
-
   function selectCategory(categoryId) {
     setSelectedCategory(categoryId);
     setSelectedSubcategory("all");
@@ -512,26 +329,6 @@ export default function CatalogView({
     setCurrentPage(1);
     closeCatalogMenu();
   }
-
-  function toggleFilterValue(setter, value) {
-    setter((currentValues) => {
-      return currentValues.includes(value)
-        ? currentValues.filter((item) => item !== value)
-        : [...currentValues, value];
-    });
-    setCurrentPage(1);
-  }
-
-  const brandPanelProps = {
-    resetBrands,
-    brandOptions: filterOptions.brands,
-    selectedBrands,
-    toggleBrand(value) {
-      toggleFilterValue(setSelectedBrands, value);
-    },
-    activeFilterCount,
-    totalProducts,
-  };
 
   return (
     <main
@@ -677,11 +474,8 @@ export default function CatalogView({
                   <button
                     type="button"
                     onClick={resetCatalogFilters}
-                    className="flex min-h-14 w-full items-center gap-4 rounded-2xl px-2 text-left text-base font-black uppercase text-emerald-950 hover:bg-emerald-50"
+                    className="flex min-h-14 w-full items-center rounded-2xl px-4 text-left text-base font-black uppercase text-emerald-950 hover:bg-emerald-50"
                   >
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-[10px] font-black text-emerald-900 shadow-sm ring-1 ring-emerald-100">
-                      УС
-                    </span>
                     <span className="min-w-0 flex-1">Усі товари</span>
                   </button>
 
@@ -696,13 +490,9 @@ export default function CatalogView({
                         key={category.id}
                         type="button"
                         onClick={() => openMobileCategory(category)}
-                        className="flex min-h-14 w-full items-center gap-4 rounded-2xl px-2 text-left text-base font-semibold uppercase text-stone-800 hover:bg-emerald-50 hover:text-emerald-950"
+                        className="flex min-h-14 w-full items-center gap-3 rounded-2xl px-4 text-left text-base font-semibold uppercase text-stone-800 hover:bg-emerald-50 hover:text-emerald-950"
                       >
-                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-[10px] font-black text-emerald-900 shadow-sm ring-1 ring-emerald-100">
-                          {getCategoryMark(category)}
-                        </span>
-
-                        <span className="min-w-0 flex-1 leading-5">
+                        <span className="min-w-0 flex-1 truncate leading-5">
                           {category.name}
                         </span>
 
@@ -762,8 +552,6 @@ export default function CatalogView({
                   <div className="modal-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1">
                     {catalogCategories.map((category) => {
                       const isPreviewed = previewCategoryId === category.id;
-                      const isActive = selectedCategory === category.id;
-                      const mark = getCategoryMark(category);
                       const categoryCount =
                         productCounts.categories[category.id] || 0;
                       const hasSubcategories =
@@ -779,36 +567,18 @@ export default function CatalogView({
                             showCategoryPreview(category.id)
                           }
                           onFocus={() => showCategoryPreview(category.id)}
-                          onClick={() => showCategoryPreview(category.id)}
-                          className={`eg-button flex w-full items-center justify-between rounded-[1.05rem] px-2.5 py-2.5 text-left sm:rounded-[1.45rem] sm:px-4 sm:py-4 ${
+                          onClick={() => selectCategory(category.id)}
+                          className={`eg-button flex min-h-[58px] w-full items-center justify-between rounded-[1.05rem] px-4 py-3 text-left sm:rounded-[1.35rem] sm:px-5 ${
                             isPreviewed
                               ? "bg-emerald-100 text-emerald-950 shadow-sm shadow-emerald-900/5"
                               : "text-stone-900 hover:bg-white"
                           }`}
                         >
-                          <span className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-                            <span
-                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-[10px] font-black shadow-sm sm:h-11 sm:w-11 sm:rounded-2xl sm:text-xs ${
-                                isPreviewed
-                                  ? "bg-white text-emerald-900"
-                                  : "bg-white/85 text-emerald-900"
-                              }`}
-                            >
-                              {mark}
-                            </span>
-
-                            <span className="min-w-0 text-[13px] font-black uppercase leading-5 tracking-normal sm:text-sm sm:tracking-wide">
-                              {category.name}
-                            </span>
+                          <span className="min-w-0 flex-1 truncate whitespace-nowrap text-sm font-black uppercase leading-5 tracking-wide">
+                            {category.name}
                           </span>
 
                           <span className="ml-2 flex shrink-0 items-center gap-2 sm:ml-3">
-                            {isActive && (
-                              <span className="hidden rounded-full bg-white/75 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-800 sm:inline">
-                                Активна
-                              </span>
-                            )}
-
                             <span className="hidden rounded-full bg-white/70 px-2 py-1 text-[10px] font-black text-stone-500 sm:inline">
                               {categoryCount}
                             </span>
@@ -1024,55 +794,9 @@ export default function CatalogView({
         )}
       </section>
 
-      {filterOptions.brands.length > 0 && (
-        <section className="mb-6 lg:hidden">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-stone-400">
-              Торгова марка
-            </p>
-
-            {activeFilterCount > 0 && (
-              <button
-                type="button"
-                onClick={resetBrands}
-                className="eg-button rounded-xl px-2 py-1 text-xs font-black text-emerald-800 hover:bg-emerald-50"
-              >
-                Скинути
-              </button>
-            )}
-          </div>
-
-          <div className="modal-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6">
-            {filterOptions.brands.map((brand) => {
-              const isActive = selectedBrands.includes(brand);
-
-              return (
-                <button
-                  key={brand}
-                  type="button"
-                  onClick={() => toggleFilterValue(setSelectedBrands, brand)}
-                  className={`eg-button min-h-10 shrink-0 rounded-2xl px-4 text-sm font-black shadow-sm ring-1 ${
-                    isActive
-                      ? "bg-emerald-900 text-white ring-emerald-900"
-                      : "bg-white text-stone-800 ring-stone-100 hover:bg-emerald-50"
-                  }`}
-                >
-                  {brand}
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      <div className="grid items-start gap-6 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-        <div className="sticky top-28 hidden self-start lg:block">
-          <BrandFilterPanel {...brandPanelProps} />
-        </div>
-
-        <section className="min-w-0">
+      <section className="min-w-0">
           {visibleProducts.length > 0 ? (
-            <div className="eg-stagger grid grid-cols-1 gap-3 min-[430px]:grid-cols-2 sm:gap-5 xl:grid-cols-3">
+            <div className="eg-stagger grid grid-cols-1 gap-3 min-[430px]:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
               {visibleProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -1093,7 +817,7 @@ export default function CatalogView({
               </p>
 
               <p className="mt-2 text-sm leading-6 text-stone-500">
-                Спробуйте змінити пошук, категорію або торгову марку.
+                Спробуйте змінити пошук або категорію.
               </p>
 
               <button
@@ -1170,8 +894,7 @@ export default function CatalogView({
               </div>
             </nav>
           )}
-        </section>
-      </div>
+      </section>
     </main>
   );
 }

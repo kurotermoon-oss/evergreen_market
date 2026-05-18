@@ -19,6 +19,7 @@ import { useOrderSubmit } from "./hooks/useOrderSubmit.js";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import MobileNav from "./components/MobileNav.jsx";
+import FloatingCartButton from "./components/FloatingCartButton.jsx";
 import AdminProductEditModal from "./components/admin/AdminProductEditModal.jsx";
 import BrandLogo from "./components/BrandLogo.jsx";
 
@@ -450,7 +451,6 @@ return (
         view={view}
         setView={setView}
         onContactsClick={openContacts}
-        cartCount={cartCount}
         isAdmin={isAdmin}
         customer={customer}
       />
@@ -623,6 +623,12 @@ return (
       <div className={view === "home" ? "" : "hidden md:block"}>
         <Footer />
       </div>
+
+      <FloatingCartButton
+        view={view}
+        setView={setView}
+        cartCount={cartCount}
+      />
 
       <MobileNav
         view={view}
