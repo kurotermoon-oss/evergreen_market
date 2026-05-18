@@ -678,21 +678,21 @@ export default function AdminCatalogPanel({
     document.body
   )}
 
-      <div className="grid gap-6 xl:grid-cols-[340px_1fr] xl:items-start">
-        <aside className="eg-glass eg-premium-card sticky top-24 rounded-[2.5rem] p-5">
+      <div className="grid gap-5 xl:grid-cols-[310px_1fr] xl:items-start">
+        <aside className="eg-glass eg-premium-card sticky top-24 rounded-[2rem] p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
                 Навігація
               </p>
 
-              <h3 className="mt-1 text-xl font-black text-stone-950">
+              <h3 className="mt-1 text-lg font-black text-stone-950">
                 Категорії
               </h3>
             </div>
           </div>
 
-          <div className="mt-5 space-y-2">
+          <div className="mt-4 space-y-1.5">
             <button
               type="button"
               onClick={() =>
@@ -703,7 +703,7 @@ export default function AdminCatalogPanel({
                   label: "Усі товари",
                 })
               }
-              className={`eg-button flex w-full items-center justify-between rounded-[1.3rem] px-4 py-3 text-left text-sm font-black ${
+              className={`eg-button flex w-full items-center justify-between rounded-[1rem] px-3 py-2.5 text-left text-sm font-black ${
                 catalogFilter.type === "all"
                   ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
                   : "bg-white/75 text-stone-800 hover:bg-white"
@@ -727,7 +727,7 @@ export default function AdminCatalogPanel({
               return (
                 <div
                   key={category.id}
-                  className="eg-card rounded-[1.8rem] border border-stone-200 bg-white/75 p-3 backdrop-blur transition-all duration-300 hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10"
+                  className="eg-card rounded-[1.15rem] border border-stone-200 bg-white/75 p-1.5 backdrop-blur transition-all duration-300 hover:border-emerald-100"
                 >
                   <div className="flex items-center gap-2">
                     <button
@@ -740,7 +740,7 @@ export default function AdminCatalogPanel({
                           label: category.name,
                         })
                       }
-                      className={`eg-button flex flex-1 items-center justify-between rounded-[1.2rem] px-4 py-3 text-left text-sm font-black transition-all duration-300 ${
+                      className={`eg-button flex min-w-0 flex-1 items-center justify-between rounded-[0.95rem] px-3 py-2.5 text-left text-[13px] font-black transition-all duration-300 ${
                         isCategoryActive || hasActiveSubcategory
                           ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
                           : "bg-stone-50/90 text-stone-900 hover:bg-emerald-50"
@@ -749,7 +749,7 @@ export default function AdminCatalogPanel({
                       <span className="min-w-0 truncate">{category.name}</span>
 
                       <span
-                        className={`ml-3 shrink-0 rounded-full px-2 py-1 text-xs ${
+                        className={`ml-2 shrink-0 rounded-full px-2 py-0.5 text-[11px] ${
                           isCategoryActive || hasActiveSubcategory
                             ? "bg-white/20 text-white"
                             : "bg-stone-200 text-stone-700"
@@ -763,7 +763,7 @@ export default function AdminCatalogPanel({
                       <button
                         type="button"
                         onClick={() => toggleCategoryExpand(category.id)}
-                        className="eg-icon-button flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-100"
+                        className="eg-icon-button flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-100"
                         title={isExpanded ? "Згорнути" : "Розгорнути"}
                       >
                         <span
@@ -778,8 +778,8 @@ export default function AdminCatalogPanel({
                   </div>
 
                   {isExpanded && category.subcategories?.length > 0 && (
-                    <div className="mt-3 border-t border-stone-200 pt-3">
-                      <div className="space-y-2 pl-2">
+                    <div className="mt-1.5 border-t border-stone-200 pt-1.5">
+                      <div className="space-y-1 pl-1">
                         {category.subcategories.map((subcategory) => {
                           const isSubcategoryActive =
                             catalogFilter.type === "subcategory" &&
@@ -798,7 +798,7 @@ export default function AdminCatalogPanel({
                                   label: `${category.name} / ${subcategory.name}`,
                                 })
                               }
-                              className={`eg-button flex w-full items-center justify-between rounded-[1rem] px-3 py-2.5 text-left text-sm transition-all duration-300 ${
+                              className={`eg-button flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition-all duration-300 ${
                                 isSubcategoryActive
                                   ? "bg-emerald-50 font-black text-emerald-900"
                                   : "text-stone-600 hover:bg-stone-50"

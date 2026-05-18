@@ -12,6 +12,64 @@ function getStockLabel(product) {
   return "В наявності";
 }
 
+function getCategoryLabel(categories, product) {
+  const category = categories.find((item) => item.id === product.category);
+  const subcategory = category?.subcategories?.find((item) => {
+    return item.id === product.subcategory;
+  });
+
+  return [category?.name || "Без категорії", subcategory?.name]
+    .filter(Boolean)
+    .join(" / ");
+}
+
+function ProductThumbnail({ product }) {
+  const [hasImageError, setHasImageError] = useState(false);
+  const hasImage = Boolean(product.image) && !hasImageError;
+
+  return (
+    <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 text-emerald-900 shadow-sm sm:h-[72px] sm:w-[72px]">
+      {hasImage ? (
+        <img
+          src={product.image}
+          alt={product.name}
+          onError={() => setHasImageError(true)}
+          className="eg-image h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex flex-col items-center gap-1 text-stone-400">
+          <Icon name="package" size={22} />
+          <span className="text-[9px] font-black uppercase leading-none">
+            Без фото
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProductActionButton({ children, label, tone = "neutral", onClick }) {
+  const toneClasses = {
+    neutral:
+      "border-stone-200 bg-white text-stone-700 hover:bg-stone-100 hover:text-stone-950",
+    green:
+      "border-emerald-100 bg-white text-emerald-800 hover:bg-emerald-50 hover:text-emerald-950",
+    red: "border-red-200 bg-white text-red-600 hover:bg-red-50 hover:text-red-700",
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`eg-icon-button grid h-11 w-11 shrink-0 place-items-center rounded-2xl border ${toneClasses[tone]} shadow-sm`}
+      title={label}
+      aria-label={label}
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function AdminProductsPanel({
   products,
   categories,
@@ -80,78 +138,79 @@ export default function AdminProductsPanel({
         </div>
       )}
 
-      <div className="eg-stagger mt-6 space-y-3">
+      <div className="eg-stagger mt-6 space-y-2.5">
         {filteredAdminProducts.map((product) => (
           <div
             key={product.id}
-            className="eg-card eg-premium-card flex flex-col gap-4 rounded-[2rem] border border-stone-200 bg-white/85 p-4 backdrop-blur hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10 sm:flex-row sm:items-center sm:justify-between"
+            className="eg-card eg-premium-card grid grid-cols-[64px_minmax(0,1fr)] gap-4 rounded-[1.5rem] border border-stone-200 bg-white/88 p-3.5 backdrop-blur transition hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10 sm:grid-cols-[72px_minmax(0,1fr)] lg:grid-cols-[72px_minmax(0,1fr)_auto] lg:items-center"
           >
-            <div className="flex min-w-0 items-center gap-4">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="eg-image h-16 w-16 rounded-2xl object-cover hover:scale-[1.05]"
-              />
+            <ProductThumbnail product={product} />
 
-              <div className="min-w-0">
-                <p className="truncate font-black text-stone-950">
-                  {product.name}
-                </p>
+            <div className="min-w-0">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="line-clamp-2 text-base font-black leading-6 text-stone-950 lg:line-clamp-1">
+                    {product.name}
+                  </p>
 
-                <p className="mt-1 text-sm text-stone-500">
-                  {formatUAH(product.price)} · собівартість{" "}
-                  {formatUAH(product.costPrice || 0)}
-                </p>
+                  <p className="mt-1 truncate text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                    {getCategoryLabel(categories, product)}
+                  </p>
+                </div>
 
-                <p className="mt-1 text-xs text-stone-500">
-                  {categories.find((item) => item.id === product.category)
-                    ?.name || "Без категорії"}{" "}
-                  · {getStockLabel(product)}
-                </p>
+                <span
+                  className={`w-fit shrink-0 rounded-full px-3 py-1 text-xs font-black ring-1 ${
+                    product.active !== false
+                      ? "bg-emerald-50 text-emerald-900 ring-emerald-200"
+                      : "bg-stone-100 text-stone-600 ring-stone-200"
+                  }`}
+                >
+                  {product.active !== false ? "Активний" : "Схований"}
+                </span>
+              </div>
+
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-600">
+                <span className="font-black text-stone-950">
+                  {formatUAH(product.price)}
+                </span>
+
+                <span>
+                  Собівартість: {formatUAH(product.costPrice || 0)}
+                </span>
+
+                <span>{getStockLabel(product)}</span>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-black ring-1 ${
-                  product.active
-                    ? "bg-emerald-50 text-emerald-900 ring-emerald-200"
-                    : "bg-stone-100 text-stone-600 ring-stone-200"
-                }`}
-              >
-                {product.active ? "Активний" : "Схований"}
-              </span>
-
-              <button
-                type="button"
+            <div className="col-span-2 grid grid-cols-3 gap-2 justify-self-start lg:col-span-1 lg:justify-self-end">
+              <ProductActionButton
                 onClick={() => startEditProduct(product)}
-                className="eg-icon-button rounded-2xl border border-stone-200 bg-white/80 p-3 text-stone-700 hover:bg-stone-100"
-                title="Редагувати товар"
+                label="Редагувати товар"
               >
-                ✏️
-              </button>
+                <Icon name="edit" size={18} />
+              </ProductActionButton>
 
-              <button
-                type="button"
+              <ProductActionButton
                 onClick={() => toggleProductActive(product.id)}
-                className="eg-icon-button rounded-2xl border border-stone-200 bg-white/80 p-3 text-stone-700 hover:bg-emerald-50 hover:text-emerald-900"
-                title={product.active ? "Сховати товар" : "Показати товар"}
+                label={
+                  product.active !== false ? "Сховати товар" : "Показати товар"
+                }
+                tone="green"
               >
-                {product.active ? (
+                {product.active !== false ? (
                   <Icon name="eyeOff" size={18} />
                 ) : (
                   <Icon name="eye" size={18} />
                 )}
-              </button>
+              </ProductActionButton>
 
-              <button
-                type="button"
+              <ProductActionButton
                 onClick={() => deleteProduct(product.id)}
-                className="eg-icon-button rounded-2xl border border-red-200 bg-white/80 p-3 text-red-600 hover:bg-red-50"
-                title="Видалити товар"
+                label="Видалити товар"
+                tone="red"
               >
-                🗑️
-              </button>
+                <Icon name="trash" size={18} />
+              </ProductActionButton>
             </div>
           </div>
         ))}
