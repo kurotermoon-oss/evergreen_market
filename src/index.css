@@ -383,8 +383,8 @@ body {
 }
 
 .eg-floating-cart {
-  bottom: max(2rem, calc(env(safe-area-inset-bottom) + 2rem));
-  right: max(2rem, calc(env(safe-area-inset-right) + 2rem));
+  bottom: max(2.25rem, calc(env(safe-area-inset-bottom) + 2.25rem));
+  right: max(2.25rem, calc(env(safe-area-inset-right) + 2.25rem));
 }
 
 body.eg-catalog-open .eg-mobile-nav {

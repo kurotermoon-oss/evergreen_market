@@ -14,7 +14,7 @@ export default function FloatingCartButton({
       onClick={() => setView("cart")}
       aria-label={label}
       title="Кошик"
-      className={`eg-floating-cart eg-button fixed bottom-8 right-8 z-[70] hidden h-16 w-16 items-center justify-center rounded-full text-white shadow-2xl shadow-emerald-950/25 ring-1 ring-white/70 transition md:flex ${
+      className={`eg-floating-cart eg-button fixed bottom-8 right-8 z-[70] hidden h-[5.4rem] w-[5.4rem] items-center justify-center rounded-full text-white shadow-2xl shadow-emerald-950/30 ring-4 ring-white/80 transition hover:-translate-y-1 md:flex ${
         view === "cart"
           ? "bg-stone-950 hover:bg-stone-900"
           : cartCount > 0
@@ -22,10 +22,10 @@ export default function FloatingCartButton({
             : "bg-emerald-900 hover:bg-emerald-800"
       }`}
     >
-      <ShoppingCart size={29} strokeWidth={2.35} />
+      <ShoppingCart size={42} strokeWidth={2.45} />
 
       {cartCount > 0 && (
-        <span className="eg-cart-badge absolute -right-1 -top-1 flex h-7 min-w-7 items-center justify-center rounded-full bg-amber-400 px-2 text-xs font-black text-stone-950 shadow-md ring-2 ring-white">
+        <span className="eg-cart-badge absolute -right-1.5 -top-1.5 flex h-9 min-w-9 items-center justify-center rounded-full bg-amber-400 px-2.5 text-sm font-black text-stone-950 shadow-lg ring-[3px] ring-white">
           {cartCount}
         </span>
       )}
