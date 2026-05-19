@@ -10,15 +10,18 @@ import {
   GuestIcon,
 } from "../components/icons/HomeFeatureIcons.jsx";
 
-const CATEGORY_ICONS = {
-  coffee: "☕",
-  milk: "🥛",
-  "alt-milk": "🌱",
-  syrups: "🍯",
-  sweets: "🍫",
-  snacks: "🥨",
-  drinks: "🥤",
-};
+function getVisibleSubcategories(category) {
+  return (category?.subcategories || []).filter((subcategory) => {
+    return subcategory.active !== false;
+  });
+}
+
+function getSubcategoryLabel(count) {
+  if (!count) return "Товари розділу";
+  if (count === 1) return "1 підкатегорія";
+  if (count > 1 && count < 5) return `${count} підкатегорії`;
+  return `${count} підкатегорій`;
+}
 
 function HeroFeatureCard({ icon, title, text }) {
   return (
@@ -36,6 +39,7 @@ function HeroFeatureCard({ icon, title, text }) {
 
 export default function HomeView({
   setView,
+  openCategory,
   popularProducts = [],
   categories = [],
   cartItems = [],
@@ -239,32 +243,57 @@ export default function HomeView({
           </div>
 
           <div className="eg-stagger grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {shownCategories.map((category) => (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => setView("catalog")}
-                className="eg-card eg-premium-card group rounded-[1.5rem] border border-stone-200 bg-white p-5 text-left shadow-sm hover:border-emerald-200 hover:bg-emerald-50 hover:shadow-md"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-50 text-xl group-hover:bg-white">
-                    {CATEGORY_ICONS[category.id] || "📦"}
-                  </span>
+            {shownCategories.map((category) => {
+              const subcategories = getVisibleSubcategories(category);
+              const previewSubcategories = subcategories.slice(0, 3);
 
-                  <span className="text-stone-300 transition group-hover:translate-x-1 group-hover:text-emerald-800">
-                    →
-                  </span>
-                </div>
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => openCategory?.(category.id)}
+                  className="eg-card eg-premium-card group relative min-h-[170px] overflow-hidden rounded-[1.6rem] border border-emerald-100/70 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-900/10"
+                >
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.16),transparent_34%),linear-gradient(135deg,rgba(236,253,245,0.7),rgba(255,255,255,0.35)_52%,rgba(255,251,235,0.4))] opacity-70 transition group-hover:opacity-100" />
+                  <div className="pointer-events-none absolute bottom-0 right-0 h-24 w-24 translate-x-8 translate-y-8 rounded-full border border-emerald-100 bg-emerald-50/60" />
 
-                <p className="mt-4 text-sm font-black uppercase tracking-wide text-emerald-800">
-                  {category.name}
-                </p>
+                  <div className="relative z-10 flex h-full min-h-[130px] flex-col">
+                    <div className="flex items-start justify-between gap-4">
+                      <span className="rounded-full bg-white/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-800 ring-1 ring-emerald-100">
+                        {getSubcategoryLabel(subcategories.length)}
+                      </span>
 
-                <p className="mt-2 text-sm leading-6 text-stone-500">
-                  Переглянути товари категорії
-                </p>
-              </button>
-            ))}
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-900 text-white shadow-sm transition group-hover:translate-x-1 group-hover:bg-emerald-800">
+                        →
+                      </span>
+                    </div>
+
+                    <p className="mt-5 text-base font-black uppercase leading-6 tracking-wide text-emerald-950">
+                      {category.name}
+                    </p>
+
+                    <div className="mt-auto pt-5">
+                      {previewSubcategories.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5">
+                          {previewSubcategories.map((subcategory) => (
+                            <span
+                              key={subcategory.id}
+                              className="rounded-full bg-white/85 px-3 py-1 text-xs font-bold text-stone-600 ring-1 ring-stone-200"
+                            >
+                              {subcategory.name}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm font-semibold text-stone-500">
+                          Переглянути товари категорії
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </section>
       )}

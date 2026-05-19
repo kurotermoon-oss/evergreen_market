@@ -464,6 +464,12 @@ return (
       {view === "home" && (
       <HomeView
         setView={setView}
+        openCategory={(categoryId) => {
+          setSelectedCategory(categoryId);
+          setSelectedSubcategory("all");
+          setCurrentPage(1);
+          setView("catalog");
+        }}
         popularProducts={popularProducts}
         categories={categories}
         cartItems={cartItems}
