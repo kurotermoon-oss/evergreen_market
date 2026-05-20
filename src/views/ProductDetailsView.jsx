@@ -1,3 +1,4 @@
+import { ShoppingBasket } from "lucide-react";
 import Icon from "../components/Icon.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import { formatUAH } from "../utils/formatUAH.js";
@@ -59,6 +60,7 @@ export default function ProductDetailsView({
   setSelectedProduct,
   isAdmin = false,
   onAdminEditProduct,
+  onCartOpen,
 }) {
   if (!product) {
     return (
@@ -164,6 +166,15 @@ export default function ProductDetailsView({
 
   function handleAdminEdit() {
     onAdminEditProduct?.(product);
+  }
+
+  function handleOpenCart() {
+    if (onCartOpen) {
+      onCartOpen();
+      return;
+    }
+
+    setView("cart");
   }
 
   return (
@@ -386,9 +397,10 @@ export default function ProductDetailsView({
 
                     <button
                       type="button"
-                      onClick={() => setView("cart")}
-                      className="eg-button rounded-2xl border border-emerald-900 bg-white px-7 py-4 text-base font-black text-emerald-950 hover:bg-emerald-50"
+                      onClick={handleOpenCart}
+                      className="eg-button flex items-center justify-center gap-2 rounded-2xl border border-emerald-900 bg-white px-7 py-4 text-base font-black text-emerald-950 hover:bg-emerald-50"
                     >
+                      <ShoppingBasket size={19} strokeWidth={2.05} />
                       У кошику · перейти
                     </button>
                   </div>
@@ -403,9 +415,14 @@ export default function ProductDetailsView({
                         : "cursor-not-allowed bg-stone-400"
                     }`}
                   >
-                    {available
-                      ? "🛒 Додати в кошик"
-                      : "Немає в наявності"}
+                    {available ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <ShoppingBasket size={19} strokeWidth={2.05} />
+                        Додати в кошик
+                      </span>
+                    ) : (
+                      "Немає в наявності"
+                    )}
                   </button>
                 )}
               </div>
@@ -536,9 +553,10 @@ export default function ProductDetailsView({
 
               <button
                 type="button"
-                onClick={() => setView("cart")}
-                className="eg-button mt-5 w-full rounded-2xl bg-white px-5 py-3 font-black text-emerald-950 hover:bg-emerald-50"
+                onClick={handleOpenCart}
+                className="eg-button mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 font-black text-emerald-950 hover:bg-emerald-50"
               >
+                <ShoppingBasket size={18} strokeWidth={2.05} />
                 Перейти до кошика
               </button>
             </div>

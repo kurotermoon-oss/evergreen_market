@@ -20,6 +20,7 @@ import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import MobileNav from "./components/MobileNav.jsx";
 import FloatingCartButton from "./components/FloatingCartButton.jsx";
+import CartDrawer from "./components/CartDrawer.jsx";
 import AdminProductEditModal from "./components/admin/AdminProductEditModal.jsx";
 import BrandLogo from "./components/BrandLogo.jsx";
 
@@ -63,6 +64,7 @@ function getInitialView() {
 
 export default function App() {
   const [view, setView] = useState(getInitialView);
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [shouldScrollToContacts, setShouldScrollToContacts] = useState(false);
 
   const {
@@ -373,6 +375,14 @@ function applyCustomerToForm(customerData) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function openCartDrawer() {
+    setIsCartDrawerOpen(true);
+  }
+
+  function closeCartDrawer() {
+    setIsCartDrawerOpen(false);
+  }
+
   function openAdminProductEditor(product) {
     if (!isAdmin || !product) return;
 
@@ -534,6 +544,7 @@ return (
           setSelectedProduct={setSelectedProduct}
           isAdmin={isAdmin}
           onAdminEditProduct={openAdminProductEditor}
+          onCartOpen={openCartDrawer}
         />
       )}
 
@@ -631,8 +642,8 @@ return (
       </div>
 
       <FloatingCartButton
-        view={view}
-        setView={setView}
+        isOpen={isCartDrawerOpen}
+        onOpen={openCartDrawer}
         cartCount={cartCount}
       />
 
@@ -640,9 +651,23 @@ return (
         view={view}
         setView={setView}
         onContactsClick={openContacts}
+        onCartOpen={openCartDrawer}
+        isCartOpen={isCartDrawerOpen}
         cartCount={cartCount}
         isAdmin={isAdmin}
         customer={customer}
+      />
+
+      <CartDrawer
+        isOpen={isCartDrawerOpen}
+        cartItems={cartItems}
+        total={total}
+        cartCount={cartCount}
+        changeQuantity={changeQuantity}
+        removeFromCart={removeFromCart}
+        setCart={setCart}
+        setView={setView}
+        onClose={closeCartDrawer}
       />
     </div>
   );

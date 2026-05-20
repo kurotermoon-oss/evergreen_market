@@ -1,4 +1,5 @@
 import Icon from "./Icon.jsx";
+import logoEvergreen from "../img/logo_evergreen.webp";
 import { formatUAH } from "../utils/formatUAH.js";
 import {
   getCategoryName,
@@ -107,7 +108,8 @@ export default function ProductCard({
   }
 
   function handleImageError(event) {
-    event.currentTarget.src = "/logo_evergreen.png";
+    event.currentTarget.src = logoEvergreen;
+    event.currentTarget.alt = "Evergreen coffee";
     event.currentTarget.className =
       "eg-image relative z-10 max-h-[72%] max-w-[72%] object-contain opacity-80 group-hover:scale-[1.04]";
   }
@@ -129,7 +131,7 @@ export default function ProductCard({
         <div className="pointer-events-none absolute inset-4 rounded-[1.5rem] bg-white/45 blur-2xl transition duration-300 group-hover:bg-emerald-100/50 sm:inset-6 sm:rounded-[2rem]" />
 
         <img
-          src={product.image || "/logo_evergreen.png"}
+          src={product.image || logoEvergreen}
           alt={product.name}
           onError={handleImageError}
           className="eg-image relative z-10 max-h-full max-w-full object-contain drop-shadow-sm group-hover:scale-[1.06]"

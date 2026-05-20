@@ -1,3 +1,5 @@
+import { ShoppingBasket } from "lucide-react";
+
 function HomeIcon({ className = "" }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
@@ -48,21 +50,11 @@ function CatalogIcon({ className = "" }) {
 
 function CartIcon({ className = "" }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" aria-hidden="true">
-      <path
-        d="M4 5h2l1.7 9.2a2 2 0 0 0 2 1.6h6.9a2 2 0 0 0 1.9-1.4L20 8H7"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M10 20h.1M17 20h.1"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-    </svg>
+    <ShoppingBasket
+      className={className}
+      aria-hidden="true"
+      strokeWidth={2.05}
+    />
   );
 }
 
@@ -110,6 +102,8 @@ export default function MobileNav({
   view,
   setView,
   onContactsClick,
+  onCartOpen,
+  isCartOpen = false,
   cartCount = 0,
   customer = null,
 }) {
@@ -132,10 +126,11 @@ export default function MobileNav({
       id: "cart",
       label: "Кошик",
       Icon: CartIcon,
-      isActive: view === "cart",
-      onClick: () => setView("cart"),
+      isActive: view === "cart" || isCartOpen,
+      onClick: onCartOpen,
       badge: cartCount,
       hasGlow: cartCount > 0,
+      isDialogTrigger: true,
     },
     {
       id: "contacts",
@@ -173,6 +168,8 @@ export default function MobileNav({
                   : "text-emerald-50/85 hover:bg-white/10 hover:text-white"
             }`}
             aria-label={item.label}
+            aria-haspopup={item.isDialogTrigger ? "dialog" : undefined}
+            aria-expanded={item.isDialogTrigger ? isCartOpen : undefined}
             title={item.label}
           >
             <Icon className="h-5 w-5" />
