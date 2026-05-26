@@ -3,6 +3,45 @@ import { api } from "../api/client.js";
 import { EMPTY_DRAFT_PRODUCT } from "../data/defaults.js";
 import { getAnalyticsDateRange } from "../utils/analyticsDateRange.js";
 
+function getStockQuantityValue(value) {
+  if (value === undefined || value === null) return null;
+
+  const cleanValue = String(value).trim();
+
+  if (!cleanValue) return null;
+
+  const number = Number(cleanValue);
+
+  if (!Number.isFinite(number)) return null;
+
+  return Math.max(0, Math.round(number));
+}
+
+function getProductPayload(product) {
+  const fulfillmentType =
+    product.fulfillmentType === "supplier_order" ? "supplier_order" : "in_stock";
+  const stockQuantity =
+    fulfillmentType === "in_stock"
+      ? getStockQuantityValue(product.stockQuantity)
+      : null;
+
+  return {
+    ...product,
+    fulfillmentType,
+    supplierId: fulfillmentType === "supplier_order" ? product.supplierId || "" : "",
+    stockStatus:
+      fulfillmentType === "supplier_order"
+        ? "preorder"
+        : stockQuantity > 0
+          ? "in_stock"
+          : "out_of_stock",
+    stockQuantity,
+    price: Number(product.price),
+    costPrice: Number(product.costPrice || 0),
+    oldPrice: product.oldPrice ? Number(product.oldPrice) : null,
+  };
+}
+
 export function useAdminData({ loadPublicData, setView }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminProducts, setAdminProducts] = useState([]);
@@ -98,12 +137,15 @@ async function addDraftProduct() {
     return;
   }
 
-  await api.createAdminProduct({
-    ...draftProduct,
-    price: Number(draftProduct.price),
-    costPrice: Number(draftProduct.costPrice || 0),
-    oldPrice: draftProduct.oldPrice ? Number(draftProduct.oldPrice) : null,
-  });
+  if (
+    draftProduct.fulfillmentType !== "supplier_order" &&
+    getStockQuantityValue(draftProduct.stockQuantity) === null
+  ) {
+    alert("Для товару в наявності потрібно вказати кількість.");
+    return;
+  }
+
+  await api.createAdminProduct(getProductPayload(draftProduct));
 
   setDraftProduct(EMPTY_DRAFT_PRODUCT);
 
@@ -156,7 +198,10 @@ async function addDraftProduct() {
       price: String(product.price || ""),
       costPrice: String(product.costPrice || ""),
       oldPrice: product.oldPrice ? String(product.oldPrice) : "",
-      stockQuantity: product.stockQuantity ? String(product.stockQuantity) : "",
+      stockQuantity:
+        product.stockQuantity === null || product.stockQuantity === undefined
+          ? ""
+          : String(product.stockQuantity),
       supplierId: product.supplierId || "",
       fulfillmentType: product.fulfillmentType || "in_stock",
     });
@@ -179,17 +224,18 @@ async function addDraftProduct() {
       return;
     }
 
-    await api.updateAdminProduct(editingProduct.id, {
-      ...editingProduct,
-      price: Number(editingProduct.price),
-      costPrice: Number(editingProduct.costPrice || 0),
-      oldPrice: editingProduct.oldPrice
-        ? Number(editingProduct.oldPrice)
-        : null,
-      stockQuantity: editingProduct.stockQuantity
-        ? Number(editingProduct.stockQuantity)
-        : null,
-    });
+    if (
+      editingProduct.fulfillmentType !== "supplier_order" &&
+      getStockQuantityValue(editingProduct.stockQuantity) === null
+    ) {
+      alert("Для товару в наявності потрібно вказати кількість.");
+      return;
+    }
+
+    await api.updateAdminProduct(
+      editingProduct.id,
+      getProductPayload(editingProduct)
+    );
 
     setEditingProduct(null);
 

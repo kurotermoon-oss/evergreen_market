@@ -231,6 +231,12 @@ const STOCK_STATUSES = new Set([
   "out_of_stock",
 ]);
 
+const TRACKED_STOCK_STATUSES = new Set([
+  "in_stock",
+  "limited",
+  "out_of_stock",
+]);
+
 const FULFILLMENT_TYPES = new Set(["in_stock", "supplier_order"]);
 
 function toCleanString(value, fallback = "") {
@@ -664,12 +670,32 @@ function normalizeStockStatus(value, fallback = "in_stock") {
   return "in_stock";
 }
 
-function normalizeStockQuantity(stockStatus, value, fallback = 0) {
-  if (stockStatus !== "limited") {
+function normalizeStockQuantity(stockStatus, value, fallback = null) {
+  if (!TRACKED_STOCK_STATUSES.has(stockStatus)) {
     return null;
   }
 
-  return Math.max(0, toNumber(value, fallback));
+  if (value === undefined || value === null || value === "") {
+    return fallback === null || fallback === undefined
+      ? null
+      : Math.max(0, toNumber(fallback));
+  }
+
+  return Math.max(0, Math.round(toNumber(value, fallback || 0)));
+}
+
+function hasTrackedStock(product) {
+  return (
+    product &&
+    TRACKED_STOCK_STATUSES.has(product.stockStatus) &&
+    product.stockQuantity !== null &&
+    product.stockQuantity !== undefined &&
+    product.stockQuantity !== ""
+  );
+}
+
+function getTrackedStockQuantity(product) {
+  return hasTrackedStock(product) ? Number(product.stockQuantity || 0) : null;
 }
 
 function createLocalValidationError(message, status = 400) {
@@ -808,8 +834,20 @@ function normalizeLocalSupplierPayload(payload = {}, current = {}) {
 
 function buildProductFromRequest(db, body) {
   const categoryData = resolveProductCategory(db, body);
-  const stockStatus = normalizeStockStatus(body.stockStatus);
   const supplierFields = normalizeLocalProductSupplierFields(db, body);
+  let stockStatus =
+    supplierFields.fulfillmentType === "supplier_order"
+      ? "preorder"
+      : normalizeStockStatus(body.stockStatus);
+  const stockQuantity = normalizeStockQuantity(stockStatus, body.stockQuantity);
+
+  if (
+    supplierFields.fulfillmentType !== "supplier_order" &&
+    stockQuantity !== null &&
+    ["in_stock", "out_of_stock"].includes(stockStatus)
+  ) {
+    stockStatus = stockQuantity > 0 ? "in_stock" : "out_of_stock";
+  }
 
   return {
     id: db.nextProductId,
@@ -846,7 +884,7 @@ function buildProductFromRequest(db, body) {
     purchaseCount: toNumber(body.purchaseCount),
 
     stockStatus,
-    stockQuantity: normalizeStockQuantity(stockStatus, body.stockQuantity),
+    stockQuantity,
     supplierId: supplierFields.supplierId,
     fulfillmentType: supplierFields.fulfillmentType,
 
@@ -856,10 +894,6 @@ function buildProductFromRequest(db, body) {
 }
 
 function buildUpdatedProduct(current, body, categoryData, db = null) {
-  const nextStockStatus = normalizeStockStatus(
-    body.stockStatus,
-    current.stockStatus || "in_stock"
-  );
   const supplierFields = db
     ? normalizeLocalProductSupplierFields(db, body, current)
     : {
@@ -869,6 +903,22 @@ function buildUpdatedProduct(current, body, categoryData, db = null) {
           current.fulfillmentType || "in_stock"
         ),
       };
+  let nextStockStatus =
+    supplierFields.fulfillmentType === "supplier_order"
+      ? "preorder"
+      : normalizeStockStatus(body.stockStatus, current.stockStatus || "in_stock");
+  const nextStockQuantity = normalizeStockQuantity(
+    nextStockStatus,
+    body.stockQuantity === undefined ? current.stockQuantity : body.stockQuantity
+  );
+
+  if (
+    supplierFields.fulfillmentType !== "supplier_order" &&
+    nextStockQuantity !== null &&
+    ["in_stock", "out_of_stock"].includes(nextStockStatus)
+  ) {
+    nextStockStatus = nextStockQuantity > 0 ? "in_stock" : "out_of_stock";
+  }
 
   return {
     ...current,
@@ -977,15 +1027,7 @@ function buildUpdatedProduct(current, body, categoryData, db = null) {
 
     stockStatus: nextStockStatus,
 
-    stockQuantity:
-      nextStockStatus === "limited"
-        ? normalizeStockQuantity(
-            nextStockStatus,
-            body.stockQuantity === undefined
-              ? current.stockQuantity
-              : body.stockQuantity
-          )
-        : null,
+    stockQuantity: nextStockQuantity,
 
     supplierId: supplierFields.supplierId,
     fulfillmentType: supplierFields.fulfillmentType,
@@ -2389,9 +2431,11 @@ app.post("/api/orders", async (req, res) => {
           });
         }
 
+        const trackedStockQuantity = getTrackedStockQuantity(product);
+
         if (
-          product.stockStatus === "limited" &&
-          Number(product.stockQuantity || 0) < quantity
+          trackedStockQuantity !== null &&
+          trackedStockQuantity < quantity
         ) {
           return res.status(400).json({
             error: "VALIDATION_ERROR",
@@ -2675,9 +2719,11 @@ app.post("/api/orders", async (req, res) => {
         });
       }
 
+      const trackedStockQuantity = getTrackedStockQuantity(product);
+
       if (
-        product.stockStatus === "limited" &&
-        Number(product.stockQuantity || 0) < quantity
+        trackedStockQuantity !== null &&
+        trackedStockQuantity < quantity
       ) {
         return res.status(400).json({
           error: "VALIDATION_ERROR",
@@ -2796,6 +2842,21 @@ app.post("/api/orders", async (req, res) => {
 
     db.nextOrderNumber += 1;
     db.orders.unshift(order);
+
+    for (const orderItem of orderItems) {
+      const product = db.products.find((productItem) => {
+        return String(productItem.id) === String(orderItem.productId);
+      });
+
+      if (!hasTrackedStock(product)) continue;
+
+      product.stockQuantity = Math.max(
+        0,
+        Number(product.stockQuantity || 0) - Number(orderItem.quantity || 0)
+      );
+      product.stockStatus =
+        Number(product.stockQuantity || 0) > 0 ? "in_stock" : "out_of_stock";
+    }
 
     writeDatabase(db);
 

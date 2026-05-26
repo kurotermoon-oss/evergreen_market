@@ -3,6 +3,14 @@ import Icon from "../Icon.jsx";
 import { formatUAH } from "../../utils/formatUAH.js";
 
 function getStockLabel(product) {
+  if (
+    product.stockQuantity !== null &&
+    product.stockQuantity !== undefined &&
+    product.stockQuantity !== ""
+  ) {
+    return `Залишилось: ${Number(product.stockQuantity || 0)}`;
+  }
+
   if (product.stockStatus === "out_of_stock") return "Немає";
   if (product.stockStatus === "limited") {
     return `Залишилось: ${product.stockQuantity || 0}`;

@@ -392,6 +392,32 @@ async function buildProductData(payload, existingProduct = null) {
     payload.supplierId ?? existingProduct?.supplierId,
     fulfillmentType
   );
+  const hasStockQuantityPayload = Object.prototype.hasOwnProperty.call(
+    payload,
+    "stockQuantity"
+  );
+  let stockStatus =
+    fulfillmentType === "supplier_order"
+      ? "preorder"
+      : toCleanString(payload.stockStatus ?? existingProduct?.stockStatus) ||
+        "in_stock";
+  const stockQuantity =
+    fulfillmentType === "supplier_order"
+      ? null
+      : toNullableInt(
+          hasStockQuantityPayload
+            ? payload.stockQuantity
+            : existingProduct?.stockQuantity,
+          "Кількість на складі"
+        );
+
+  if (
+    fulfillmentType !== "supplier_order" &&
+    stockQuantity !== null &&
+    ["in_stock", "out_of_stock"].includes(stockStatus)
+  ) {
+    stockStatus = stockQuantity > 0 ? "in_stock" : "out_of_stock";
+  }
 
   return {
     name,
@@ -450,13 +476,8 @@ async function buildProductData(payload, existingProduct = null) {
     statusLabel: toCleanString(
       payload.statusLabel ?? existingProduct?.statusLabel
     ),
-    stockStatus:
-      toCleanString(payload.stockStatus ?? existingProduct?.stockStatus) ||
-      "in_stock",
-    stockQuantity: toNullableInt(
-      payload.stockQuantity ?? existingProduct?.stockQuantity,
-      "Кількість на складі"
-    ),
+    stockStatus,
+    stockQuantity,
 
     active:
       payload.active === undefined

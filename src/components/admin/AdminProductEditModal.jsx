@@ -146,12 +146,15 @@ export default function AdminProductEditModal({
     Boolean(editingProduct.category) || hasNewCategory;
 
   function updateFulfillmentType(value) {
+    const isSupplierOrder = value === "supplier_order";
+
     updateFields({
       fulfillmentType: value,
-      supplierId:
-        value === "supplier_order"
-          ? editingProduct.supplierId || activeSuppliers[0]?.id || ""
-          : editingProduct.supplierId || "",
+      supplierId: isSupplierOrder
+        ? editingProduct.supplierId || activeSuppliers[0]?.id || ""
+        : "",
+      stockStatus: isSupplierOrder ? "preorder" : "in_stock",
+      stockQuantity: isSupplierOrder ? "" : editingProduct.stockQuantity || "",
     });
   }
 
@@ -380,7 +383,7 @@ export default function AdminProductEditModal({
 
             <FormSection
               title="Наявність"
-              description="Кількість списується тільки для обмеженого залишку."
+              description="Точну кількість бачить тільки адмінка. На сайті клієнт бачить лише статус."
             >
               <div className="grid gap-2 sm:grid-cols-2">
                 <select
@@ -401,7 +404,11 @@ export default function AdminProductEditModal({
                   onChange={(event) =>
                     updateField("supplierId", event.target.value)
                   }
-                  className={getFieldClass()}
+                  className={`${getFieldClass()} ${
+                    editingProduct.fulfillmentType === "supplier_order"
+                      ? ""
+                      : "hidden"
+                  }`}
                 >
                   <option value="">
                     {editingProduct.fulfillmentType === "supplier_order"
@@ -417,54 +424,29 @@ export default function AdminProductEditModal({
                   ))}
                 </select>
 
-                <select
-                  value={editingProduct.stockStatus || "in_stock"}
-                  onChange={(event) => {
-                    const nextStatus = event.target.value;
-
-                    updateFields({
-                      stockStatus: nextStatus,
-                      stockQuantity:
-                        nextStatus === "limited"
-                          ? editingProduct.stockQuantity || "1"
-                          : "",
-                    });
-                  }}
-                  className={getFieldClass()}
-                >
-                  <option value="in_stock">У наявності</option>
-                  <option value="limited">Обмежена кількість</option>
-                  <option value="preorder">Під замовлення</option>
-                  <option value="out_of_stock">Немає в наявності</option>
-                </select>
-
                 <TextInput
                   value={editingProduct.stockQuantity || ""}
                   onChange={(event) =>
                     updateField("stockQuantity", event.target.value)
                   }
-                  placeholder={
-                    editingProduct.stockStatus === "limited"
-                      ? "Кількість"
-                      : "Недоступно для цього статусу"
-                  }
+                  placeholder="Кількість на складі"
                   type="number"
                   min="0"
                   max="999999"
-                  disabled={editingProduct.stockStatus !== "limited"}
+                  disabled={editingProduct.fulfillmentType === "supplier_order"}
+                  className={
+                    editingProduct.fulfillmentType === "supplier_order"
+                      ? "hidden"
+                      : ""
+                  }
                 />
               </div>
 
-              {editingProduct.stockStatus === "limited" ? (
-                <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
-                  Залишок буде зменшуватися після замовлення і повертатися при
-                  скасуванні.
-                </p>
-              ) : (
-                <p className="rounded-xl bg-white px-3 py-2 text-xs leading-5 text-stone-500">
-                  Для звичайного статусу точний залишок не списується.
-                </p>
-              )}
+              <p className="rounded-xl bg-white px-3 py-2 text-xs leading-5 text-stone-500">
+                {editingProduct.fulfillmentType === "supplier_order"
+                  ? "Товар продається під замовлення у вибраного постачальника."
+                  : "Кількість списується після замовлення і повертається при скасуванні."}
+              </p>
             </FormSection>
 
             <FormSection title="Відображення">

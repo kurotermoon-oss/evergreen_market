@@ -138,14 +138,19 @@ function restoreStockForCancelledOrder(db, order) {
 
     if (!product) continue;
 
-    if (product.stockStatus === "out_of_stock") {
-      product.stockStatus = "limited";
+    if (
+      !["in_stock", "limited", "out_of_stock"].includes(product.stockStatus) ||
+      product.stockQuantity === null ||
+      product.stockQuantity === undefined ||
+      product.stockQuantity === ""
+    ) {
+      continue;
     }
 
-    if (product.stockStatus === "limited") {
-      product.stockQuantity =
-        Number(product.stockQuantity || 0) + Number(orderItem.quantity || 0);
-    }
+    product.stockQuantity =
+      Number(product.stockQuantity || 0) + Number(orderItem.quantity || 0);
+    product.stockStatus =
+      Number(product.stockQuantity || 0) > 0 ? "in_stock" : "out_of_stock";
   }
 
   order.stockRestoredAt = nowIso();

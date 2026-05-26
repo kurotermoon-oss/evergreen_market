@@ -250,6 +250,15 @@ async function getProductsForOrder(rawItems = []) {
   });
 }
 
+function isTrackedStockProduct(product) {
+  return (
+    product &&
+    product.stockQuantity !== null &&
+    product.stockQuantity !== undefined &&
+    ["in_stock", "limited", "out_of_stock"].includes(product.stockStatus)
+  );
+}
+
 async function reserveOrderStock(db, items = []) {
   for (const item of items) {
     const productId = String(item.productId || "").trim();
@@ -260,7 +269,9 @@ async function reserveOrderStock(db, items = []) {
     const result = await db.product.updateMany({
       where: {
         id: productId,
-        stockStatus: "limited",
+        stockStatus: {
+          in: ["in_stock", "limited"],
+        },
         stockQuantity: {
           gte: quantity,
         },
@@ -271,6 +282,26 @@ async function reserveOrderStock(db, items = []) {
         },
       },
     });
+
+    if (result.count > 0) {
+      await db.product.updateMany({
+        where: {
+          id: productId,
+          stockStatus: {
+            in: ["in_stock", "limited"],
+          },
+          stockQuantity: {
+            lte: 0,
+          },
+        },
+        data: {
+          stockStatus: "out_of_stock",
+          stockQuantity: 0,
+        },
+      });
+
+      continue;
+    }
 
     if (result.count === 0) {
       const product = await db.product.findUnique({
@@ -284,7 +315,7 @@ async function reserveOrderStock(db, items = []) {
         },
       });
 
-      if (product?.stockStatus === "limited") {
+      if (isTrackedStockProduct(product)) {
         const error = new Error(
           `Недостатньо ${product.name || "товару"} на складі.`
         );
@@ -305,7 +336,9 @@ async function restoreOrderStock(db, items = []) {
     await db.product.updateMany({
       where: {
         id: productId,
-        stockStatus: "limited",
+        stockStatus: {
+          in: ["in_stock", "limited", "out_of_stock"],
+        },
         stockQuantity: {
           not: null,
         },
@@ -314,6 +347,7 @@ async function restoreOrderStock(db, items = []) {
         stockQuantity: {
           increment: quantity,
         },
+        stockStatus: "in_stock",
       },
     });
   }

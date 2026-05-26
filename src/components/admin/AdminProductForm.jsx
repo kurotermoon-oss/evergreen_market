@@ -29,6 +29,7 @@ function TextInput({
   placeholder,
   type = "text",
   className = "",
+  ...props
 }) {
   return (
     <input
@@ -37,6 +38,7 @@ function TextInput({
       type={type}
       placeholder={placeholder}
       className={getFieldClass(className)}
+      {...props}
     />
   );
 }
@@ -97,13 +99,16 @@ export default function AdminProductForm({
   });
 
   function updateFulfillmentType(value) {
+    const isSupplierOrder = value === "supplier_order";
+
     setDraftProduct({
       ...draftProduct,
       fulfillmentType: value,
-      supplierId:
-        value === "supplier_order"
-          ? draftProduct.supplierId || activeSuppliers[0]?.id || ""
-          : draftProduct.supplierId || "",
+      supplierId: isSupplierOrder
+        ? draftProduct.supplierId || activeSuppliers[0]?.id || ""
+        : "",
+      stockStatus: isSupplierOrder ? "preorder" : "in_stock",
+      stockQuantity: isSupplierOrder ? "" : draftProduct.stockQuantity || "",
     });
   }
 
@@ -298,7 +303,11 @@ export default function AdminProductForm({
                 onChange={(event) =>
                   updateField("supplierId", event.target.value)
                 }
-                className={getFieldClass()}
+                className={`${getFieldClass()} ${
+                  draftProduct.fulfillmentType === "supplier_order"
+                    ? ""
+                    : "hidden"
+                }`}
               >
                 <option value="">
                   {draftProduct.fulfillmentType === "supplier_order"
@@ -314,27 +323,7 @@ export default function AdminProductForm({
                 ))}
               </select>
 
-              <select
-                value={draftProduct.stockStatus || "in_stock"}
-                onChange={(event) =>
-                  setDraftProduct({
-                    ...draftProduct,
-                    stockStatus: event.target.value,
-                    stockQuantity:
-                      event.target.value === "limited"
-                        ? draftProduct.stockQuantity || ""
-                        : "",
-                  })
-                }
-                className={getFieldClass()}
-              >
-                <option value="in_stock">У наявності</option>
-                <option value="limited">Мало в наявності</option>
-                <option value="preorder">Під замовлення</option>
-                <option value="out_of_stock">Немає в наявності</option>
-              </select>
-
-              {draftProduct.stockStatus === "limited" && (
+              {draftProduct.fulfillmentType !== "supplier_order" && (
                 <TextInput
                   value={draftProduct.stockQuantity || ""}
                   onChange={(event) =>
@@ -342,6 +331,8 @@ export default function AdminProductForm({
                   }
                   placeholder="Кількість на складі"
                   type="number"
+                  min="0"
+                  max="999999"
                 />
               )}
             </div>

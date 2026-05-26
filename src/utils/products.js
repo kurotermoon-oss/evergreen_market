@@ -107,8 +107,23 @@ export function getFulfillmentLabel(product) {
   return isSupplierOrderProduct(product) ? "Під замовлення" : "Є в наявності";
 }
 
+function getTrackedStockQuantity(product) {
+  if (
+    product?.stockQuantity === null ||
+    product?.stockQuantity === undefined ||
+    product?.stockQuantity === ""
+  ) {
+    return null;
+  }
+
+  const quantity = Number(product.stockQuantity);
+
+  return Number.isFinite(quantity) ? quantity : null;
+}
+
 export function getStockLabel(product) {
   const status = product?.stockStatus || "in_stock";
+  const trackedQuantity = getTrackedStockQuantity(product);
 
   if (isSupplierOrderProduct(product) && status !== "out_of_stock") {
     if (!product?.supplierId || !product?.supplier) {
@@ -122,7 +137,10 @@ export function getStockLabel(product) {
     return "Під замовлення";
   }
 
-  if (status === "out_of_stock") return "Немає в наявності";
+  if (status === "out_of_stock" || trackedQuantity === 0) {
+    return "Немає в наявності";
+  }
+
   if (status === "limited" || status === "low_stock") return "Мало в наявності";
   if (status === "preorder") return "Під замовлення";
 
@@ -131,8 +149,9 @@ export function getStockLabel(product) {
 
 export function getStockTone(product) {
   const status = product?.stockStatus || "in_stock";
+  const trackedQuantity = getTrackedStockQuantity(product);
 
-  if (status === "out_of_stock") {
+  if (status === "out_of_stock" || trackedQuantity === 0) {
     return "bg-red-50 text-red-700";
   }
 
@@ -161,6 +180,10 @@ export function isProductAvailable(product) {
   if (isSupplierOrderProduct(product)) {
     return Boolean(product.supplierId && product.supplier?.isActive !== false);
   }
+
+  const trackedQuantity = getTrackedStockQuantity(product);
+
+  if (trackedQuantity !== null && trackedQuantity <= 0) return false;
 
   return true;
 }
