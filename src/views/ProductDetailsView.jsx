@@ -384,17 +384,18 @@ export default function ProductDetailsView({
 
               <div className="mt-6">
                 {cartQty > 0 ? (
-                  <div className="grid gap-3 sm:grid-cols-[auto_1fr]">
-                    <div className="flex items-center overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-lg shadow-emerald-900/20">
+                  <div className="grid grid-cols-[8.25rem_minmax(0,1fr)] gap-2 sm:grid-cols-[auto_1fr] sm:gap-3">
+                    <div className="flex h-14 w-full max-w-[8.25rem] items-center overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-lg shadow-emerald-900/20">
                       <button
                         type="button"
                         onClick={handleDecrease}
-                        className="eg-counter-button px-5 py-4 text-lg font-black hover:bg-emerald-800"
+                        className="eg-counter-button flex h-full w-10 shrink-0 items-center justify-center text-lg font-black hover:bg-emerald-800 sm:w-12"
+                        aria-label="Зменшити кількість"
                       >
-                        −
+                        <Icon name="minus" size={15} />
                       </button>
 
-                      <span className="min-w-12 px-2 text-center text-base font-black">
+                      <span className="flex h-full min-w-0 flex-1 items-center justify-center px-1 text-center text-base font-black">
                         {cartQty}
                       </span>
 
@@ -402,19 +403,21 @@ export default function ProductDetailsView({
                         type="button"
                         onClick={handleIncrease}
                         disabled={!available}
-                        className="eg-counter-button px-5 py-4 text-lg font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+                        className="eg-counter-button flex h-full w-10 shrink-0 items-center justify-center text-lg font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400 sm:w-12"
+                        aria-label="Збільшити кількість"
                       >
-                        +
+                        <Icon name="plus" size={15} />
                       </button>
                     </div>
 
                     <button
                       type="button"
                       onClick={handleOpenCart}
-                      className="eg-button flex items-center justify-center gap-2 rounded-2xl border border-emerald-900 bg-white px-7 py-4 text-base font-black text-emerald-950 hover:bg-emerald-50"
+                      className="eg-button flex h-14 min-w-0 items-center justify-center gap-2 rounded-2xl border border-emerald-900 bg-white px-3 text-sm font-black text-emerald-950 hover:bg-emerald-50 sm:px-7 sm:text-base"
                     >
                       <ShoppingBasket size={19} strokeWidth={2.05} />
-                      У кошику · перейти
+                      <span className="sm:hidden">У кошик</span>
+                      <span className="hidden sm:inline">У кошику · перейти</span>
                     </button>
                   </div>
                 ) : (
