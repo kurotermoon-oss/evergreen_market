@@ -1,4 +1,6 @@
 import {
+  Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -47,6 +49,14 @@ function getProductWord(count) {
   return "товарів";
 }
 
+const SORT_OPTIONS = [
+  { value: "default", label: "За замовчуванням" },
+  { value: "popular", label: "Популярні" },
+  { value: "price-asc", label: "Спочатку дешевші" },
+  { value: "price-desc", label: "Спочатку дорожчі" },
+  { value: "name-asc", label: "За назвою" },
+];
+
 export default function CatalogView({
   categories,
   products = [],
@@ -87,7 +97,9 @@ export default function CatalogView({
 }) {
   const catalogToolbarShellRef = useRef(null);
   const catalogToolbarRef = useRef(null);
+  const sortMenuRef = useRef(null);
   const [isCatalogMenuOpen, setIsCatalogMenuOpen] = useState(false);
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [isCatalogToolbarPinned, setIsCatalogToolbarPinned] = useState(false);
   const [catalogToolbarHeight, setCatalogToolbarHeight] = useState(0);
   const [hoveredCategoryId, setHoveredCategoryId] = useState(null);
@@ -224,6 +236,20 @@ export default function CatalogView({
       ? "Каталог товарів"
       : activeCategory?.name || "Каталог товарів";
 
+  const selectedSortOption =
+    SORT_OPTIONS.find((option) => option.value === sortBy) || SORT_OPTIONS[0];
+
+  const catalogResultsKey = [
+    selectedFulfillmentType,
+    selectedSupplierId,
+    selectedCategory,
+    selectedSubcategory,
+    query,
+    sortBy,
+    currentPage,
+    visibleProducts.map((product) => product.id).join("-"),
+  ].join("|");
+
   useEffect(() => {
     setSelectedBrands([]);
   }, [setSelectedBrands]);
@@ -289,6 +315,30 @@ export default function CatalogView({
       window.scrollTo({ top: lockedScrollY, behavior: "auto" });
     };
   }, [isCatalogMenuOpen]);
+
+  useEffect(() => {
+    if (!isSortMenuOpen) return undefined;
+
+    function handlePointerDown(event) {
+      if (sortMenuRef.current?.contains(event.target)) return;
+
+      setIsSortMenuOpen(false);
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setIsSortMenuOpen(false);
+      }
+    }
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isSortMenuOpen]);
 
   useEffect(() => {
     if (!isCatalogMenuOpen) return undefined;
@@ -413,6 +463,12 @@ export default function CatalogView({
     closeCatalogMenu();
   }
 
+  function selectSortOption(value) {
+    setSortBy(value);
+    setCurrentPage(1);
+    setIsSortMenuOpen(false);
+  }
+
   return (
     <main
       id="catalog"
@@ -463,21 +519,58 @@ export default function CatalogView({
                 />
               </label>
 
-              <div className="min-w-0 sm:shrink-0">
-                <select
-                  value={sortBy}
-                  onChange={(event) => {
-                    setSortBy(event.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="eg-field min-h-12 w-full rounded-[1.15rem] border border-stone-100 bg-white/90 px-4 text-sm font-semibold text-stone-800 outline-none shadow-sm shadow-stone-900/[0.03] backdrop-blur focus:border-emerald-700 sm:min-h-[58px] sm:w-auto sm:min-w-[220px] sm:rounded-[1.35rem] sm:px-5 sm:text-base"
+              <div ref={sortMenuRef} className="relative min-w-0 sm:shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsSortMenuOpen((current) => !current)}
+                  aria-haspopup="listbox"
+                  aria-expanded={isSortMenuOpen}
+                  className={`eg-field flex min-h-12 w-full items-center justify-between gap-4 rounded-[1.15rem] border bg-white/92 px-4 text-left text-sm font-semibold text-stone-800 outline-none shadow-sm shadow-stone-900/[0.03] backdrop-blur sm:min-h-[58px] sm:w-auto sm:min-w-[240px] sm:rounded-[1.35rem] sm:px-5 sm:text-base ${
+                    isSortMenuOpen
+                      ? "border-emerald-700 shadow-lg shadow-emerald-950/10 ring-4 ring-emerald-100/70"
+                      : "border-stone-100 hover:border-emerald-200 hover:bg-white"
+                  }`}
                 >
-                  <option value="default">За замовчуванням</option>
-                  <option value="popular">Популярні</option>
-                  <option value="price-asc">Спочатку дешевші</option>
-                  <option value="price-desc">Спочатку дорожчі</option>
-                  <option value="name-asc">За назвою</option>
-                </select>
+                  <span className="truncate">{selectedSortOption.label}</span>
+                  <ChevronDown
+                    size={18}
+                    className={`shrink-0 text-emerald-900 transition-transform duration-200 ${
+                      isSortMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {isSortMenuOpen && (
+                  <div
+                    className="eg-sort-menu absolute right-0 top-full z-[95] mt-2 w-full min-w-[240px] overflow-hidden rounded-[1.35rem] border border-emerald-100 bg-white/96 p-1.5 shadow-2xl shadow-emerald-950/14 ring-1 ring-white/80 backdrop-blur-2xl"
+                    role="listbox"
+                    aria-label="Сортування товарів"
+                  >
+                    {SORT_OPTIONS.map((option) => {
+                      const isSelected = option.value === sortBy;
+
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => selectSortOption(option.value)}
+                          role="option"
+                          aria-selected={isSelected}
+                          className={`eg-button flex min-h-11 w-full items-center justify-between gap-3 rounded-[1rem] px-4 text-left text-sm font-black sm:text-[15px] ${
+                            isSelected
+                              ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/18"
+                              : "text-stone-800 hover:bg-emerald-50 hover:text-emerald-950"
+                          }`}
+                        >
+                          <span className="truncate">{option.label}</span>
+                          {isSelected && (
+                            <Check className="h-4 w-4 shrink-0" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -973,7 +1066,10 @@ export default function CatalogView({
 
       <section className="min-w-0">
           {visibleProducts.length > 0 ? (
-            <div className="eg-stagger grid grid-cols-1 gap-3 min-[430px]:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+            <div
+              key={catalogResultsKey}
+              className="eg-catalog-results grid grid-cols-1 gap-3 min-[430px]:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
+            >
               {visibleProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -988,7 +1084,10 @@ export default function CatalogView({
               ))}
             </div>
           ) : (
-            <div className="eg-panel rounded-[2rem] border border-dashed border-stone-200 bg-white p-10 text-center shadow-sm">
+            <div
+              key={catalogResultsKey}
+              className="eg-catalog-results eg-panel rounded-[2rem] border border-dashed border-stone-200 bg-white p-10 text-center shadow-sm"
+            >
               <p className="text-xl font-black text-stone-950">
                 Товарів не знайдено
               </p>

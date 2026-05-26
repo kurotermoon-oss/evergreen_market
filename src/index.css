@@ -74,6 +74,30 @@ body {
   }
 }
 
+@keyframes egCatalogRefresh {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes egSortMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes egOverlayFade {
   from {
     opacity: 0;
@@ -156,12 +180,22 @@ body {
   transform: none !important;
 }
 
+.eg-fixed-actions-page {
+  animation: none;
+  transform: none !important;
+}
+
 .eg-panel {
   animation: egSoftPop var(--eg-motion-slow) var(--eg-ease-soft) both;
 }
 
 .eg-menu {
   animation: egSlideDown var(--eg-motion-slow) var(--eg-ease-soft) both;
+}
+
+.eg-sort-menu {
+  transform-origin: top right;
+  animation: egSortMenuIn var(--eg-motion-base) var(--eg-ease-soft) both;
 }
 
 .eg-overlay {
@@ -273,6 +307,42 @@ body {
   animation-delay: 240ms;
 }
 
+.eg-catalog-results > * {
+  animation: egCatalogRefresh var(--eg-motion-slow) var(--eg-ease-soft) both;
+}
+
+.eg-catalog-results > *:nth-child(1) {
+  animation-delay: 30ms;
+}
+
+.eg-catalog-results > *:nth-child(2) {
+  animation-delay: 60ms;
+}
+
+.eg-catalog-results > *:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.eg-catalog-results > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.eg-catalog-results > *:nth-child(5) {
+  animation-delay: 150ms;
+}
+
+.eg-catalog-results > *:nth-child(6) {
+  animation-delay: 180ms;
+}
+
+.eg-catalog-results > *:nth-child(7) {
+  animation-delay: 210ms;
+}
+
+.eg-catalog-results > *:nth-child(8) {
+  animation-delay: 240ms;
+}
+
 /* Form animation */
 
 .eg-field {
@@ -359,6 +429,15 @@ body {
 
 .modal-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #14532d;
+}
+
+.eg-similar-carousel {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.eg-similar-carousel::-webkit-scrollbar {
+  display: none;
 }
 
 .eg-catalog-toolbar {

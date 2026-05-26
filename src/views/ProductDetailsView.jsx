@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { ShoppingBasket } from "lucide-react";
 import Icon from "../components/Icon.jsx";
 import ProductCard from "../components/ProductCard.jsx";
@@ -62,6 +63,33 @@ export default function ProductDetailsView({
   onAdminEditProduct,
   onCartOpen,
 }) {
+  const similarCarouselRef = useRef(null);
+  const inlineActionsRef = useRef(null);
+  const [activeSimilarIndex, setActiveSimilarIndex] = useState(0);
+  const [showFloatingActions, setShowFloatingActions] = useState(true);
+
+  useEffect(() => {
+    const node = inlineActionsRef.current;
+
+    if (!product || !node || typeof IntersectionObserver === "undefined") {
+      setShowFloatingActions(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowFloatingActions(!entry.isIntersecting);
+      },
+      {
+        threshold: 0.35,
+      }
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, [product?.id]);
+
   if (!product) {
     return (
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -118,7 +146,12 @@ export default function ProductDetailsView({
         String(item.id) !== String(product.id)
       );
     })
-    .slice(0, 3);
+    .slice(0, 8);
+
+  const activeSimilarProductIndex = Math.min(
+    activeSimilarIndex,
+    Math.max(similarProducts.length - 1, 0)
+  );
 
   const benefits = parseTextList(product.benefits);
 
@@ -179,8 +212,128 @@ export default function ProductDetailsView({
     setView("cart");
   }
 
+  function renderPurchaseActions(isFloating = false) {
+    if (cartQty > 0) {
+      return (
+        <div
+          className={`grid gap-3 ${
+            isFloating
+              ? "grid-cols-[7.25rem_minmax(0,1fr)] gap-2"
+              : "grid-cols-[8.25rem_minmax(0,1fr)] gap-2 sm:grid-cols-[auto_1fr] sm:gap-3"
+          }`}
+        >
+          <div
+            className={`flex h-14 w-full items-center overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-lg shadow-emerald-900/20 ${
+              isFloating ? "max-w-[7.25rem]" : "max-w-[8.25rem]"
+            }`}
+          >
+            <button
+              type="button"
+              onClick={handleDecrease}
+              className="eg-counter-button flex h-full w-10 shrink-0 items-center justify-center text-lg font-black hover:bg-emerald-800 sm:w-12"
+              aria-label="Зменшити кількість"
+            >
+              <Icon name="minus" size={15} />
+            </button>
+
+            <span
+              className={`flex h-full min-w-0 flex-1 items-center justify-center px-1 text-center font-black ${
+                isFloating ? "text-sm" : "text-base"
+              }`}
+            >
+              {cartQty}
+            </span>
+
+            <button
+              type="button"
+              onClick={handleIncrease}
+              disabled={!available}
+              className="eg-counter-button flex h-full w-10 shrink-0 items-center justify-center text-lg font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400 sm:w-12"
+              aria-label="Збільшити кількість"
+            >
+              <Icon name="plus" size={15} />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleOpenCart}
+            className={`eg-button flex h-14 min-w-0 items-center justify-center gap-2 rounded-2xl border border-emerald-900 bg-white font-black text-emerald-950 hover:bg-emerald-50 ${
+              isFloating ? "px-3 text-sm" : "px-3 text-sm sm:px-7 sm:text-base"
+            }`}
+          >
+            <ShoppingBasket size={isFloating ? 17 : 19} strokeWidth={2.05} />
+            <span className="truncate sm:hidden">У кошик</span>
+            <span className="hidden truncate sm:inline">У кошику · перейти</span>
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={handleAdd}
+        disabled={!available}
+        className={`eg-button eg-sweep w-full rounded-2xl font-black text-white ${
+          isFloating ? "px-5 py-3.5 text-sm" : "px-7 py-4 text-base"
+        } ${
+          available
+            ? "bg-emerald-900 hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
+            : "cursor-not-allowed bg-stone-400"
+        }`}
+      >
+        {available ? (
+          <span className="flex items-center justify-center gap-2">
+            <ShoppingBasket size={isFloating ? 17 : 19} strokeWidth={2.05} />
+            Додати в кошик
+          </span>
+        ) : (
+          "Немає в наявності"
+        )}
+      </button>
+    );
+  }
+
+  function scrollSimilarProduct(index) {
+    const card = similarCarouselRef.current?.children?.[index];
+
+    if (!card) return;
+
+    card.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+
+    setActiveSimilarIndex(index);
+  }
+
+  function handleSimilarCarouselScroll(event) {
+    const carousel = event.currentTarget;
+    const cards = Array.from(carousel.children);
+
+    if (!cards.length) return;
+
+    const nextIndex = cards.reduce(
+      (closestIndex, card, index) => {
+        const currentDistance = Math.abs(card.offsetLeft - carousel.scrollLeft);
+        const closestDistance = Math.abs(
+          cards[closestIndex].offsetLeft - carousel.scrollLeft
+        );
+
+        return currentDistance < closestDistance ? index : closestIndex;
+      },
+      0
+    );
+
+    setActiveSimilarIndex((currentIndex) =>
+      currentIndex === nextIndex ? currentIndex : nextIndex
+    );
+  }
+
   return (
-    <main className="eg-ambient mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <main className="eg-ambient mx-auto max-w-7xl px-4 pb-44 pt-8 sm:px-6 md:pb-32 lg:px-8">
       {/* BREADCRUMBS */}
 
       <nav className="mb-6 flex min-w-0 flex-wrap items-center gap-2 text-sm text-stone-500">
@@ -245,6 +398,38 @@ export default function ProductDetailsView({
       {/* PRODUCT HERO */}
 
       <section className="eg-glass eg-premium-card min-w-0 overflow-hidden rounded-[2.4rem] p-5 lg:p-8">
+        <div className="mb-5 min-w-0 lg:hidden">
+          <p
+            className={`text-xs font-black uppercase tracking-[0.2em] text-emerald-700 ${SAFE_TEXT_CLASS}`}
+          >
+            {category}
+            {product.brand ? ` · ${product.brand}` : ""}
+          </p>
+
+          <h1
+            className={`mt-3 text-3xl font-medium leading-tight text-stone-950 ${SAFE_TEXT_CLASS}`}
+          >
+            {product.name}
+          </h1>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex rounded-full px-3 py-1.5 text-xs font-black ${stockTone}`}
+            >
+              {available ? "✓ " : ""}
+              {stockLabel}
+            </span>
+
+            {subcategory && (
+              <span
+                className={`rounded-full bg-white/80 px-3 py-1.5 text-xs font-black text-stone-700 ring-1 ring-stone-200 ${SAFE_TEXT_CLASS}`}
+              >
+                {subcategory}
+              </span>
+            )}
+          </div>
+        </div>
+
         <div className="grid min-w-0 gap-8 lg:grid-cols-[0.95fr_1.05fr]">
           {/* IMAGE */}
 
@@ -277,6 +462,7 @@ export default function ProductDetailsView({
           {/* INFO */}
 
           <div className="flex min-w-0 flex-col justify-center">
+            <div className="hidden min-w-0 lg:block">
             <p
               className={`text-sm font-black uppercase tracking-[0.22em] text-emerald-700 ${SAFE_TEXT_CLASS}`}
             >
@@ -285,7 +471,7 @@ export default function ProductDetailsView({
             </p>
 
             <h1
-              className={`mt-4 text-4xl font-black leading-tight text-stone-950 sm:text-5xl ${SAFE_TEXT_CLASS}`}
+              className={`mt-4 text-4xl font-medium leading-tight text-stone-950 sm:text-5xl ${SAFE_TEXT_CLASS}`}
             >
               {product.name}
             </h1>
@@ -316,6 +502,7 @@ export default function ProductDetailsView({
                     : ""}
                 </span>
               )}
+            </div>
             </div>
 
             {/* PRICE BLOCK */}
@@ -366,86 +553,23 @@ export default function ProductDetailsView({
                 </div>
               </div>
 
-              {/* DELIVERY */}
-
-              <div className="eg-panel mt-6 rounded-2xl bg-emerald-50 p-5">
-                <p className="text-sm font-black text-emerald-950">
-                  Отримання замовлення
-                </p>
-
-                <div className="mt-3 grid gap-2 text-sm text-emerald-900">
-                  <p>✓ Самовивіз з Evergreen coffee</p>
-                  <p>✓ Доставка по ЖК</p>
-                  <p>✓ Підтвердження перед оплатою</p>
-                </div>
-              </div>
-
               {/* ACTIONS */}
 
-              <div className="mt-6">
-                {cartQty > 0 ? (
-                  <div className="grid grid-cols-[8.25rem_minmax(0,1fr)] gap-2 sm:grid-cols-[auto_1fr] sm:gap-3">
-                    <div className="flex h-14 w-full max-w-[8.25rem] items-center overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-lg shadow-emerald-900/20">
-                      <button
-                        type="button"
-                        onClick={handleDecrease}
-                        className="eg-counter-button flex h-full w-10 shrink-0 items-center justify-center text-lg font-black hover:bg-emerald-800 sm:w-12"
-                        aria-label="Зменшити кількість"
-                      >
-                        <Icon name="minus" size={15} />
-                      </button>
-
-                      <span className="flex h-full min-w-0 flex-1 items-center justify-center px-1 text-center text-base font-black">
-                        {cartQty}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={handleIncrease}
-                        disabled={!available}
-                        className="eg-counter-button flex h-full w-10 shrink-0 items-center justify-center text-lg font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400 sm:w-12"
-                        aria-label="Збільшити кількість"
-                      >
-                        <Icon name="plus" size={15} />
-                      </button>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleOpenCart}
-                      className="eg-button flex h-14 min-w-0 items-center justify-center gap-2 rounded-2xl border border-emerald-900 bg-white px-3 text-sm font-black text-emerald-950 hover:bg-emerald-50 sm:px-7 sm:text-base"
-                    >
-                      <ShoppingBasket size={19} strokeWidth={2.05} />
-                      <span className="sm:hidden">У кошик</span>
-                      <span className="hidden sm:inline">У кошику · перейти</span>
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleAdd}
-                    disabled={!available}
-                    className={`eg-button eg-sweep w-full rounded-2xl px-7 py-4 text-base font-black text-white ${
-                      available
-                        ? "bg-emerald-900 hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
-                        : "cursor-not-allowed bg-stone-400"
-                    }`}
-                  >
-                    {available ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <ShoppingBasket size={19} strokeWidth={2.05} />
-                        Додати в кошик
-                      </span>
-                    ) : (
-                      "Немає в наявності"
-                    )}
-                  </button>
-                )}
+              <div ref={inlineActionsRef} className="mt-6">
+                {renderPurchaseActions()}
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {showFloatingActions && (
+        <div className="fixed bottom-[6.35rem] left-3 right-[5.25rem] z-[75] max-w-[360px] md:bottom-6 md:left-1/2 md:right-auto md:w-full md:max-w-md md:-translate-x-1/2">
+          <div className="rounded-[1.45rem] border border-white/75 bg-white/95 p-2 shadow-[0_18px_46px_rgba(6,78,59,0.22)] backdrop-blur-2xl">
+            {renderPurchaseActions(true)}
+          </div>
+        </div>
+      )}
 
       {/* CONTENT */}
 
@@ -552,42 +676,17 @@ export default function ProductDetailsView({
             </div>
           </section>
 
-          <section className="eg-premium-card relative min-w-0 overflow-hidden rounded-[2rem] bg-emerald-950 p-6 text-white shadow-xl shadow-emerald-950/20 lg:p-8">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_40%)]" />
-
-            <div className="relative z-10 min-w-0">
-              <h2 className={`text-xl font-black ${SAFE_TEXT_CLASS}`}>
-                Evergreen coffee поруч
-              </h2>
-
-              <p
-                className={`mt-3 text-sm leading-7 text-emerald-50 ${SAFE_TEXT_CLASS}`}
-              >
-                Додайте товари в кошик, залиште контактні дані, і ми
-                підтвердимо замовлення перед оплатою.
-              </p>
-
-              <button
-                type="button"
-                onClick={handleOpenCart}
-                className="eg-button mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 font-black text-emerald-950 hover:bg-emerald-50"
-              >
-                <ShoppingBasket size={18} strokeWidth={2.05} />
-                Перейти до кошика
-              </button>
-            </div>
-          </section>
         </aside>
       </section>
 
       {/* SIMILAR PRODUCTS */}
 
       {similarProducts.length > 0 && (
-        <section className="mt-10 min-w-0">
+        <section className="mt-10 min-w-0 overflow-hidden">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div className="min-w-0">
-              <h2 className="text-2xl font-black text-stone-950">
-                Схожі товари
+              <h2 className="text-2xl font-medium text-stone-950">
+                Інші товари обраної категорії
               </h2>
 
               <p className="mt-1 text-sm text-stone-500">
@@ -596,28 +695,59 @@ export default function ProductDetailsView({
             </div>
           </div>
 
-          <div className="eg-stagger grid min-w-0 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-            {similarProducts.map((item) => (
-              <ProductCard
+          <div
+            ref={similarCarouselRef}
+            onScroll={handleSimilarCarouselScroll}
+            className="eg-similar-carousel -mx-4 flex min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain px-4 pb-4 sm:-mx-6 sm:gap-5 sm:px-6 lg:mx-0 lg:px-0"
+            aria-label="Інші товари обраної категорії"
+          >
+            {similarProducts.map((item, index) => (
+              <div
                 key={item.id}
-                product={item}
-                categories={categories}
-                cartItems={cartItems}
-                addToCart={addToCart}
-                changeQuantity={changeQuantity}
-                removeFromCart={removeFromCart}
-                openProduct={(selected) => {
-                  setSelectedProduct(selected);
-                  setView("product");
+                className="w-[78vw] max-w-[320px] shrink-0 snap-center sm:w-[19rem] lg:w-[20rem]"
+              >
+                <ProductCard
+                  product={item}
+                  categories={categories}
+                  cartItems={cartItems}
+                  addToCart={addToCart}
+                  changeQuantity={changeQuantity}
+                  removeFromCart={removeFromCart}
+                  openProduct={(selected) => {
+                    setSelectedProduct(selected);
+                    setView("product");
+                    setActiveSimilarIndex(index);
 
-                  window.scrollTo({
-                    top: 0,
-                    behavior: "smooth",
-                  });
-                }}
-              />
+                    window.scrollTo({
+                      top: 0,
+                      behavior: "smooth",
+                    });
+                  }}
+                />
+              </div>
             ))}
           </div>
+
+          {similarProducts.length > 1 && (
+            <div className="mt-2 flex justify-center gap-3">
+              {similarProducts.map((item, index) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => scrollSimilarProduct(index)}
+                  className={`eg-icon-button h-3 w-3 rounded-full ${
+                    index === activeSimilarProductIndex
+                      ? "bg-emerald-900 shadow-md shadow-emerald-900/20 ring-4 ring-emerald-100"
+                      : "bg-white ring-2 ring-emerald-200 hover:bg-emerald-100 hover:ring-emerald-300"
+                  }`}
+                  aria-label={`Показати товар ${index + 1}`}
+                  aria-current={
+                    index === activeSimilarProductIndex ? "true" : undefined
+                  }
+                />
+              ))}
+            </div>
+          )}
         </section>
       )}
     </main>

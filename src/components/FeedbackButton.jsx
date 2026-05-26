@@ -140,13 +140,22 @@ export default function FeedbackButton({ customer = null, setView }) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="eg-button fixed bottom-[6.8rem] right-4 z-[68] flex h-14 w-14 items-center justify-center rounded-[1.2rem] border border-white/75 bg-stone-950 text-white shadow-2xl shadow-stone-950/20 ring-4 ring-white/70 hover:bg-emerald-900 md:bottom-8 md:right-[8.4rem] md:h-[4.9rem] md:w-[4.9rem] md:rounded-[1.55rem]"
+        className={`eg-button group fixed bottom-[6.8rem] right-4 z-[68] flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.2rem] border text-white shadow-2xl ring-4 ring-white/70 md:bottom-8 md:right-[8.4rem] md:h-[4.9rem] md:w-[4.9rem] md:rounded-[1.55rem] ${
+          isOpen
+            ? "border-emerald-950 bg-white text-emerald-950 shadow-emerald-950/12"
+            : "border-emerald-700/50 bg-emerald-950 shadow-emerald-950/24 hover:bg-emerald-900"
+        }`}
         aria-label="Зворотний зв'язок"
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         title="Зворотний зв'язок"
       >
-        <MessageSquare className="h-6 w-6 md:h-8 md:w-8" strokeWidth={2.1} />
+        <span className="absolute inset-1.5 rounded-[0.9rem] bg-white/10 ring-1 ring-white/15 transition group-hover:bg-white/15 md:rounded-[1.2rem]" />
+        <span className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.26),transparent_58%)]" />
+        <MessageSquare
+          className="relative z-10 h-6 w-6 drop-shadow-sm md:h-8 md:w-8"
+          strokeWidth={2.1}
+        />
       </button>
 
       {isOpen && (

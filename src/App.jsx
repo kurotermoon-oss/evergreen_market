@@ -497,6 +497,8 @@ return (
   key={view}
   className={`eg-page pb-24 md:pb-0 ${
     view === "catalog" ? "eg-catalog-page" : ""
+  } ${
+    view === "product" ? "eg-fixed-actions-page" : ""
   }`}
 >
 
