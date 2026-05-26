@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node server/scripts/dev.cjs",
+    "dev:client": "vite",
     "server": "node server/index.cjs",
     "build": "vite build",
     "preview": "vite preview",

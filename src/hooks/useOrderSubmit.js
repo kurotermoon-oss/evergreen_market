@@ -22,6 +22,7 @@ function extractBackendMessage(error) {
 
 export function useOrderSubmit({
   cartItems,
+  supplierOrderSummary,
   form,
   customer,
   isAdmin,
@@ -47,6 +48,20 @@ export function useOrderSubmit({
           cart: !cartItems.length ? "Кошик порожній" : "",
           name: !hasName ? "Вкажіть імʼя" : "",
           contact: !hasContact ? "Вкажіть телефон або Telegram" : "",
+        },
+      };
+    }
+
+    if (supplierOrderSummary && !supplierOrderSummary.canCheckout) {
+      return {
+        ok: false,
+        message:
+          supplierOrderSummary.message ||
+          "Перевірте товари під замовлення в кошику.",
+        errors: {
+          cart:
+            supplierOrderSummary.message ||
+            "Перевірте товари під замовлення в кошику.",
         },
       };
     }

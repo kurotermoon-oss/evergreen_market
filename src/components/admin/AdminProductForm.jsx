@@ -76,6 +76,7 @@ function ToggleCard({ checked, onChange, children }) {
 
 export default function AdminProductForm({
   categories,
+  suppliers = [],
   draftProduct,
   setDraftProduct,
   addDraftProduct,
@@ -90,6 +91,21 @@ export default function AdminProductForm({
   const selectedCategory = categories.find(
     (category) => category.id === draftProduct.category
   );
+
+  const activeSuppliers = suppliers.filter((supplier) => {
+    return supplier.isActive !== false;
+  });
+
+  function updateFulfillmentType(value) {
+    setDraftProduct({
+      ...draftProduct,
+      fulfillmentType: value,
+      supplierId:
+        value === "supplier_order"
+          ? draftProduct.supplierId || activeSuppliers[0]?.id || ""
+          : draftProduct.supplierId || "",
+    });
+  }
 
   return (
     <section className="mx-auto max-w-4xl">
@@ -266,6 +282,38 @@ export default function AdminProductForm({
             description="Точну кількість бачить тільки адмінка. На сайті клієнт бачить лише статус."
           >
             <div className="grid gap-3 sm:grid-cols-2">
+              <select
+                value={draftProduct.fulfillmentType || "in_stock"}
+                onChange={(event) => updateFulfillmentType(event.target.value)}
+                className={getFieldClass()}
+              >
+                <option value="in_stock">Є в наявності</option>
+                <option value="supplier_order">
+                  Під замовлення у постачальника
+                </option>
+              </select>
+
+              <select
+                value={draftProduct.supplierId || ""}
+                onChange={(event) =>
+                  updateField("supplierId", event.target.value)
+                }
+                className={getFieldClass()}
+              >
+                <option value="">
+                  {draftProduct.fulfillmentType === "supplier_order"
+                    ? "Оберіть постачальника"
+                    : "Без постачальника"}
+                </option>
+
+                {suppliers.map((supplier) => (
+                  <option key={supplier.id} value={supplier.id}>
+                    {supplier.name}
+                    {supplier.isActive === false ? " (вимкнений)" : ""}
+                  </option>
+                ))}
+              </select>
+
               <select
                 value={draftProduct.stockStatus || "in_stock"}
                 onChange={(event) =>

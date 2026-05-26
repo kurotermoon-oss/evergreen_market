@@ -3,6 +3,8 @@ const crypto = require("crypto");
 const prisma = require("../database/prisma.cjs");
 const categoriesRepository = require("./categoriesRepository.cjs");
 
+const FULFILLMENT_TYPES = new Set(["in_stock", "supplier_order"]);
+
 function toCleanString(value) {
   return String(value || "").trim();
 }
@@ -63,6 +65,32 @@ function toNullableInt(value, fieldName = "Числове поле") {
   return Math.round(number);
 }
 
+function normalizeFulfillmentType(value, fallback = "in_stock") {
+  const cleanValue = toCleanString(value);
+
+  if (FULFILLMENT_TYPES.has(cleanValue)) {
+    return cleanValue;
+  }
+
+  if (FULFILLMENT_TYPES.has(fallback)) {
+    return fallback;
+  }
+
+  return "in_stock";
+}
+
+function mapSupplierForProduct(supplier, includeComment = false) {
+  if (!supplier) return null;
+
+  return {
+    id: supplier.id,
+    name: supplier.name || "",
+    minOrderAmount: Number(supplier.minOrderAmount || 0),
+    isActive: supplier.isActive !== false,
+    ...(includeComment ? { comment: supplier.comment || "" } : {}),
+  };
+}
+
 function mapProductForPublic(product) {
   return {
     id: product.id,
@@ -97,6 +125,10 @@ function mapProductForPublic(product) {
         ? null
         : Number(product.stockQuantity),
 
+    supplierId: product.supplierId || "",
+    supplier: mapSupplierForProduct(product.supplier),
+    fulfillmentType: product.fulfillmentType || "in_stock",
+
     active: product.active !== false,
     popular: Boolean(product.popular),
     purchaseCount: Number(product.purchaseCount || 0),
@@ -111,6 +143,7 @@ function mapProductForAdmin(product) {
     ...mapProductForPublic(product),
 
     costPrice: Number(product.costPrice || 0),
+    supplier: mapSupplierForProduct(product.supplier, true),
   };
 }
 
@@ -141,6 +174,9 @@ async function getPublicProducts() {
         createdAt: "desc",
       },
     ],
+    include: {
+      supplier: true,
+    },
   });
 
   return products.map(mapProductForPublic);
@@ -153,6 +189,9 @@ async function getAdminProducts() {
         createdAt: "desc",
       },
     ],
+    include: {
+      supplier: true,
+    },
   });
 
   return products.map(mapProductForAdmin);
@@ -300,6 +339,33 @@ async function resolveSubcategoryId(payloadSubcategoryId, categoryId) {
   return createdSubcategory.id;
 }
 
+async function resolveSupplierId(payloadSupplierId, fulfillmentType) {
+  const supplierId = toCleanString(payloadSupplierId);
+
+  if (fulfillmentType === "supplier_order" && !supplierId) {
+    throw createValidationError(
+      "Для товару під замовлення потрібно вибрати постачальника."
+    );
+  }
+
+  if (!supplierId) return null;
+
+  const supplier = await prisma.supplier.findUnique({
+    where: {
+      id: supplierId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!supplier) {
+    throw createValidationError("Постачальника не знайдено.");
+  }
+
+  return supplier.id;
+}
+
 async function buildProductData(payload, existingProduct = null) {
   const name = toCleanString(payload.name ?? existingProduct?.name);
 
@@ -317,6 +383,16 @@ async function buildProductData(payload, existingProduct = null) {
     categoryId
   );
 
+  const fulfillmentType = normalizeFulfillmentType(
+    payload.fulfillmentType ?? existingProduct?.fulfillmentType,
+    existingProduct?.fulfillmentType || "in_stock"
+  );
+
+  const supplierId = await resolveSupplierId(
+    payload.supplierId ?? existingProduct?.supplierId,
+    fulfillmentType
+  );
+
   return {
     name,
     brand: toCleanString(payload.brand ?? existingProduct?.brand),
@@ -330,6 +406,8 @@ async function buildProductData(payload, existingProduct = null) {
 
     categoryId,
     subcategoryId,
+    supplierId,
+    fulfillmentType,
 
     price: toInt(payload.price ?? existingProduct?.price, 0, "Ціна"),
     oldPrice: toNullableInt(

@@ -97,6 +97,7 @@ function ToggleCard({ checked, onChange, children }) {
 
 export default function AdminProductEditModal({
   categories,
+  suppliers = [],
   editingProduct,
   setEditingProduct,
   saveEditedProduct,
@@ -137,8 +138,22 @@ export default function AdminProductEditModal({
     return category.id === editingProduct.category;
   });
 
+  const activeSuppliers = suppliers.filter((supplier) => {
+    return supplier.isActive !== false;
+  });
+
   const canCreateOrSelectSubcategory =
     Boolean(editingProduct.category) || hasNewCategory;
+
+  function updateFulfillmentType(value) {
+    updateFields({
+      fulfillmentType: value,
+      supplierId:
+        value === "supplier_order"
+          ? editingProduct.supplierId || activeSuppliers[0]?.id || ""
+          : editingProduct.supplierId || "",
+    });
+  }
 
   return createPortal(
     <div
@@ -368,6 +383,40 @@ export default function AdminProductEditModal({
               description="Кількість списується тільки для обмеженого залишку."
             >
               <div className="grid gap-2 sm:grid-cols-2">
+                <select
+                  value={editingProduct.fulfillmentType || "in_stock"}
+                  onChange={(event) =>
+                    updateFulfillmentType(event.target.value)
+                  }
+                  className={getFieldClass()}
+                >
+                  <option value="in_stock">Є в наявності</option>
+                  <option value="supplier_order">
+                    Під замовлення у постачальника
+                  </option>
+                </select>
+
+                <select
+                  value={editingProduct.supplierId || ""}
+                  onChange={(event) =>
+                    updateField("supplierId", event.target.value)
+                  }
+                  className={getFieldClass()}
+                >
+                  <option value="">
+                    {editingProduct.fulfillmentType === "supplier_order"
+                      ? "Оберіть постачальника"
+                      : "Без постачальника"}
+                  </option>
+
+                  {suppliers.map((supplier) => (
+                    <option key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                      {supplier.isActive === false ? " (вимкнений)" : ""}
+                    </option>
+                  ))}
+                </select>
+
                 <select
                   value={editingProduct.stockStatus || "in_stock"}
                   onChange={(event) => {

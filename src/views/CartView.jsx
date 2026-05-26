@@ -171,6 +171,7 @@ function RecentOrdersCard({ customer, setView }) {
 export default function CartView({
   cartItems,
   total,
+  supplierOrderSummary,
   form,
   customer,
   updateForm,
@@ -179,6 +180,7 @@ export default function CartView({
   setCart,
   setView,
   submitOrder,
+  onShowSupplierProducts,
 }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
@@ -193,7 +195,9 @@ export default function CartView({
     String(form.name || "").trim() &&
     (String(form.phone || "").trim() || String(form.telegram || "").trim());
 
-  const canSubmit = Boolean(hasBasicRequiredFields);
+  const canSubmit = Boolean(
+    hasBasicRequiredFields && (supplierOrderSummary?.canCheckout ?? true)
+  );
 
   function getItemId(item) {
     return item.productId || item.id;
@@ -242,6 +246,12 @@ export default function CartView({
 
     if (!cartItems.length) {
       errors.cart = "Кошик порожній";
+    }
+
+    if (supplierOrderSummary && !supplierOrderSummary.canCheckout) {
+      errors.cart =
+        supplierOrderSummary.message ||
+        "Перевірте товари під замовлення в кошику.";
     }
 
     const name = String(form.name || "").trim();
@@ -387,6 +397,20 @@ export default function CartView({
                         {formatUAH(item.price)} за одиницю
                       </p>
 
+                      <p
+                        className={`mt-2 w-fit rounded-full px-3 py-1 text-xs font-black ${
+                          item.fulfillmentType === "supplier_order"
+                            ? "bg-blue-50 text-blue-800"
+                            : "bg-emerald-50 text-emerald-800"
+                        }`}
+                      >
+                        {item.fulfillmentType === "supplier_order"
+                          ? `Під замовлення${
+                              item.supplier?.name ? ` · ${item.supplier.name}` : ""
+                            }`
+                          : "Є в наявності"}
+                      </p>
+
                       <div className="mt-4 flex flex-col gap-3 min-[390px]:flex-row min-[390px]:items-center min-[390px]:justify-between">
                         <div className="overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 shadow-sm">
                           <div className="flex h-11 items-center sm:h-12">
@@ -436,6 +460,42 @@ export default function CartView({
             </div>
 
             <FieldError>{fieldErrors.cart}</FieldError>
+
+            {supplierOrderSummary?.hasSupplierOrder && (
+              <div
+                className={`mt-5 rounded-[1.5rem] border p-4 text-sm leading-6 ${
+                  supplierOrderSummary.canCheckout
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                    : "border-amber-200 bg-amber-50 text-amber-950"
+                }`}
+              >
+                {supplierOrderSummary.canCheckout ? (
+                  <p className="font-black">
+                    Мінімальне замовлення від{" "}
+                    {supplierOrderSummary.supplierName} виконано.
+                  </p>
+                ) : (
+                  <p className="whitespace-pre-line font-semibold">
+                    {supplierOrderSummary.message}
+                  </p>
+                )}
+
+                {supplierOrderSummary.supplierId && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onShowSupplierProducts?.(
+                        supplierOrderSummary.supplierId,
+                        supplierOrderSummary.supplierName
+                      )
+                    }
+                    className="eg-button mt-3 rounded-2xl bg-white px-4 py-2 text-sm font-black text-stone-900 shadow-sm hover:bg-stone-50"
+                  >
+                    Показати товари цього постачальника
+                  </button>
+                )}
+              </div>
+            )}
 
             <button
               type="button"

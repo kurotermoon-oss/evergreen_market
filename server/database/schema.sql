@@ -16,6 +16,16 @@ CREATE TABLE IF NOT EXISTS subcategories (
   UNIQUE(category_id, id)
 );
 
+CREATE TABLE IF NOT EXISTS suppliers (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  min_order_amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  comment TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS products (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
@@ -50,6 +60,8 @@ CREATE TABLE IF NOT EXISTS products (
 
   stock_status TEXT NOT NULL DEFAULT 'in_stock',
   stock_quantity INTEGER,
+  supplier_id TEXT REFERENCES suppliers(id) ON DELETE SET NULL,
+  fulfillment_type TEXT NOT NULL DEFAULT 'in_stock',
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -67,6 +79,23 @@ CREATE TABLE IF NOT EXISTS customers (
   apartment TEXT NOT NULL DEFAULT '',
 
   password_hash TEXT NOT NULL,
+
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS customer_feedback (
+  id SERIAL PRIMARY KEY,
+  customer_id INTEGER REFERENCES customers(id) ON DELETE SET NULL,
+
+  customer_name TEXT NOT NULL DEFAULT '',
+  customer_phone TEXT NOT NULL DEFAULT '',
+  customer_telegram TEXT NOT NULL DEFAULT '',
+
+  type TEXT NOT NULL DEFAULT 'other',
+  subject TEXT NOT NULL DEFAULT '',
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'new',
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -152,8 +181,15 @@ CREATE TABLE IF NOT EXISTS app_counters (
 
 CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_subcategory_id ON products(subcategory_id);
+CREATE INDEX IF NOT EXISTS idx_products_supplier_id ON products(supplier_id);
+CREATE INDEX IF NOT EXISTS idx_products_fulfillment_type ON products(fulfillment_type);
 CREATE INDEX IF NOT EXISTS idx_products_active ON products(active);
+CREATE INDEX IF NOT EXISTS idx_suppliers_is_active ON suppliers(is_active);
 CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+CREATE INDEX IF NOT EXISTS idx_customer_feedback_customer_id ON customer_feedback(customer_id);
+CREATE INDEX IF NOT EXISTS idx_customer_feedback_status ON customer_feedback(status);
+CREATE INDEX IF NOT EXISTS idx_customer_feedback_type ON customer_feedback(type);
+CREATE INDEX IF NOT EXISTS idx_customer_feedback_created_at ON customer_feedback(created_at);
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_status_history_order_id ON order_status_history(order_id);

@@ -21,6 +21,9 @@ export function useCatalogFilters({
   const [selectedCountries, setSelectedCountries] = useState([]);
   const [selectedStockStatuses, setSelectedStockStatuses] = useState([]);
   const [showPopularOnly, setShowPopularOnly] = useState(false);
+  const [selectedFulfillmentType, setSelectedFulfillmentType] =
+    useState("in_stock");
+  const [selectedSupplierId, setSelectedSupplierId] = useState("");
 
   useEffect(() => {
     setSelectedSubcategory((currentSubcategory) => {
@@ -61,7 +64,15 @@ export function useCatalogFilters({
     selectedCountries,
     selectedStockStatuses,
     showPopularOnly,
+    selectedFulfillmentType,
+    selectedSupplierId,
   ]);
+
+  useEffect(() => {
+    if (selectedFulfillmentType !== "supplier_order") {
+      setSelectedSupplierId("");
+    }
+  }, [selectedFulfillmentType]);
 
   const productsWithPopularity = useMemo(() => {
     return markPopularProducts(products, 6);
@@ -91,6 +102,11 @@ export function useCatalogFilters({
         product.packageInfo,
         product.productType,
         product.countryOfOrigin,
+        product.fulfillmentType === "supplier_order"
+          ? "Під замовлення"
+          : "Є в наявності",
+        product.supplier?.name,
+        product.supplierId,
         product.price,
         categoryName,
         subcategoryName,
@@ -133,9 +149,20 @@ export function useCatalogFilters({
         selectedStockStatuses.includes(stockStatus);
 
       const popularMatch = !showPopularOnly || Boolean(product.isPopular);
+      const isSupplierOrder = product.fulfillmentType === "supplier_order";
+      const fulfillmentMatch =
+        selectedFulfillmentType === "supplier_order"
+          ? isSupplierOrder
+          : !isSupplierOrder;
+      const supplierMatch =
+        selectedFulfillmentType !== "supplier_order" ||
+        !selectedSupplierId ||
+        String(product.supplierId || "") === String(selectedSupplierId);
 
       return (
         product.active !== false &&
+        fulfillmentMatch &&
+        supplierMatch &&
         categoryMatch &&
         subcategoryMatch &&
         queryMatch &&
@@ -187,6 +214,8 @@ export function useCatalogFilters({
     selectedCountries,
     selectedStockStatuses,
     showPopularOnly,
+    selectedFulfillmentType,
+    selectedSupplierId,
   ]);
 
   const totalProductPages =
@@ -237,6 +266,12 @@ export function useCatalogFilters({
 
     showPopularOnly,
     setShowPopularOnly,
+
+    selectedFulfillmentType,
+    setSelectedFulfillmentType,
+
+    selectedSupplierId,
+    setSelectedSupplierId,
 
     filteredProducts,
     paginatedProducts,

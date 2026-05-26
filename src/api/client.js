@@ -46,6 +46,11 @@ export const api = {
   getProducts() {
     return request("/api/products");
   },
+
+  getSuppliers() {
+    return request("/api/suppliers");
+  },
+
     deleteAdminProduct(id) {
     return request(`/api/admin/products/${id}`, {
         method: "DELETE",
@@ -104,6 +109,13 @@ checkTelegramVerification() {
     return request("/api/customer/orders");
   },
 
+  createCustomerFeedback(payload) {
+    return request("/api/customer/feedback", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
   
   adminLogin(payload) {
     return request("/api/admin/login", {
@@ -124,6 +136,30 @@ checkTelegramVerification() {
 
   getAdminProducts() {
     return request("/api/admin/products");
+  },
+
+  getAdminSuppliers() {
+    return request("/api/admin/suppliers");
+  },
+
+  createAdminSupplier(payload) {
+    return request("/api/admin/suppliers", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateAdminSupplier(id, payload) {
+    return request(`/api/admin/suppliers/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteAdminSupplier(id) {
+    return request(`/api/admin/suppliers/${id}`, {
+      method: "DELETE",
+    });
   },
 
   getAdminCategories() {
@@ -219,6 +255,24 @@ getAdminAnalytics(params = {}) {
   const query = searchParams.toString();
 
   return request(`/api/admin/analytics${query ? `?${query}` : ""}`);
+},
+
+getAdminFeedback(params = {}) {
+  const searchParams = new URLSearchParams();
+
+  if (params.status) searchParams.set("status", params.status);
+  if (params.type) searchParams.set("type", params.type);
+
+  const query = searchParams.toString();
+
+  return request(`/api/admin/feedback${query ? `?${query}` : ""}`);
+},
+
+updateAdminFeedbackStatus(id, status) {
+  return request(`/api/admin/feedback/${id}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
 },
 
 getAdminCustomers(params = {}) {

@@ -9,6 +9,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import BrandLogo from "../components/BrandLogo.jsx";
 import ProductCard from "../components/ProductCard.jsx";
+import { formatUAH } from "../utils/formatUAH.js";
 
 function getPaginationItems(currentPage, totalPages) {
   if (totalPages <= 5) {
@@ -69,6 +70,10 @@ export default function CatalogView({
   setSelectedStockStatuses,
   showPopularOnly,
   setShowPopularOnly,
+  selectedFulfillmentType,
+  setSelectedFulfillmentType,
+  selectedSupplierId,
+  setSelectedSupplierId,
   visibleProducts,
   totalProducts,
   currentPage,
@@ -126,11 +131,77 @@ export default function CatalogView({
   );
   const paginationItems = getPaginationItems(currentPage, totalProductPages);
 
+  const fulfillmentCounts = useMemo(() => {
+    return products.reduce(
+      (result, product) => {
+        if (product.active === false) return result;
+
+        if (product.fulfillmentType === "supplier_order") {
+          result.supplierOrder += 1;
+        } else {
+          result.inStock += 1;
+        }
+
+        return result;
+      },
+      {
+        inStock: 0,
+        supplierOrder: 0,
+      }
+    );
+  }, [products]);
+
+  const supplierFilters = useMemo(() => {
+    const suppliersById = new Map();
+
+    products.forEach((product) => {
+      if (
+        product.active === false ||
+        product.fulfillmentType !== "supplier_order" ||
+        !product.supplierId
+      ) {
+        return;
+      }
+
+      const current = suppliersById.get(product.supplierId) || {
+        id: product.supplierId,
+        name: product.supplier?.name || "Постачальник",
+        minOrderAmount: Number(product.supplier?.minOrderAmount || 0),
+        count: 0,
+      };
+
+      current.count += 1;
+      suppliersById.set(product.supplierId, current);
+    });
+
+    return [...suppliersById.values()].sort((a, b) => {
+      return a.name.localeCompare(b.name, "uk");
+    });
+  }, [products]);
+
+  const catalogScopeProducts = useMemo(() => {
+    return products.filter((product) => {
+      if (product.active === false) return false;
+
+      const isSupplierOrder = product.fulfillmentType === "supplier_order";
+
+      if (selectedFulfillmentType === "supplier_order") {
+        return (
+          isSupplierOrder &&
+          (!selectedSupplierId ||
+            String(product.supplierId || "") === String(selectedSupplierId))
+        );
+      }
+
+      return !isSupplierOrder;
+    });
+  }, [products, selectedFulfillmentType, selectedSupplierId]);
+
   const productCounts = useMemo(() => {
     const categoryCounts = {};
     const subcategoryCounts = {};
 
-    products.forEach((product) => {
+    catalogScopeProducts.forEach((product) => {
       if (product.active === false) return;
 
       if (product.category) {
@@ -146,7 +217,7 @@ export default function CatalogView({
     });
 
     return { categories: categoryCounts, subcategories: subcategoryCounts };
-  }, [products]);
+  }, [catalogScopeProducts]);
 
   const pageTitle =
     selectedCategory === "all"
@@ -312,8 +383,20 @@ export default function CatalogView({
     setSelectedCountries([]);
     setSelectedStockStatuses([]);
     setShowPopularOnly(false);
+    setSelectedSupplierId("");
     setCurrentPage(1);
     closeCatalogMenu();
+  }
+
+  function selectFulfillmentTab(nextFulfillmentType) {
+    setSelectedFulfillmentType(nextFulfillmentType);
+    setSelectedSupplierId("");
+    setCurrentPage(1);
+  }
+
+  function selectSupplierFilter(supplierId) {
+    setSelectedSupplierId(supplierId);
+    setCurrentPage(1);
   }
 
   function selectCategory(categoryId) {
@@ -703,6 +786,100 @@ export default function CatalogView({
             </div>
           </>
         )}
+      </section>
+
+      <section className="mb-6 sm:mb-8">
+        <div className="eg-glass eg-premium-card grid gap-2 rounded-[1.35rem] border border-white/80 bg-white/90 p-1.5 shadow-lg shadow-emerald-950/5 sm:grid-cols-2 sm:rounded-[1.7rem] sm:p-2">
+          <button
+            type="button"
+            onClick={() => selectFulfillmentTab("in_stock")}
+            className={`eg-button min-h-[62px] rounded-[1.05rem] border px-4 text-left transition sm:rounded-[1.35rem] sm:px-5 ${
+              selectedFulfillmentType === "in_stock"
+                ? "border-emerald-900 bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                : "border-stone-100 bg-white/75 text-stone-800 hover:border-emerald-100 hover:bg-emerald-50 hover:text-emerald-950"
+            }`}
+          >
+            <span className="flex items-center justify-between gap-3">
+              <span className="font-black">Є в наявності</span>
+              <span
+                className={`grid min-h-8 min-w-8 shrink-0 place-items-center rounded-full px-2.5 text-xs font-black ${
+                  selectedFulfillmentType === "in_stock"
+                    ? "bg-white/18 text-white ring-1 ring-white/20"
+                    : "bg-emerald-100 text-emerald-950"
+                }`}
+              >
+                {fulfillmentCounts.inStock}
+              </span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => selectFulfillmentTab("supplier_order")}
+            className={`eg-button min-h-[62px] rounded-[1.05rem] border px-4 text-left transition sm:rounded-[1.35rem] sm:px-5 ${
+              selectedFulfillmentType === "supplier_order"
+                ? "border-emerald-900 bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                : "border-stone-100 bg-white/75 text-stone-800 hover:border-emerald-100 hover:bg-emerald-50 hover:text-emerald-950"
+            }`}
+          >
+            <span className="flex items-center justify-between gap-3">
+              <span className="font-black">Під замовлення</span>
+              <span
+                className={`grid min-h-8 min-w-8 shrink-0 place-items-center rounded-full px-2.5 text-xs font-black ${
+                  selectedFulfillmentType === "supplier_order"
+                    ? "bg-white/18 text-white ring-1 ring-white/20"
+                    : "bg-emerald-100 text-emerald-950"
+                }`}
+              >
+                {fulfillmentCounts.supplierOrder}
+              </span>
+            </span>
+          </button>
+        </div>
+
+        {selectedFulfillmentType === "supplier_order" &&
+          supplierFilters.length > 0 && (
+            <div className="mt-3 min-w-0 rounded-[1.35rem] border border-emerald-100/80 bg-emerald-50/55 p-2 shadow-inner shadow-emerald-950/[0.03]">
+              <div className="modal-scrollbar flex gap-2 overflow-x-auto pb-1">
+                <button
+                  type="button"
+                  onClick={() => selectSupplierFilter("")}
+                  className={`eg-button flex min-h-[58px] shrink-0 items-center rounded-[1.05rem] px-4 py-3 text-sm font-black shadow-sm ${
+                    !selectedSupplierId
+                      ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                      : "bg-white text-stone-800 ring-1 ring-emerald-100 hover:bg-emerald-50 hover:text-emerald-950"
+                  }`}
+                >
+                  Усі постачальники
+                </button>
+
+                {supplierFilters.map((supplier) => (
+                  <button
+                    key={supplier.id}
+                    type="button"
+                    onClick={() => selectSupplierFilter(supplier.id)}
+                    className={`eg-button min-h-[58px] min-w-[178px] shrink-0 rounded-[1.05rem] px-4 py-3 text-left text-sm shadow-sm ${
+                      selectedSupplierId === supplier.id
+                        ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                        : "bg-white text-stone-800 ring-1 ring-emerald-100 hover:bg-emerald-50 hover:text-emerald-950"
+                    }`}
+                  >
+                    <span className="block truncate font-black">{supplier.name}</span>
+                    <span
+                      className={`mt-0.5 block text-xs font-semibold ${
+                        selectedSupplierId === supplier.id
+                          ? "text-emerald-100"
+                          : "text-stone-500"
+                      }`}
+                    >
+                      Мінімум {formatUAH(supplier.minOrderAmount)} ·{" "}
+                      {supplier.count} {getProductWord(supplier.count)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
       </section>
 
       <section className="mb-8 sm:mb-10">

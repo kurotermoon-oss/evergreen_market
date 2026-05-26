@@ -8,6 +8,16 @@ const seedDatabase = {
   nextProductId: 7,
   nextOrderNumber: 1047,
 
+  suppliers: [
+    {
+      id: "milkdiller",
+      name: "Milkdiller",
+      minOrderAmount: 500,
+      isActive: true,
+      comment: "",
+    },
+  ],
+
   categories: [
     { id: "coffee", name: "Кава", active: true },
     { id: "milk", name: "Молоко", active: true },

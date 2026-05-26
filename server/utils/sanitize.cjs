@@ -34,6 +34,9 @@ function sanitizePublicProduct(product) {
     purchaseCount: Number(product.purchaseCount || 0),
 
     stockStatus: product.stockStatus || "in_stock",
+    supplierId: product.supplierId || "",
+    supplier: product.supplier || null,
+    fulfillmentType: product.fulfillmentType || "in_stock",
 
     createdAt: product.createdAt || null,
     updatedAt: product.updatedAt || null,

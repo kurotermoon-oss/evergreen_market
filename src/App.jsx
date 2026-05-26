@@ -23,6 +23,7 @@ import FloatingCartButton from "./components/FloatingCartButton.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
 import AdminProductEditModal from "./components/admin/AdminProductEditModal.jsx";
 import BrandLogo from "./components/BrandLogo.jsx";
+import FeedbackButton from "./components/FeedbackButton.jsx";
 
 
 import HomeView from "./views/HomeView.jsx";
@@ -94,6 +95,9 @@ const {
   cartItems,
   total,
   cartCount,
+  supplierOrderSummary,
+  cartNotice,
+  clearCartNotice,
   addToCart,
   changeQuantity,
   removeFromCart,
@@ -137,6 +141,12 @@ const {
   showPopularOnly,
   setShowPopularOnly,
 
+  selectedFulfillmentType,
+  setSelectedFulfillmentType,
+
+  selectedSupplierId,
+  setSelectedSupplierId,
+
   filteredProducts,
   paginatedProducts,
   totalProductPages,
@@ -174,8 +184,10 @@ const {
 const {
   isAdmin,
   adminProducts,
+  adminSuppliers,
   adminCategories,
   orders,
+  adminFeedback,
 
   analytics,
   analyticsFilters,
@@ -203,6 +215,11 @@ const {
 
   updateAnalyticsFilters,
   updateOrderAction,
+  updateFeedbackStatus,
+
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
 
   createCategory,
   updateCategory,
@@ -226,6 +243,7 @@ const {
 } = useOrderSubmit({
   cart,
   cartItems,
+  supplierOrderSummary,
   form,
   customer,
   isAdmin,
@@ -383,6 +401,17 @@ function applyCustomerToForm(customerData) {
     setIsCartDrawerOpen(false);
   }
 
+  function showSupplierProducts(supplierId, supplierName) {
+    setSelectedCategory("all");
+    setSelectedSubcategory("all");
+    setSelectedFulfillmentType("supplier_order");
+    setSelectedSupplierId(supplierId || "");
+    setQuery("");
+    setCurrentPage(1);
+    setView("catalog");
+    closeCartDrawer();
+  }
+
   function openAdminProductEditor(product) {
     if (!isAdmin || !product) return;
 
@@ -516,6 +545,10 @@ return (
           setSelectedStockStatuses={setSelectedStockStatuses}
           showPopularOnly={showPopularOnly}
           setShowPopularOnly={setShowPopularOnly}
+          selectedFulfillmentType={selectedFulfillmentType}
+          setSelectedFulfillmentType={setSelectedFulfillmentType}
+          selectedSupplierId={selectedSupplierId}
+          setSelectedSupplierId={setSelectedSupplierId}
           visibleProducts={paginatedProducts}
           totalProducts={filteredProducts.length}
           currentPage={currentPage}
@@ -552,6 +585,7 @@ return (
         <CartView
           cartItems={cartItems}
           total={total}
+          supplierOrderSummary={supplierOrderSummary}
           form={form}
           updateForm={updateForm}
           changeQuantity={changeQuantity}
@@ -560,6 +594,7 @@ return (
           setView={setView}
           submitOrder={submitOrder}
           customer={customer}
+          onShowSupplierProducts={showSupplierProducts}
         />
       )}
 
@@ -604,8 +639,10 @@ return (
       <AdminView
         categories={categories}
         products={adminProducts}
+        suppliers={adminSuppliers}
         adminCategories={adminCategories}
         orders={orders}
+        feedback={adminFeedback}
         draftProduct={draftProduct}
         setDraftProduct={setDraftProduct}
         startEditProduct={startEditProduct}
@@ -613,7 +650,11 @@ return (
         importProductsCsv={importProductsCsv}
         toggleProductActive={toggleProductActive}
         deleteProduct={deleteProduct}
+        createSupplier={createSupplier}
+        updateSupplier={updateSupplier}
+        deleteSupplier={deleteSupplier}
         updateOrderAction={updateOrderAction}
+        updateFeedbackStatus={updateFeedbackStatus}
         logoutAdmin={logoutAdmin}
         analytics={analytics}
         analyticsFilters={analyticsFilters}
@@ -630,6 +671,7 @@ return (
       {isAdmin && editingProduct && (
         <AdminProductEditModal
           categories={adminCategories.length ? adminCategories : categories}
+          suppliers={adminSuppliers}
           editingProduct={editingProduct}
           setEditingProduct={setEditingProduct}
           saveEditedProduct={saveEditedProduct}
@@ -647,6 +689,10 @@ return (
         cartCount={cartCount}
       />
 
+      {view !== "admin" && (
+        <FeedbackButton customer={customer} setView={setView} />
+      )}
+
       <MobileNav
         view={view}
         setView={setView}
@@ -663,12 +709,30 @@ return (
         cartItems={cartItems}
         total={total}
         cartCount={cartCount}
+        supplierOrderSummary={supplierOrderSummary}
         changeQuantity={changeQuantity}
         removeFromCart={removeFromCart}
         setCart={setCart}
         setView={setView}
         onClose={closeCartDrawer}
+        onShowSupplierProducts={showSupplierProducts}
       />
+
+      {cartNotice && (
+        <div className="fixed inset-x-3 bottom-24 z-[1200] mx-auto max-w-xl rounded-[1.4rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold leading-6 text-amber-950 shadow-xl shadow-amber-900/10 md:bottom-6">
+          <div className="flex items-start justify-between gap-3">
+            <span className="whitespace-pre-line">{cartNotice}</span>
+
+            <button
+              type="button"
+              onClick={clearCartNotice}
+              className="eg-button shrink-0 rounded-xl px-2 py-1 text-xs font-black text-amber-900 hover:bg-amber-100"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

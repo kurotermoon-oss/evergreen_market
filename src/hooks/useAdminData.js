@@ -6,7 +6,9 @@ import { getAnalyticsDateRange } from "../utils/analyticsDateRange.js";
 export function useAdminData({ loadPublicData, setView }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminProducts, setAdminProducts] = useState([]);
+  const [adminSuppliers, setAdminSuppliers] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [adminFeedback, setAdminFeedback] = useState([]);
 
   const [analytics, setAnalytics] = useState(null);
   const [analyticsFilters, setAnalyticsFilters] = useState({
@@ -27,20 +29,26 @@ async function loadAdminData(nextAnalyticsFilters = analyticsFilters) {
 
   const [
     productsResponse,
+    suppliersResponse,
     categoriesResponse,
     ordersResponse,
     analyticsResponse,
+    feedbackResponse,
   ] = await Promise.all([
     api.getAdminProducts(),
+    api.getAdminSuppliers(),
     api.getAdminCategories(),
     api.getAdminOrders(),
     api.getAdminAnalytics(analyticsDateRange),
+    api.getAdminFeedback(),
   ]);
 
   setAdminProducts(productsResponse.products || []);
+  setAdminSuppliers(suppliersResponse.suppliers || []);
   setAdminCategories(categoriesResponse.categories || []);
   setOrders(ordersResponse.orders || []);
   setAnalytics(analyticsResponse);
+  setAdminFeedback(feedbackResponse.feedback || []);
 }
 
   async function checkAdminSession() {
@@ -71,7 +79,9 @@ async function loadAdminData(nextAnalyticsFilters = analyticsFilters) {
 
     setIsAdmin(false);
     setAdminProducts([]);
+    setAdminSuppliers([]);
     setOrders([]);
+    setAdminFeedback([]);
     setAnalytics(null);
     setView("home");
     setAdminCategories([]);
@@ -79,6 +89,14 @@ async function loadAdminData(nextAnalyticsFilters = analyticsFilters) {
 
 async function addDraftProduct() {
   if (!draftProduct.name || !draftProduct.price) return;
+
+  if (
+    draftProduct.fulfillmentType === "supplier_order" &&
+    !draftProduct.supplierId
+  ) {
+    alert("Для товару під замовлення потрібно вибрати постачальника.");
+    return;
+  }
 
   await api.createAdminProduct({
     ...draftProduct,
@@ -139,6 +157,8 @@ async function addDraftProduct() {
       costPrice: String(product.costPrice || ""),
       oldPrice: product.oldPrice ? String(product.oldPrice) : "",
       stockQuantity: product.stockQuantity ? String(product.stockQuantity) : "",
+      supplierId: product.supplierId || "",
+      fulfillmentType: product.fulfillmentType || "in_stock",
     });
   }
 
@@ -148,6 +168,14 @@ async function addDraftProduct() {
 
   async function saveEditedProduct() {
     if (!editingProduct?.id || !editingProduct.name || !editingProduct.price) {
+      return;
+    }
+
+    if (
+      editingProduct.fulfillmentType === "supplier_order" &&
+      !editingProduct.supplierId
+    ) {
+      alert("Для товару під замовлення потрібно вибрати постачальника.");
       return;
     }
 
@@ -182,6 +210,30 @@ async function addDraftProduct() {
 
     await loadAdminData();
   }
+
+  async function updateFeedbackStatus(feedbackId, status) {
+    await api.updateAdminFeedbackStatus(feedbackId, status);
+
+    await loadAdminData();
+  }
+
+async function createSupplier(payload) {
+  await api.createAdminSupplier(payload);
+  await loadPublicData();
+  await loadAdminData();
+}
+
+async function updateSupplier(id, payload) {
+  await api.updateAdminSupplier(id, payload);
+  await loadPublicData();
+  await loadAdminData();
+}
+
+async function deleteSupplier(id) {
+  await api.deleteAdminSupplier(id);
+  await loadPublicData();
+  await loadAdminData();
+}
 
 
   async function createCategory(name) {
@@ -239,8 +291,10 @@ async function deleteSubcategory(categoryId, subcategoryId) {
 return {
   isAdmin,
   adminProducts,
+  adminSuppliers,
   adminCategories,
   orders,
+  adminFeedback,
 
   analytics,
   analyticsFilters,
@@ -268,6 +322,11 @@ return {
 
   updateAnalyticsFilters,
   updateOrderAction,
+  updateFeedbackStatus,
+
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
   
   createCategory,
   updateCategory,

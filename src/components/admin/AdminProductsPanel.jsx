@@ -93,6 +93,9 @@ export default function AdminProductsPanel({
         product.details,
         product.unit,
         product.packageInfo,
+        product.fulfillmentType,
+        product.supplier?.name,
+        product.supplierId,
         product.price,
         product.costPrice,
         categoryName,
@@ -179,6 +182,14 @@ export default function AdminProductsPanel({
                 </span>
 
                 <span>{getStockLabel(product)}</span>
+
+                <span>
+                  {product.fulfillmentType === "supplier_order"
+                    ? `Під замовлення: ${
+                        product.supplier?.name || "постачальник не вказаний"
+                      }`
+                    : "Є в наявності"}
+                </span>
               </div>
             </div>
 

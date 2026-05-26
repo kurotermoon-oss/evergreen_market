@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  buildCartSupplierSummary,
+  validateAddToCart,
+} from "../utils/cartSupplierRules.js";
 
 const CART_STORAGE_KEY = "evergreen_cart";
 
@@ -58,6 +62,7 @@ function normalizeCart(cart) {
 
 export function useCart(products = []) {
   const [cart, setCartState] = useState(() => normalizeCart(readStoredCart()));
+  const [cartNotice, setCartNotice] = useState("");
 
   function setCart(nextCartOrUpdater) {
     setCartState((currentCart) => {
@@ -73,6 +78,16 @@ export function useCart(products = []) {
   useEffect(() => {
     saveStoredCart(cart);
   }, [cart]);
+
+  useEffect(() => {
+    if (!cartNotice) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      setCartNotice("");
+    }, 7000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [cartNotice]);
 
   // Чистим корзину от товаров, которых уже нет в каталоге
   useEffect(() => {
@@ -143,8 +158,19 @@ export function useCart(products = []) {
     }, 0);
   }, [cartItems]);
 
+  const supplierOrderSummary = useMemo(() => {
+    return buildCartSupplierSummary(cartItems);
+  }, [cartItems]);
+
   function addToCart(product) {
     if (!product?.id) return;
+
+    const addValidation = validateAddToCart(product, cartItems);
+
+    if (!addValidation.ok) {
+      setCartNotice(addValidation.message);
+      return false;
+    }
 
     setCart((currentCart) => {
       const productId = String(product.id);
@@ -155,6 +181,9 @@ export function useCart(products = []) {
         [productId]: currentQuantity + 1,
       };
     });
+
+    setCartNotice("");
+    return true;
   }
 
   function changeQuantity(productId, quantity) {
@@ -194,6 +223,9 @@ export function useCart(products = []) {
     cartItems,
     total,
     cartCount,
+    supplierOrderSummary,
+    cartNotice,
+    clearCartNotice: () => setCartNotice(""),
     addToCart,
     changeQuantity,
     removeFromCart,

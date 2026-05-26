@@ -99,8 +99,28 @@ export function getProductPackage(product) {
   return product?.packageInfo || "продається поштучно";
 }
 
+export function isSupplierOrderProduct(product) {
+  return product?.fulfillmentType === "supplier_order";
+}
+
+export function getFulfillmentLabel(product) {
+  return isSupplierOrderProduct(product) ? "Під замовлення" : "Є в наявності";
+}
+
 export function getStockLabel(product) {
   const status = product?.stockStatus || "in_stock";
+
+  if (isSupplierOrderProduct(product) && status !== "out_of_stock") {
+    if (!product?.supplierId || !product?.supplier) {
+      return "Постачальник не вказаний";
+    }
+
+    if (product.supplier.isActive === false) {
+      return "Постачальник вимкнений";
+    }
+
+    return "Під замовлення";
+  }
 
   if (status === "out_of_stock") return "Немає в наявності";
   if (status === "limited" || status === "low_stock") return "Мало в наявності";
@@ -116,6 +136,14 @@ export function getStockTone(product) {
     return "bg-red-50 text-red-700";
   }
 
+  if (isSupplierOrderProduct(product)) {
+    if (!product?.supplierId || !product?.supplier || product.supplier.isActive === false) {
+      return "bg-amber-50 text-amber-800";
+    }
+
+    return "bg-blue-50 text-blue-700";
+  }
+
   if (status === "limited" || status === "low_stock") {
     return "bg-orange-50 text-orange-700";
   }
@@ -128,7 +156,13 @@ export function getStockTone(product) {
 }
 
 export function isProductAvailable(product) {
-  return product?.stockStatus !== "out_of_stock";
+  if (product?.stockStatus === "out_of_stock") return false;
+
+  if (isSupplierOrderProduct(product)) {
+    return Boolean(product.supplierId && product.supplier?.isActive !== false);
+  }
+
+  return true;
 }
 
 export function getCategoryName(categories, categoryId) {

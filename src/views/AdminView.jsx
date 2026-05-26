@@ -4,13 +4,17 @@ import AdminOrdersPanel from "../components/admin/AdminOrdersPanel.jsx";
 import AdminAnalyticsPanel from "../components/admin/AdminAnalyticsPanel.jsx";
 import AdminCatalogPanel from "../components/admin/AdminCatalogPanel.jsx";
 import AdminCustomersPanel from "../components/admin/AdminCustomersPanel.jsx";
+import AdminFeedbackPanel from "../components/admin/AdminFeedbackPanel.jsx";
 import AdminSecurityPanel from "../components/admin/AdminSecurityPanel.jsx";
+import AdminSuppliersPanel from "../components/admin/AdminSuppliersPanel.jsx";
 
 export default function AdminView({
   categories,
   products,
+  suppliers = [],
   adminCategories,
   orders,
+  feedback = [],
 
   draftProduct,
   setDraftProduct,
@@ -22,7 +26,12 @@ export default function AdminView({
   toggleProductActive,
   deleteProduct,
 
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
+
   updateOrderAction,
+  updateFeedbackStatus,
   logoutAdmin,
 
   analytics,
@@ -61,8 +70,11 @@ export default function AdminView({
       activeOrders: activeOrders.length,
       categories: visibleCategories.length,
       subcategories: subcategoriesCount,
+      suppliers: suppliers.length,
+      feedback: feedback.length,
+      newFeedback: feedback.filter((item) => item.status === "new").length,
     };
-  }, [products, orders, safeCategories]);
+  }, [products, orders, safeCategories, suppliers, feedback]);
 
   const tabs = [
     {
@@ -76,8 +88,18 @@ export default function AdminView({
       count: stats.products,
     },
     {
+      id: "suppliers",
+      label: "Постачальники",
+      count: stats.suppliers,
+    },
+    {
       id: "customers",
       label: "Клієнти",
+    },
+    {
+      id: "feedback",
+      label: "Звернення",
+      count: stats.newFeedback,
     },
     {
       id: "security",
@@ -197,6 +219,7 @@ export default function AdminView({
         <AdminCatalogPanel
           categories={safeCategories}
           products={products}
+          suppliers={suppliers}
           draftProduct={draftProduct}
           setDraftProduct={setDraftProduct}
           addDraftProduct={addDraftProduct}
@@ -213,7 +236,24 @@ export default function AdminView({
         />
       )}
 
+      {adminTab === "suppliers" && (
+        <AdminSuppliersPanel
+          suppliers={suppliers}
+          products={products}
+          createSupplier={createSupplier}
+          updateSupplier={updateSupplier}
+          deleteSupplier={deleteSupplier}
+        />
+      )}
+
       {adminTab === "customers" && <AdminCustomersPanel />}
+
+      {adminTab === "feedback" && (
+        <AdminFeedbackPanel
+          feedback={feedback}
+          updateFeedbackStatus={updateFeedbackStatus}
+        />
+      )}
 
       {adminTab === "security" && <AdminSecurityPanel />}
 

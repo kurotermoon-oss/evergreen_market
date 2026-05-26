@@ -172,6 +172,15 @@ export default function ProductCard({
           {packageInfo ? ` · ${packageInfo}` : ""}
         </p>
 
+        {product.fulfillmentType === "supplier_order" && product.supplier && (
+          <p className="mt-2 line-clamp-2 text-xs font-bold leading-5 text-blue-800">
+            {product.supplier.name}
+            {product.supplier.minOrderAmount
+              ? ` · мінімум ${formatUAH(product.supplier.minOrderAmount)}`
+              : ""}
+          </p>
+        )}
+
         <div className="mt-auto pt-3 sm:pt-5">
           <div className="mb-3 flex min-h-[28px] flex-wrap items-end gap-1.5 sm:mb-4 sm:gap-2">
             <p className="text-lg font-black leading-none text-stone-950 sm:text-2xl">

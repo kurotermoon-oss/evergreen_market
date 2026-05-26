@@ -39,6 +39,21 @@ model Subcategory {
   @@map("subcategories")
 }
 
+model Supplier {
+  id             String   @id
+  name           String
+  minOrderAmount Int      @default(0)
+  isActive       Boolean  @default(true)
+  comment        String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  products Product[]
+
+  @@index([isActive])
+  @@map("suppliers")
+}
+
 model Product {
   id              String @id
   name            String
@@ -69,6 +84,9 @@ model Product {
   stockStatus   String @default("in_stock")
   stockQuantity Int?
 
+  supplierId      String?
+  fulfillmentType String  @default("in_stock")
+
   active        Boolean @default(true)
   popular       Boolean @default(false)
   purchaseCount Int     @default(0)
@@ -78,11 +96,14 @@ model Product {
 
   category    Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   subcategory Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  supplier    Supplier?    @relation(fields: [supplierId], references: [id], onDelete: SetNull)
 
   orderItems OrderItem[]
 
   @@index([categoryId])
   @@index([subcategoryId])
+  @@index([supplierId])
+  @@index([fulfillmentType])
   @@index([active])
   @@map("products")
 }
@@ -117,10 +138,36 @@ model Customer {
   updatedAt DateTime @updatedAt
 
   orders Order[]
+  feedback CustomerFeedback[]
 
   @@unique([phone])
   @@unique([telegram])
   @@map("customers")
+}
+
+model CustomerFeedback {
+  id Int @id @default(autoincrement())
+
+  customerId Int?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  customerName     String @default("")
+  customerPhone    String @default("")
+  customerTelegram String @default("")
+
+  type    String @default("other")
+  subject String @default("")
+  message String
+  status  String @default("new")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@map("customer_feedback")
 }
 
 model Order {

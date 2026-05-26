@@ -96,6 +96,8 @@ export default function ProductDetailsView({
 
   const stockLabel = getStockLabel(product);
   const stockTone = getStockTone(product);
+  const isSupplierOrder = product.fulfillmentType === "supplier_order";
+  const supplierName = product.supplier?.name || "";
 
   const discountPercent = getDiscountPercent(product);
 
@@ -301,6 +303,17 @@ export default function ProductDetailsView({
                   className={`rounded-full bg-white/80 px-4 py-2 text-sm font-black text-stone-700 ring-1 ring-stone-200 ${SAFE_TEXT_CLASS}`}
                 >
                   {subcategory}
+                </span>
+              )}
+
+              {isSupplierOrder && supplierName && (
+                <span
+                  className={`rounded-full bg-blue-50 px-4 py-2 text-sm font-black text-blue-800 ring-1 ring-blue-100 ${SAFE_TEXT_CLASS}`}
+                >
+                  {supplierName}
+                  {product.supplier?.minOrderAmount
+                    ? ` · мінімум ${formatUAH(product.supplier.minOrderAmount)}`
+                    : ""}
                 </span>
               )}
             </div>

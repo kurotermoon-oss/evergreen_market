@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 require("dotenv").config();
 
 const jwt = require("jsonwebtoken");
@@ -24,10 +25,15 @@ const {
 
 const settingsRepository = require("./repositories/settingsRepository.cjs");
 const productsRepository = require("./repositories/productsRepository.cjs");
+const suppliersRepository = require("./repositories/suppliersRepository.cjs");
 const categoriesRepository = require("./repositories/categoriesRepository.cjs");
 const ordersRepository = require("./repositories/ordersRepository.cjs");
+const feedbackRepository = require("./repositories/feedbackRepository.cjs");
 const orderLimitsRepository = require("./repositories/orderLimitsRepository.cjs");
 const blockedCustomersRepository = require("./repositories/blockedCustomersRepository.cjs");
+const {
+  validateSupplierOrderItems,
+} = require("./utils/supplierOrderRules.cjs");
 
 
 const {
@@ -225,6 +231,8 @@ const STOCK_STATUSES = new Set([
   "out_of_stock",
 ]);
 
+const FULFILLMENT_TYPES = new Set(["in_stock", "supplier_order"]);
+
 function toCleanString(value, fallback = "") {
   return String(value ?? fallback).trim();
 }
@@ -267,6 +275,132 @@ function ensureBlockedCustomersStore(db) {
   if (!Number.isFinite(Number(db.nextBlockedCustomerId))) {
     db.nextBlockedCustomerId = 1;
   }
+}
+
+function ensureFeedbackStore(db) {
+  if (!Array.isArray(db.customerFeedback)) {
+    db.customerFeedback = [];
+  }
+
+  if (!Number.isFinite(Number(db.nextCustomerFeedbackId))) {
+    db.nextCustomerFeedbackId = 1;
+  }
+}
+
+function mapLocalFeedback(db, feedback) {
+  const customer = (db.customers || []).find((item) => {
+    return String(item.id) === String(feedback.customerId);
+  });
+
+  return {
+    id: feedback.id,
+    customerId: feedback.customerId || null,
+    customerName: feedback.customerName || customer?.name || "",
+    customerPhone: feedback.customerPhone || customer?.phone || "",
+    customerTelegram: feedback.customerTelegram || customer?.telegram || "",
+    type: feedback.type || "other",
+    subject: feedback.subject || "",
+    message: feedback.message || "",
+    status: feedback.status || "new",
+    createdAt: feedback.createdAt || "",
+    updatedAt: feedback.updatedAt || "",
+    customer: customer
+      ? {
+          id: customer.id,
+          name: customer.name || "",
+          phone: customer.phone || "",
+          telegram: customer.telegram || "",
+        }
+      : null,
+  };
+}
+
+function createLocalCustomerFeedback(db, customer, payload = {}) {
+  ensureFeedbackStore(db);
+
+  const validation = feedbackRepository.validateFeedbackPayload(payload);
+
+  if (!validation.ok) {
+    const error = new Error("Перевірте звернення.");
+    error.status = 400;
+    error.errors = validation.errors;
+    throw error;
+  }
+
+  const now = new Date().toISOString();
+  const feedback = {
+    id: db.nextCustomerFeedbackId,
+    customerId: customer.id,
+    customerName: toCleanString(customer.name),
+    customerPhone: toCleanString(customer.phone),
+    customerTelegram: toCleanString(customer.telegram),
+    ...validation.data,
+    status: "new",
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  db.nextCustomerFeedbackId += 1;
+  db.customerFeedback.unshift(feedback);
+
+  return mapLocalFeedback(db, feedback);
+}
+
+function getLocalFeedback(db, filters = {}) {
+  ensureFeedbackStore(db);
+
+  const status = toCleanString(filters.status);
+  const type = toCleanString(filters.type);
+
+  return db.customerFeedback
+    .filter((feedback) => {
+      if (
+        status &&
+        feedbackRepository.FEEDBACK_STATUSES.has(status) &&
+        feedback.status !== status
+      ) {
+        return false;
+      }
+
+      if (
+        type &&
+        feedbackRepository.FEEDBACK_TYPES.has(type) &&
+        feedback.type !== type
+      ) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+    .map((feedback) => mapLocalFeedback(db, feedback));
+}
+
+function updateLocalFeedbackStatus(db, feedbackId, status) {
+  ensureFeedbackStore(db);
+
+  const nextStatus = toCleanString(status);
+
+  if (!feedbackRepository.FEEDBACK_STATUSES.has(nextStatus)) {
+    const error = new Error("Невідомий статус звернення.");
+    error.status = 400;
+    throw error;
+  }
+
+  const feedback = db.customerFeedback.find((item) => {
+    return String(item.id) === String(feedbackId);
+  });
+
+  if (!feedback) {
+    const error = new Error("Звернення не знайдено.");
+    error.status = 404;
+    throw error;
+  }
+
+  feedback.status = nextStatus;
+  feedback.updatedAt = new Date().toISOString();
+
+  return mapLocalFeedback(db, feedback);
 }
 
 function normalizeBlockedValue(type, value) {
@@ -538,9 +672,144 @@ function normalizeStockQuantity(stockStatus, value, fallback = 0) {
   return Math.max(0, toNumber(value, fallback));
 }
 
+function createLocalValidationError(message, status = 400) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
+
+function ensureSuppliersStore(db) {
+  if (!Array.isArray(db.suppliers)) {
+    db.suppliers = [];
+  }
+}
+
+function normalizeFulfillmentType(value, fallback = "in_stock") {
+  const cleanValue = toCleanString(value);
+
+  if (FULFILLMENT_TYPES.has(cleanValue)) {
+    return cleanValue;
+  }
+
+  if (FULFILLMENT_TYPES.has(fallback)) {
+    return fallback;
+  }
+
+  return "in_stock";
+}
+
+function getLocalSupplier(db, supplierId) {
+  ensureSuppliersStore(db);
+
+  const normalizedSupplierId = toCleanString(supplierId);
+
+  if (!normalizedSupplierId) return null;
+
+  return db.suppliers.find((supplier) => {
+    return String(supplier.id) === normalizedSupplierId;
+  });
+}
+
+function mapLocalSupplierForPublic(supplier, includeComment = false) {
+  if (!supplier) return null;
+
+  return {
+    id: String(supplier.id || ""),
+    name: toCleanString(supplier.name),
+    minOrderAmount: Math.max(0, Math.round(toNumber(supplier.minOrderAmount))),
+    isActive: supplier.isActive !== false,
+    ...(includeComment ? { comment: toCleanString(supplier.comment) } : {}),
+  };
+}
+
+function decorateLocalProductWithSupplier(db, product, includeComment = false) {
+  const supplier = getLocalSupplier(db, product.supplierId);
+
+  return {
+    ...product,
+    supplierId: toCleanString(product.supplierId),
+    fulfillmentType: normalizeFulfillmentType(product.fulfillmentType),
+    supplier: mapLocalSupplierForPublic(supplier, includeComment),
+  };
+}
+
+function normalizeLocalProductSupplierFields(db, body, current = {}) {
+  const fulfillmentType = normalizeFulfillmentType(
+    body.fulfillmentType ?? current.fulfillmentType,
+    current.fulfillmentType || "in_stock"
+  );
+
+  const supplierId = toCleanString(body.supplierId ?? current.supplierId);
+
+  if (fulfillmentType === "supplier_order" && !supplierId) {
+    throw createLocalValidationError(
+      "Для товару під замовлення потрібно вибрати постачальника."
+    );
+  }
+
+  if (supplierId && !getLocalSupplier(db, supplierId)) {
+    throw createLocalValidationError("Постачальника не знайдено.");
+  }
+
+  return {
+    fulfillmentType,
+    supplierId,
+  };
+}
+
+function createLocalSupplierId(name) {
+  const slug = toCleanString(name)
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || `supplier-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+function createUniqueLocalSupplierId(db, name) {
+  ensureSuppliersStore(db);
+
+  const baseId = createLocalSupplierId(name);
+  let candidate = baseId;
+  let index = 2;
+
+  while (getLocalSupplier(db, candidate)) {
+    candidate = `${baseId}-${index}`;
+    index += 1;
+  }
+
+  return candidate;
+}
+
+function normalizeLocalSupplierPayload(payload = {}, current = {}) {
+  const name = toCleanString(payload.name ?? current.name);
+
+  if (!name) {
+    throw createLocalValidationError("Назва постачальника обов'язкова.");
+  }
+
+  const minOrderAmount = Math.max(
+    0,
+    Math.round(toNumber(payload.minOrderAmount ?? current.minOrderAmount))
+  );
+
+  return {
+    name,
+    minOrderAmount,
+    isActive:
+      payload.isActive === undefined
+        ? current.isActive !== false
+        : payload.isActive !== false,
+    comment: toCleanString(payload.comment ?? current.comment),
+  };
+}
+
 function buildProductFromRequest(db, body) {
   const categoryData = resolveProductCategory(db, body);
   const stockStatus = normalizeStockStatus(body.stockStatus);
+  const supplierFields = normalizeLocalProductSupplierFields(db, body);
 
   return {
     id: db.nextProductId,
@@ -578,17 +847,28 @@ function buildProductFromRequest(db, body) {
 
     stockStatus,
     stockQuantity: normalizeStockQuantity(stockStatus, body.stockQuantity),
+    supplierId: supplierFields.supplierId,
+    fulfillmentType: supplierFields.fulfillmentType,
 
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 }
 
-function buildUpdatedProduct(current, body, categoryData) {
+function buildUpdatedProduct(current, body, categoryData, db = null) {
   const nextStockStatus = normalizeStockStatus(
     body.stockStatus,
     current.stockStatus || "in_stock"
   );
+  const supplierFields = db
+    ? normalizeLocalProductSupplierFields(db, body, current)
+    : {
+        supplierId: toCleanString(body.supplierId ?? current.supplierId),
+        fulfillmentType: normalizeFulfillmentType(
+          body.fulfillmentType ?? current.fulfillmentType,
+          current.fulfillmentType || "in_stock"
+        ),
+      };
 
   return {
     ...current,
@@ -706,6 +986,9 @@ function buildUpdatedProduct(current, body, categoryData) {
               : body.stockQuantity
           )
         : null,
+
+    supplierId: supplierFields.supplierId,
+    fulfillmentType: supplierFields.fulfillmentType,
 
     updatedAt: new Date().toISOString(),
   };
@@ -854,6 +1137,78 @@ console.log("[debug] admin routes mounted");
 
 
 console.log("[debug] adminAuthRoutes mounted");
+
+app.get("/api/admin/feedback", requireAdmin, async (req, res) => {
+  try {
+    if (USE_POSTGRES) {
+      const feedback = await feedbackRepository.getAdminFeedback({
+        status: req.query.status || "",
+        type: req.query.type || "",
+      });
+
+      return res.json({
+        feedback,
+      });
+    }
+
+    const db = readDatabase();
+    ensureCustomersStore(db);
+
+    return res.json({
+      feedback: getLocalFeedback(db, {
+        status: req.query.status || "",
+        type: req.query.type || "",
+      }),
+    });
+  } catch (error) {
+    console.error("Get admin feedback error:", error);
+
+    return res.status(error.status || 500).json({
+      error: "ADMIN_FEEDBACK_FAILED",
+      message: error.message || "Не вдалося завантажити звернення.",
+    });
+  }
+});
+
+app.patch("/api/admin/feedback/:id/status", requireAdmin, async (req, res) => {
+  try {
+    if (USE_POSTGRES) {
+      const feedback = await feedbackRepository.updateFeedbackStatus(
+        req.params.id,
+        req.body?.status
+      );
+
+      return res.json({
+        ok: true,
+        feedback,
+      });
+    }
+
+    const db = readDatabase();
+    ensureCustomersStore(db);
+
+    const feedback = updateLocalFeedbackStatus(
+      db,
+      req.params.id,
+      req.body?.status
+    );
+
+    writeDatabase(db);
+
+    return res.json({
+      ok: true,
+      feedback,
+    });
+  } catch (error) {
+    console.error("Update feedback status error:", error);
+
+    return res.status(error.status || 500).json({
+      error: "UPDATE_FEEDBACK_STATUS_FAILED",
+      message: error.message || "Не вдалося оновити статус звернення.",
+      errors: error.errors || undefined,
+    });
+  }
+});
 
 
 
@@ -1131,12 +1486,12 @@ app.get("/api/products", async (req, res) => {
 
     const products = Array.isArray(db.products)
       ? db.products
-          .filter((product) => product.active !== false)
-          .map((product) => {
-            const { costPrice, ...safeProduct } = product;
+        .filter((product) => product.active !== false)
+        .map((product) => {
+          const { costPrice, ...safeProduct } = product;
 
-            return safeProduct;
-          })
+          return decorateLocalProductWithSupplier(db, safeProduct);
+        })
       : [];
 
     return res.json({
@@ -1751,6 +2106,62 @@ app.post("/api/customer/telegram/check-verification", async (req, res) => {
 });
 
 
+app.post("/api/customer/feedback", async (req, res) => {
+  try {
+    if (USE_POSTGRES) {
+      const customer = await getPostgresCustomerFromRequest(req);
+
+      if (!customer) {
+        return res.status(401).json({
+          error: "Unauthorized",
+          message: "Увійдіть в акаунт, щоб залишити звернення.",
+        });
+      }
+
+      const feedback = await feedbackRepository.createCustomerFeedback(
+        customer,
+        req.body
+      );
+
+      return res.json({
+        ok: true,
+        feedback,
+      });
+    }
+
+    const db = readDatabase();
+
+    ensureCustomersStore(db);
+
+    const customer = getCustomerFromRequest(req, db, JWT_SECRET);
+
+    if (!customer) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "Увійдіть в акаунт, щоб залишити звернення.",
+      });
+    }
+
+    const feedback = createLocalCustomerFeedback(db, customer, req.body);
+
+    writeDatabase(db);
+
+    return res.json({
+      ok: true,
+      feedback,
+    });
+  } catch (error) {
+    console.error("Create customer feedback error:", error);
+
+    return res.status(error.status || 500).json({
+      error: "CUSTOMER_FEEDBACK_FAILED",
+      message: error.message || "Не вдалося надіслати звернення.",
+      errors: error.errors || undefined,
+    });
+  }
+});
+
+
 app.get("/api/customer/orders", async (req, res) => {
   try {
       if (USE_POSTGRES) {
@@ -2011,6 +2422,10 @@ app.post("/api/orders", async (req, res) => {
           total,
           costTotal,
           profit: total - costTotal,
+
+          fulfillmentType: product.fulfillmentType || "in_stock",
+          supplierId: product.supplierId || "",
+          supplier: product.supplier || null,
         });
       }
 
@@ -2032,6 +2447,21 @@ app.post("/api/orders", async (req, res) => {
             "Не вдалося оформити замовлення.",
           hint: resolvedItemsValidation.hint || "",
           errors: resolvedItemsValidation.errors || {},
+        });
+      }
+
+      const supplierOrderValidation = validateSupplierOrderItems(orderItems);
+
+      if (!supplierOrderValidation.ok) {
+        return res.status(supplierOrderValidation.status || 400).json({
+          error:
+            supplierOrderValidation.error || "SUPPLIER_ORDER_RULES_FAILED",
+          message:
+            supplierOrderValidation.message ||
+            "Не вдалося оформити товари під замовлення.",
+          hint: supplierOrderValidation.hint || "",
+          errors: supplierOrderValidation.errors || {},
+          details: supplierOrderValidation.details || {},
         });
       }
 
@@ -2278,6 +2708,10 @@ app.post("/api/orders", async (req, res) => {
         total,
         costTotal,
         profit: total - costTotal,
+
+        fulfillmentType: product.fulfillmentType || "in_stock",
+        supplierId: product.supplierId || "",
+        supplier: getLocalSupplier(db, product.supplierId) || null,
       });
     }
 
@@ -2298,6 +2732,20 @@ app.post("/api/orders", async (req, res) => {
           resolvedItemsValidation.message || "Не вдалося оформити замовлення.",
         hint: resolvedItemsValidation.hint || "",
         errors: resolvedItemsValidation.errors || {},
+      });
+    }
+
+    const supplierOrderValidation = validateSupplierOrderItems(orderItems);
+
+    if (!supplierOrderValidation.ok) {
+      return res.status(supplierOrderValidation.status || 400).json({
+        error: supplierOrderValidation.error || "SUPPLIER_ORDER_RULES_FAILED",
+        message:
+          supplierOrderValidation.message ||
+          "Не вдалося оформити товари під замовлення.",
+        hint: supplierOrderValidation.hint || "",
+        errors: supplierOrderValidation.errors || {},
+        details: supplierOrderValidation.details || {},
       });
     }
 
@@ -2375,6 +2823,208 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 
+app.get("/api/suppliers", async (req, res) => {
+  try {
+    if (USE_POSTGRES) {
+      const suppliers = await suppliersRepository.getPublicSuppliers();
+
+      return res.json({
+        suppliers,
+      });
+    }
+
+    const db = readDatabase();
+    ensureSuppliersStore(db);
+
+    return res.json({
+      suppliers: db.suppliers
+        .filter((supplier) => supplier.isActive !== false)
+        .map((supplier) => mapLocalSupplierForPublic(supplier)),
+    });
+  } catch (error) {
+    console.error("Get suppliers error:", error);
+
+    return res.status(500).json({
+      error: "SUPPLIERS_FAILED",
+      message: "Не вдалося завантажити постачальників.",
+    });
+  }
+});
+
+app.get("/api/admin/suppliers", requireAdmin, async (req, res) => {
+  try {
+    if (USE_POSTGRES) {
+      const suppliers = await suppliersRepository.getAdminSuppliers();
+
+      return res.json({
+        suppliers,
+      });
+    }
+
+    const db = readDatabase();
+    ensureSuppliersStore(db);
+
+    return res.json({
+      suppliers: db.suppliers.map((supplier) => {
+        return mapLocalSupplierForPublic(supplier, true);
+      }),
+    });
+  } catch (error) {
+    console.error("Get admin suppliers error:", error);
+
+    return res.status(500).json({
+      error: "ADMIN_SUPPLIERS_FAILED",
+      message: "Не вдалося завантажити постачальників.",
+    });
+  }
+});
+
+app.post("/api/admin/suppliers", requireAdmin, async (req, res) => {
+  try {
+    if (USE_POSTGRES) {
+      const supplier = await suppliersRepository.createAdminSupplier(req.body);
+
+      return res.json({
+        ok: true,
+        supplier,
+      });
+    }
+
+    const db = readDatabase();
+    ensureSuppliersStore(db);
+
+    const data = normalizeLocalSupplierPayload(req.body);
+    const requestedId = toCleanString(req.body?.id);
+    const id = requestedId || createUniqueLocalSupplierId(db, data.name);
+
+    if (requestedId && getLocalSupplier(db, requestedId)) {
+      return res.status(409).json({
+        error: "SUPPLIER_EXISTS",
+        message: "Постачальник з таким id вже існує.",
+      });
+    }
+
+    const supplier = {
+      id,
+      ...data,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    db.suppliers.push(supplier);
+    writeDatabase(db);
+
+    return res.json({
+      ok: true,
+      supplier: mapLocalSupplierForPublic(supplier, true),
+    });
+  } catch (error) {
+    console.error("Create supplier error:", error);
+
+    return res.status(error.status || 500).json({
+      error: "SUPPLIER_CREATE_FAILED",
+      message: error.message || "Не вдалося створити постачальника.",
+    });
+  }
+});
+
+app.patch("/api/admin/suppliers/:id", requireAdmin, async (req, res) => {
+  try {
+    if (USE_POSTGRES) {
+      const supplier = await suppliersRepository.updateAdminSupplier(
+        req.params.id,
+        req.body
+      );
+
+      return res.json({
+        ok: true,
+        supplier,
+      });
+    }
+
+    const db = readDatabase();
+    ensureSuppliersStore(db);
+
+    const supplier = getLocalSupplier(db, req.params.id);
+
+    if (!supplier) {
+      return res.status(404).json({
+        error: "SUPPLIER_NOT_FOUND",
+        message: "Постачальника не знайдено.",
+      });
+    }
+
+    Object.assign(supplier, normalizeLocalSupplierPayload(req.body, supplier), {
+      updatedAt: new Date().toISOString(),
+    });
+
+    writeDatabase(db);
+
+    return res.json({
+      ok: true,
+      supplier: mapLocalSupplierForPublic(supplier, true),
+    });
+  } catch (error) {
+    console.error("Update supplier error:", error);
+
+    return res.status(error.status || 500).json({
+      error: "SUPPLIER_UPDATE_FAILED",
+      message: error.message || "Не вдалося оновити постачальника.",
+    });
+  }
+});
+
+app.delete("/api/admin/suppliers/:id", requireAdmin, async (req, res) => {
+  try {
+    if (USE_POSTGRES) {
+      await suppliersRepository.deleteAdminSupplier(req.params.id);
+
+      return res.json({
+        ok: true,
+      });
+    }
+
+    const db = readDatabase();
+    ensureSuppliersStore(db);
+
+    const productsCount = (db.products || []).filter((product) => {
+      return String(product.supplierId || "") === String(req.params.id);
+    }).length;
+
+    if (productsCount > 0) {
+      return res.status(409).json({
+        error: "SUPPLIER_IN_USE",
+        message: `Не можна видалити постачальника: він використовується у ${productsCount} товарах.`,
+      });
+    }
+
+    const initialLength = db.suppliers.length;
+    db.suppliers = db.suppliers.filter((supplier) => {
+      return String(supplier.id) !== String(req.params.id);
+    });
+
+    if (db.suppliers.length === initialLength) {
+      return res.status(404).json({
+        error: "SUPPLIER_NOT_FOUND",
+        message: "Постачальника не знайдено.",
+      });
+    }
+
+    writeDatabase(db);
+
+    return res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error("Delete supplier error:", error);
+
+    return res.status(error.status || 500).json({
+      error: "SUPPLIER_DELETE_FAILED",
+      message: error.message || "Не вдалося видалити постачальника.",
+    });
+  }
+});
+
 app.get("/api/admin/products", requireAdmin, async (req, res) => {
   try {
     if (USE_POSTGRES) {
@@ -2388,7 +3038,11 @@ app.get("/api/admin/products", requireAdmin, async (req, res) => {
     const db = readDatabase();
 
     return res.json({
-      products: Array.isArray(db.products) ? db.products : [],
+      products: Array.isArray(db.products)
+        ? db.products.map((product) => {
+            return decorateLocalProductWithSupplier(db, product, true);
+          })
+        : [],
     });
   } catch (error) {
     console.error("Get admin products error:", error);
@@ -2644,25 +3298,22 @@ app.post("/api/admin/products", requireAdmin, async (req, res) => {
     }
 
     const db = readDatabase();
+    db.products = Array.isArray(db.products) ? db.products : [];
+    db.nextProductId = Number(db.nextProductId || 1);
 
-    const product = {
-      id: String(Date.now()),
-      ...req.body,
-      price: Number(req.body.price || 0),
-      costPrice: Number(req.body.costPrice || 0),
-      active: req.body.active !== false,
-      popular: Boolean(req.body.popular),
-      purchaseCount: Number(req.body.purchaseCount || 0),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const product = buildProductFromRequest(db, req.body);
+
+    if (req.body.id) {
+      product.id = toCleanString(req.body.id);
+    }
 
     db.products.unshift(product);
+    db.nextProductId += 1;
     writeDatabase(db);
 
     return res.json({
       ok: true,
-      product,
+      product: decorateLocalProductWithSupplier(db, product, true),
     });
   } catch (error) {
     console.error("Create admin product error:", error);
@@ -2734,7 +3385,8 @@ app.post("/api/admin/products/import", requireAdmin, async (req, res) => {
           db.products[existingIndex] = buildUpdatedProduct(
             db.products[existingIndex],
             row,
-            categoryData
+            categoryData,
+            db
           );
 
           summary.updated += 1;
@@ -2791,38 +3443,43 @@ app.patch("/api/admin/products/:id", requireAdmin, async (req, res) => {
 
     const db = readDatabase();
 
-    const product = db.products.find((item) => {
+    const productIndex = db.products.findIndex((item) => {
       return String(item.id) === String(req.params.id);
     });
 
-    if (!product) {
+    if (productIndex === -1) {
       return res.status(404).json({
         error: "Product not found",
         message: "Товар не знайдено.",
       });
     }
 
-    Object.assign(product, req.body, {
-      updatedAt: new Date().toISOString(),
-    });
+    const categoryData =
+      req.body.category !== undefined ||
+      req.body.categoryId !== undefined ||
+      req.body.newCategoryName !== undefined ||
+      req.body.subcategory !== undefined ||
+      req.body.subcategoryId !== undefined ||
+      req.body.newSubcategoryName !== undefined
+        ? resolveProductCategory(db, req.body)
+        : null;
 
-    if (req.body.price !== undefined) {
-      product.price = Number(req.body.price || 0);
-    }
-
-    if (req.body.costPrice !== undefined) {
-      product.costPrice = Number(req.body.costPrice || 0);
-    }
-
-    if (req.body.oldPrice !== undefined) {
-      product.oldPrice = req.body.oldPrice ? Number(req.body.oldPrice) : null;
-    }
+    db.products[productIndex] = buildUpdatedProduct(
+      db.products[productIndex],
+      req.body,
+      categoryData,
+      db
+    );
 
     writeDatabase(db);
 
     return res.json({
       ok: true,
-      product,
+      product: decorateLocalProductWithSupplier(
+        db,
+        db.products[productIndex],
+        true
+      ),
     });
   } catch (error) {
     console.error("Update admin product error:", error);

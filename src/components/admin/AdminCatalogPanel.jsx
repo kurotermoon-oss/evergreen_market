@@ -208,6 +208,7 @@ function CsvImportDialog({ dialog, onClose, onPrimary }) {
 export default function AdminCatalogPanel({
   categories,
   products,
+  suppliers = [],
 
   draftProduct,
   setDraftProduct,
@@ -873,6 +874,7 @@ export default function AdminCatalogPanel({
         <div className="modal-scrollbar min-h-0 flex-1 overflow-y-auto bg-stone-50/60 px-4 py-4 sm:px-5">
           <AdminProductForm
             categories={categories}
+            suppliers={suppliers}
             draftProduct={draftProduct}
             setDraftProduct={setDraftProduct}
             addDraftProduct={handleAddProduct}

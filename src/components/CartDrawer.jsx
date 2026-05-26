@@ -33,11 +33,13 @@ export default function CartDrawer({
   cartItems = [],
   total = 0,
   cartCount = 0,
+  supplierOrderSummary,
   changeQuantity,
   removeFromCart,
   setCart,
   setView,
   onClose,
+  onShowSupplierProducts,
 }) {
   const closeButtonRef = useRef(null);
   const drawerRef = useRef(null);
@@ -279,6 +281,20 @@ export default function CartDrawer({
                             </button>
                           </div>
                         </div>
+
+                        <p
+                          className={`mt-2 w-fit rounded-full px-2.5 py-1 text-[11px] font-black ${
+                            item.fulfillmentType === "supplier_order"
+                              ? "bg-blue-50 text-blue-800"
+                              : "bg-emerald-50 text-emerald-800"
+                          }`}
+                        >
+                          {item.fulfillmentType === "supplier_order"
+                            ? `Під замовлення${
+                                item.supplier?.name ? ` · ${item.supplier.name}` : ""
+                              }`
+                            : "Є в наявності"}
+                        </p>
                       </div>
                     </div>
                   );
@@ -287,6 +303,37 @@ export default function CartDrawer({
             </div>
 
             <div className="border-t border-stone-200 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-5 sm:pb-5">
+              {supplierOrderSummary?.hasSupplierOrder && (
+                <div
+                  className={`mb-4 rounded-[1.2rem] border px-4 py-3 text-sm leading-6 ${
+                    supplierOrderSummary.canCheckout
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                      : "border-amber-200 bg-amber-50 text-amber-950"
+                  }`}
+                >
+                  <p className="whitespace-pre-line font-semibold">
+                    {supplierOrderSummary.canCheckout
+                      ? `Мінімум від ${supplierOrderSummary.supplierName} виконано.`
+                      : supplierOrderSummary.message}
+                  </p>
+
+                  {supplierOrderSummary.supplierId && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onShowSupplierProducts?.(
+                          supplierOrderSummary.supplierId,
+                          supplierOrderSummary.supplierName
+                        )
+                      }
+                      className="eg-button mt-2 rounded-xl bg-white px-3 py-2 text-xs font-black text-stone-900 shadow-sm hover:bg-stone-50"
+                    >
+                      Показати товари цього постачальника
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-black uppercase tracking-wide text-stone-500">

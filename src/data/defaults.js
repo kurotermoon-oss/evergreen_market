@@ -45,6 +45,8 @@ export const EMPTY_DRAFT_PRODUCT = {
 
   stockStatus: "in_stock",
   stockQuantity: "",
+  supplierId: "",
+  fulfillmentType: "in_stock",
 };
 
 export const PRODUCTS_PER_PAGE = 9;

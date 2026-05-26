@@ -21,6 +21,8 @@ export const PRODUCT_CSV_COLUMNS = [
   "statusLabel",
   "stockStatus",
   "stockQuantity",
+  "supplierId",
+  "fulfillmentType",
   "active",
   "popular",
   "purchaseCount",
@@ -128,6 +130,16 @@ const HEADER_ALIASES = {
   залишок: "stockQuantity",
   остаток: "stockQuantity",
 
+  supplierid: "supplierId",
+  supplier: "supplierId",
+  постачальник: "supplierId",
+  поставщик: "supplierId",
+
+  fulfillmenttype: "fulfillmentType",
+  fulfillment: "fulfillmentType",
+  типвиконання: "fulfillmentType",
+  типвыполнения: "fulfillmentType",
+
   active: "active",
   активний: "active",
   активный: "active",
@@ -160,6 +172,20 @@ const STOCK_STATUS_ALIASES = {
   "немає": "out_of_stock",
   "нет": "out_of_stock",
   "нет в наличии": "out_of_stock",
+};
+
+const FULFILLMENT_TYPE_ALIASES = {
+  "": "",
+  in_stock: "in_stock",
+  instock: "in_stock",
+  "є в наявності": "in_stock",
+  "у наявності": "in_stock",
+  "в наявності": "in_stock",
+  "в наличии": "in_stock",
+  supplier_order: "supplier_order",
+  supplierorder: "supplier_order",
+  "під замовлення": "supplier_order",
+  "под заказ": "supplier_order",
 };
 
 function normalizeHeader(value) {
@@ -294,6 +320,17 @@ function normalizeStockStatus(value) {
   return STOCK_STATUS_ALIASES[cleanValue] || STOCK_STATUS_ALIASES[compactValue] || cleanValue;
 }
 
+function normalizeFulfillmentType(value) {
+  const cleanValue = String(value || "").trim().toLowerCase();
+  const compactValue = cleanValue.replace(/[\s_-]+/g, "");
+
+  return (
+    FULFILLMENT_TYPE_ALIASES[cleanValue] ||
+    FULFILLMENT_TYPE_ALIASES[compactValue] ||
+    cleanValue
+  );
+}
+
 function normalizeProduct(row, rowNumber) {
   const product = {
     rowNumber,
@@ -327,6 +364,10 @@ function normalizeProduct(row, rowNumber) {
 
   if (product.stockStatus !== undefined) {
     product.stockStatus = normalizeStockStatus(product.stockStatus);
+  }
+
+  if (product.fulfillmentType !== undefined) {
+    product.fulfillmentType = normalizeFulfillmentType(product.fulfillmentType);
   }
 
   return product;
@@ -441,6 +482,8 @@ function mapProductForCsv(product, categories) {
     statusLabel: product.statusLabel || "",
     stockStatus: product.stockStatus || "in_stock",
     stockQuantity: product.stockQuantity ?? "",
+    supplierId: product.supplierId || "",
+    fulfillmentType: product.fulfillmentType || "in_stock",
     active: product.active !== false,
     popular: Boolean(product.popular),
     purchaseCount: product.purchaseCount ?? "",

@@ -1,6 +1,9 @@
 const crypto = require("crypto");
 
 const prisma = require("../database/prisma.cjs");
+const {
+  validateSupplierOrderItems,
+} = require("../utils/supplierOrderRules.cjs");
 
 function createOrderId() {
   return `order_${crypto.randomUUID()}`;
@@ -241,6 +244,9 @@ async function getProductsForOrder(rawItems = []) {
         },
       ],
     },
+    include: {
+      supplier: true,
+    },
   });
 }
 
@@ -335,6 +341,17 @@ async function increaseOrderPurchaseCount(db, items = []) {
 
 
 async function createOrder(payload) {
+  const supplierOrderValidation = validateSupplierOrderItems(payload.items);
+
+  if (!supplierOrderValidation.ok) {
+    const error = new Error(supplierOrderValidation.message);
+    error.status = supplierOrderValidation.status || 400;
+    error.code = supplierOrderValidation.error || "SUPPLIER_ORDER_RULES_FAILED";
+    error.errors = supplierOrderValidation.errors || {};
+    error.details = supplierOrderValidation.details || {};
+    throw error;
+  }
+
   return prisma.$transaction(async (tx) => {
     const orderNumber = await getNextOrderNumber(tx);
 
