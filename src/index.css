@@ -89,12 +89,12 @@ body {
 @keyframes egSortMenuIn {
   from {
     opacity: 0;
-    transform: translateY(-8px) scale(0.98);
+    transform: translateY(-12px) scaleY(0.92);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0) scaleY(1);
   }
 }
 
@@ -105,6 +105,54 @@ body {
 
   to {
     opacity: 1;
+  }
+}
+
+@keyframes egMobileSearchIn {
+  from {
+    opacity: 0;
+    transform: translateY(34px) scale(0.965);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes egMobileCatalogIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes egMobileHeaderMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-24px) scaleY(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes egMobileFilterIn {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scaleY(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
   }
 }
 
@@ -190,12 +238,46 @@ body {
 }
 
 .eg-menu {
+  transform-origin: top center;
+  will-change: transform, opacity;
   animation: egSlideDown var(--eg-motion-slow) var(--eg-ease-soft) both;
 }
 
 .eg-sort-menu {
-  transform-origin: top right;
-  animation: egSortMenuIn var(--eg-motion-base) var(--eg-ease-soft) both;
+  transform-origin: top center;
+  will-change: transform, opacity;
+  animation: egSortMenuIn 280ms var(--eg-ease-soft) both;
+}
+
+.eg-toolbar-card {
+  overflow: visible;
+}
+
+.eg-mobile-search-backdrop {
+  animation: egOverlayFade var(--eg-motion-base) ease both;
+}
+
+.eg-mobile-search-panel {
+  transform-origin: bottom center;
+  will-change: transform, opacity;
+  animation: egMobileSearchIn 360ms var(--eg-ease-soft) both;
+}
+
+.eg-mobile-catalog-panel {
+  will-change: transform, opacity;
+  animation: egMobileCatalogIn 360ms var(--eg-ease-soft) both;
+}
+
+.eg-mobile-header-menu {
+  transform-origin: top center;
+  will-change: transform, opacity;
+  animation: egMobileHeaderMenuIn 320ms var(--eg-ease-soft) both;
+}
+
+.eg-mobile-filter-panel {
+  transform-origin: top center;
+  will-change: transform, opacity;
+  animation: egMobileFilterIn 300ms var(--eg-ease-soft) both;
 }
 
 .eg-overlay {
@@ -609,6 +691,10 @@ body.eg-catalog-open {
 .eg-premium-card {
   position: relative;
   overflow: hidden;
+}
+
+.eg-premium-card.eg-toolbar-card {
+  overflow: visible;
 }
 
 .eg-premium-card::before {

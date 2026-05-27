@@ -66,6 +66,7 @@ function getInitialView() {
 export default function App() {
   const [view, setView] = useState(getInitialView);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [shouldScrollToContacts, setShouldScrollToContacts] = useState(false);
 
   const {
@@ -304,6 +305,12 @@ useEffect(() => {
 
 useEffect(() => {
   window.scrollTo({ top: 0, behavior: "auto" });
+}, [view]);
+
+useEffect(() => {
+  if (view !== "catalog") {
+    setIsMobileSearchOpen(false);
+  }
 }, [view]);
 
 useEffect(() => {
@@ -551,6 +558,8 @@ return (
           setSelectedFulfillmentType={setSelectedFulfillmentType}
           selectedSupplierId={selectedSupplierId}
           setSelectedSupplierId={setSelectedSupplierId}
+          isMobileSearchOpen={isMobileSearchOpen}
+          setIsMobileSearchOpen={setIsMobileSearchOpen}
           visibleProducts={paginatedProducts}
           totalProducts={filteredProducts.length}
           currentPage={currentPage}
@@ -700,6 +709,13 @@ return (
         setView={setView}
         onContactsClick={openContacts}
         onCartOpen={openCartDrawer}
+        onSearchOpen={() => {
+          setView("catalog");
+          closeCartDrawer();
+          setIsMobileSearchOpen(true);
+        }}
+        onSearchClose={() => setIsMobileSearchOpen(false)}
+        isSearchOpen={isMobileSearchOpen}
         isCartOpen={isCartDrawerOpen}
         cartCount={cartCount}
         isAdmin={isAdmin}

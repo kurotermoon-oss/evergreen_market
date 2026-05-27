@@ -1,4 +1,4 @@
-import { ShoppingBasket } from "lucide-react";
+import { Search, ShoppingBasket } from "lucide-react";
 
 function HomeIcon({ className = "" }) {
   return (
@@ -103,50 +103,76 @@ export default function MobileNav({
   setView,
   onContactsClick,
   onCartOpen,
+  onSearchOpen,
+  onSearchClose,
+  isSearchOpen = false,
   isCartOpen = false,
   cartCount = 0,
   customer = null,
 }) {
+  function closeSearchAndRun(callback) {
+    onSearchClose?.();
+    callback?.();
+  }
+
   const navItems = [
+    view === "catalog" && onSearchOpen
+      ? {
+          id: "search",
+          label: "Пошук",
+          Icon: Search,
+          isActive: isSearchOpen,
+          onClick: onSearchOpen,
+          isDialogTrigger: true,
+          isExpanded: isSearchOpen,
+        }
+      : null,
     {
       id: "home",
       label: "Головна",
       Icon: HomeIcon,
       isActive: view === "home",
-      onClick: () => setView("home"),
+      onClick: () => closeSearchAndRun(() => setView("home")),
     },
     {
       id: "catalog",
       label: "Товари",
       Icon: CatalogIcon,
-      isActive: view === "catalog",
-      onClick: () => setView("catalog"),
+      isActive: view === "catalog" && !isSearchOpen,
+      onClick: () => closeSearchAndRun(() => setView("catalog")),
     },
     {
       id: "cart",
       label: "Кошик",
       Icon: CartIcon,
       isActive: view === "cart" || isCartOpen,
-      onClick: onCartOpen,
+      onClick: () => closeSearchAndRun(onCartOpen),
       badge: cartCount,
       hasGlow: cartCount > 0,
       isDialogTrigger: true,
+      isExpanded: isCartOpen,
     },
     {
       id: "contacts",
       label: "Контакти",
       Icon: ContactIcon,
       isActive: false,
-      onClick: onContactsClick,
+      onClick: () => closeSearchAndRun(onContactsClick),
     },
     {
       id: "account",
       label: customer ? "Кабінет" : "Увійти",
       Icon: UserIcon,
       isActive: view === "account" || view === "customer-auth",
-      onClick: () => setView(customer ? "account" : "customer-auth"),
+      onClick: () =>
+        closeSearchAndRun(() => setView(customer ? "account" : "customer-auth")),
     },
-  ];
+  ].filter((item) => {
+    return (
+      Boolean(item) &&
+      !(view === "catalog" && onSearchOpen && item.id === "home")
+    );
+  });
 
   return (
     <nav className="eg-mobile-nav eg-panel fixed left-1/2 z-[70] flex w-[calc(100vw-1rem)] max-w-[430px] -translate-x-1/2 items-center gap-1 rounded-[1.6rem] border border-emerald-700/50 bg-emerald-950/95 p-1.5 shadow-[0_18px_44px_rgba(2,44,34,0.38)] backdrop-blur-2xl md:hidden">
@@ -169,7 +195,7 @@ export default function MobileNav({
             }`}
             aria-label={item.label}
             aria-haspopup={item.isDialogTrigger ? "dialog" : undefined}
-            aria-expanded={item.isDialogTrigger ? isCartOpen : undefined}
+            aria-expanded={item.isDialogTrigger ? item.isExpanded : undefined}
             title={item.label}
           >
             <Icon className="h-5 w-5" />

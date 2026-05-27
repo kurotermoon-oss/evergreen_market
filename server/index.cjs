@@ -3671,6 +3671,23 @@ if (fs.existsSync(clientDistPath)) {
 
 const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-  console.log(`Evergreen backend running on port ${PORT}`);
+const server = app.listen(PORT, (error) => {
+  if (error) {
+    if (error.code === "EADDRINUSE") {
+      console.error(
+        `Evergreen backend failed to start: port ${PORT} is already in use.`
+      );
+    } else {
+      console.error("Evergreen backend failed to start:", error);
+    }
+
+    process.exitCode = 1;
+    return;
+  }
+
+  const address = server.address();
+  const runningPort =
+    address && typeof address === "object" ? address.port : PORT;
+
+  console.log(`Evergreen backend running on port ${runningPort}`);
 });

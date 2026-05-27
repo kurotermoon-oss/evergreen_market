@@ -1,3 +1,4 @@
+import { Menu, MapPin, Phone, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo.jsx";
 
@@ -108,6 +109,35 @@ function SettingsIcon({ className = "" }) {
   );
 }
 
+function InstagramMark({ className = "" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      aria-hidden="true"
+    >
+      <rect
+        x="3"
+        y="3"
+        width="18"
+        height="18"
+        rx="5"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="4"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
+    </svg>
+  );
+}
+
 export default function Header({
   view,
   setView,
@@ -118,6 +148,7 @@ export default function Header({
   const headerRef = useRef(null);
   const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -193,6 +224,42 @@ export default function Header({
     };
   }, [isHeaderHidden, isScrolled]);
 
+  useEffect(() => {
+    if (!isMobileMenuOpen) return undefined;
+
+    const desktopQuery = window.matchMedia("(min-width: 768px)");
+    const previousOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    function closeOnEscape(event) {
+      if (event.key === "Escape") {
+        setIsMobileMenuOpen(false);
+      }
+    }
+
+    function closeOnDesktop(event) {
+      if (event.matches) {
+        setIsMobileMenuOpen(false);
+      }
+    }
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    desktopQuery.addEventListener("change", closeOnDesktop);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+      desktopQuery.removeEventListener("change", closeOnDesktop);
+    };
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [view]);
+
   const navItems = [
     {
       id: "home",
@@ -227,7 +294,7 @@ export default function Header({
   return (
     <header
       ref={headerRef}
-      className={`eg-site-header sticky top-0 z-40 overflow-hidden border-b bg-white/80 backdrop-blur-2xl transition-all duration-500 ease-out ${
+      className={`eg-site-header sticky top-0 z-40 overflow-visible border-b bg-white/80 backdrop-blur-2xl transition-all duration-500 ease-out ${
         isHeaderHidden ? "-translate-y-full" : "translate-y-0"
       } ${
         isScrolled
@@ -242,14 +309,14 @@ export default function Header({
       </div>
 
       <div
-        className={`relative z-10 mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 transition-all duration-300 sm:px-6 lg:px-8 ${
+        className={`relative z-10 mx-auto grid max-w-7xl grid-cols-[74px_minmax(0,1fr)_56px] items-center gap-3 px-4 transition-all duration-300 md:flex md:justify-between md:gap-4 md:px-6 lg:px-8 ${
           isScrolled ? "py-3" : "py-4"
         }`}
       >
         <button
           type="button"
           onClick={() => setView("home")}
-          className="group flex min-w-0 items-center gap-3 rounded-3xl transition duration-300 hover:scale-[1.01]"
+          className="group flex min-w-0 justify-self-start rounded-3xl transition duration-300 hover:scale-[1.01] md:items-center md:gap-3 md:justify-self-auto"
         >
           <BrandLogo size="md" showText={false} animated={true} />
 
@@ -262,6 +329,22 @@ export default function Header({
               кава · маркет · поруч
             </p>
           </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setView("catalog");
+            window.dispatchEvent(new CustomEvent("eg-open-catalog-menu"));
+          }}
+          className={`eg-button eg-sweep flex min-h-11 w-full max-w-[190px] items-center justify-center justify-self-center rounded-full px-6 text-base font-black shadow-md md:hidden ${
+            view === "catalog"
+              ? "bg-emerald-900 text-white shadow-emerald-900/20"
+              : "bg-emerald-900 text-white shadow-emerald-900/20 hover:bg-emerald-800"
+          }`}
+          aria-label="Каталог"
+        >
+          Каталог
         </button>
 
         <nav className="eg-glass hidden items-center rounded-[1.6rem] border border-white/70 bg-white/55 p-1.5 shadow-lg shadow-emerald-950/5 md:flex">
@@ -291,7 +374,18 @@ export default function Header({
           })}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center justify-self-end gap-2 sm:gap-3 md:justify-self-auto">
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((current) => !current)}
+            className="eg-icon-button grid h-11 w-11 place-items-center rounded-xl bg-white/90 text-emerald-950 shadow-sm ring-1 ring-emerald-100 hover:bg-emerald-50 md:hidden"
+            aria-label={isMobileMenuOpen ? "Закрити меню" : "Відкрити меню"}
+            aria-expanded={isMobileMenuOpen}
+            aria-haspopup="dialog"
+          >
+            {isMobileMenuOpen ? <X size={28} /> : <Menu size={30} />}
+          </button>
+
           {isAdmin && (
             <button
               type="button"
@@ -310,6 +404,107 @@ export default function Header({
 
         </div>
       </div>
+
+      {isMobileMenuOpen && (
+        <div
+          className="eg-mobile-header-menu absolute inset-x-0 top-full z-[160] mx-auto flex max-h-[calc(100dvh-var(--eg-header-offset,0px))] max-w-[560px] flex-col overflow-y-auto border-t border-stone-100 bg-white px-6 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-7 text-stone-950 shadow-2xl shadow-emerald-950/18 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Мобільне меню"
+        >
+          <nav className="grid gap-2 text-center text-xl font-semibold">
+            <button
+              type="button"
+              onClick={() => {
+                setView("home");
+                setIsMobileMenuOpen(false);
+              }}
+              className="eg-button min-h-14 rounded-2xl hover:bg-emerald-50"
+            >
+              Головна
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                onContactsClick?.();
+                setIsMobileMenuOpen(false);
+              }}
+              className="eg-button min-h-14 rounded-2xl hover:bg-emerald-50"
+            >
+              Контакти
+            </button>
+          </nav>
+
+          <div className="my-7 h-px bg-stone-200" />
+
+          <div className="space-y-4">
+            <a
+              href="tel:+380997592367"
+              className="eg-button flex min-h-14 items-center gap-4 rounded-2xl text-left hover:bg-emerald-50"
+            >
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-emerald-100 text-emerald-900">
+                <Phone size={20} />
+              </span>
+              <span>
+                <span className="block text-lg font-black text-stone-950">
+                  +380 99 759 23 67
+                </span>
+                <span className="text-sm font-semibold text-stone-500">
+                  Телефон для замовлень
+                </span>
+              </span>
+            </a>
+
+            <a
+              href="https://t.me/EvergreeenCofee"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="eg-button flex min-h-14 items-center gap-4 rounded-2xl text-left hover:bg-emerald-50"
+            >
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sky-100 text-sky-700">
+                <Send size={20} />
+              </span>
+              <span className="text-lg font-black text-stone-950">
+                Написати у Telegram
+              </span>
+            </a>
+
+            <a
+              href="https://instagram.com/evergreen___coffee/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="eg-button flex min-h-14 items-center gap-4 rounded-2xl text-left hover:bg-emerald-50"
+            >
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-pink-100 text-pink-700">
+                <InstagramMark className="h-5 w-5" />
+              </span>
+              <span className="text-lg font-black text-stone-950">
+                Instagram
+              </span>
+            </a>
+
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=Київ%2C%20вул.%20Білицька%2020"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="eg-button flex min-h-14 items-center gap-4 rounded-2xl text-left hover:bg-emerald-50"
+            >
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-100 text-amber-700">
+                <MapPin size={20} />
+              </span>
+              <span>
+                <span className="block text-lg font-black text-stone-950">
+                  вул. Білицька 20
+                </span>
+                <span className="text-sm font-semibold text-stone-500">
+                  Щодня 08:00-21:00
+                </span>
+              </span>
+            </a>
+          </div>
+        </div>
+      )}
 
     </header>
   );
