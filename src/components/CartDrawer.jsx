@@ -1,8 +1,21 @@
-import { ArrowRight, PackageOpen, ShoppingBasket, X } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Layers3,
+  PackageOpen,
+  ShoppingBasket,
+  Store,
+  Truck,
+  X,
+} from "lucide-react";
 import { useEffect, useRef } from "react";
 import Icon from "./Icon.jsx";
 import logoEvergreen from "../img/logo_evergreen.webp";
 import { formatUAH } from "../utils/formatUAH.js";
+import {
+  FULFILLMENT_SUPPLIER_ORDER,
+  buildCartOrderGroups,
+} from "../utils/cartSupplierRules.js";
 
 function getItemId(item) {
   return item.productId || item.id;
@@ -13,27 +26,181 @@ function getProductWord(count) {
   const lastDigit = normalizedCount % 10;
   const lastTwoDigits = normalizedCount % 100;
 
-  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
-    return "товарів";
-  }
-
-  if (lastDigit === 1) {
-    return "товар";
-  }
-
-  if (lastDigit >= 2 && lastDigit <= 4) {
-    return "товари";
-  }
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return "товарів";
+  if (lastDigit === 1) return "товар";
+  if (lastDigit >= 2 && lastDigit <= 4) return "товари";
 
   return "товарів";
+}
+
+function CartItem({
+  item,
+  changeQuantity,
+  removeFromCart,
+  onImageError,
+}) {
+  const productId = getItemId(item);
+  const quantity = Number(item.quantity || 0);
+  const itemTotal = Number(item.price || 0) * quantity;
+
+  function decreaseItem() {
+    changeQuantity?.(productId, Math.max(0, quantity - 1));
+  }
+
+  function increaseItem() {
+    changeQuantity?.(productId, quantity + 1);
+  }
+
+  return (
+    <div className="eg-card flex gap-3 rounded-[1.2rem] border border-stone-200 bg-white p-3 shadow-sm hover:border-emerald-100 hover:shadow-md hover:shadow-emerald-900/10">
+      <img
+        src={item.image || logoEvergreen}
+        alt={item.name}
+        onError={onImageError}
+        className="h-[68px] w-[68px] shrink-0 rounded-[0.95rem] bg-stone-50 object-cover"
+      />
+
+      <div className="min-w-0 flex-1">
+        <h3 className="line-clamp-2 text-sm font-black leading-5 text-stone-950">
+          {item.name}
+        </h3>
+
+        {(item.brand || item.unit || item.packageInfo) && (
+          <p className="mt-1 line-clamp-1 text-xs leading-5 text-stone-500">
+            {[item.brand, item.unit, item.packageInfo].filter(Boolean).join(" · ")}
+          </p>
+        )}
+
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <div className="flex h-10 overflow-hidden rounded-xl border border-stone-200 bg-stone-50">
+            <button
+              type="button"
+              onClick={decreaseItem}
+              className="eg-counter-button flex h-10 w-10 items-center justify-center text-stone-700 hover:bg-emerald-100 hover:text-emerald-900"
+              aria-label="Зменшити кількість"
+            >
+              <Icon name="minus" size={14} />
+            </button>
+
+            <span className="flex h-10 min-w-10 items-center justify-center bg-white px-2 text-sm font-black text-stone-950">
+              {quantity}
+            </span>
+
+            <button
+              type="button"
+              onClick={increaseItem}
+              className="eg-counter-button flex h-10 w-10 items-center justify-center text-stone-700 hover:bg-emerald-100 hover:text-emerald-900"
+              aria-label="Збільшити кількість"
+            >
+              <Icon name="plus" size={14} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-black text-stone-950">
+              {formatUAH(itemTotal)}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => removeFromCart?.(productId)}
+              className="eg-icon-button flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 text-stone-500 hover:bg-red-50 hover:text-red-600"
+              aria-label="Видалити товар"
+            >
+              <Icon name="trash" size={15} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CartGroup({
+  group,
+  changeQuantity,
+  removeFromCart,
+  onImageError,
+  onShowSupplierProducts,
+}) {
+  const isSupplierOrder = group.type === FULFILLMENT_SUPPLIER_ORDER;
+  const GroupIcon = isSupplierOrder ? Truck : Store;
+
+  return (
+    <section className="rounded-[1.35rem] border border-stone-200 bg-stone-50/80 p-2.5">
+      <div className="mb-2 flex items-start justify-between gap-3 px-1">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <span
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-[0.95rem] ${
+              isSupplierOrder
+                ? "bg-blue-50 text-blue-800"
+                : "bg-emerald-50 text-emerald-800"
+            }`}
+          >
+            <GroupIcon size={19} />
+          </span>
+
+          <div className="min-w-0">
+            <h3 className="line-clamp-1 text-sm font-black text-stone-950">
+              {group.label}
+            </h3>
+            <p className="mt-0.5 text-xs font-semibold text-stone-500">
+              {group.count} {getProductWord(group.count)} · {formatUAH(group.total)}
+            </p>
+          </div>
+        </div>
+
+        {group.canCheckout ? (
+          <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black text-emerald-900">
+            Готово
+          </span>
+        ) : (
+          <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black text-amber-900">
+            Окремо
+          </span>
+        )}
+      </div>
+
+      {group.message && (
+        <div className="mb-2 flex gap-2 rounded-[1rem] border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold leading-5 text-amber-950">
+          <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+          <span>{group.message}</span>
+        </div>
+      )}
+
+      {isSupplierOrder && group.supplierId && (
+        <button
+          type="button"
+          onClick={() =>
+            onShowSupplierProducts?.(group.supplierId, group.supplierName)
+          }
+          className="eg-button mb-2 min-h-9 rounded-xl bg-white px-3 text-xs font-black text-stone-900 shadow-sm hover:bg-emerald-50"
+        >
+          Добрати товари цього постачальника
+        </button>
+      )}
+
+      <div className="space-y-2">
+        {group.items.map((item) => (
+          <CartItem
+            key={getItemId(item)}
+            item={item}
+            changeQuantity={changeQuantity}
+            removeFromCart={removeFromCart}
+            onImageError={onImageError}
+          />
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export default function CartDrawer({
   isOpen,
   cartItems = [],
+  cartOrderGroups,
   total = 0,
   cartCount = 0,
-  supplierOrderSummary,
   changeQuantity,
   removeFromCart,
   setCart,
@@ -44,6 +211,9 @@ export default function CartDrawer({
   const closeButtonRef = useRef(null);
   const drawerRef = useRef(null);
   const previousFocusRef = useRef(null);
+  const groups = cartOrderGroups?.length
+    ? cartOrderGroups
+    : buildCartOrderGroups(cartItems);
 
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -54,9 +224,7 @@ export default function CartDrawer({
         return;
       }
 
-      if (event.key !== "Tab") {
-        return;
-      }
+      if (event.key !== "Tab") return;
 
       const focusableElements = drawerRef.current?.querySelectorAll(
         [
@@ -103,20 +271,7 @@ export default function CartDrawer({
   if (!isOpen) return null;
 
   const isEmpty = cartItems.length === 0;
-
-  function decreaseItem(item) {
-    const productId = getItemId(item);
-    const nextQuantity = Number(item.quantity || 1) - 1;
-
-    changeQuantity?.(productId, Math.max(0, nextQuantity));
-  }
-
-  function increaseItem(item) {
-    const productId = getItemId(item);
-    const nextQuantity = Number(item.quantity || 0) + 1;
-
-    changeQuantity?.(productId, nextQuantity);
-  }
+  const isSegmented = groups.length > 1;
 
   function openCheckout() {
     onClose?.();
@@ -127,11 +282,11 @@ export default function CartDrawer({
     event.currentTarget.src = logoEvergreen;
     event.currentTarget.alt = "Evergreen coffee";
     event.currentTarget.className =
-      "h-[72px] w-[72px] shrink-0 rounded-[1rem] bg-emerald-50 object-contain p-2";
+      "h-[68px] w-[68px] shrink-0 rounded-[0.95rem] bg-emerald-50 object-contain p-2";
   }
 
   return (
-    <div className="fixed inset-0 z-[90]" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[900]" role="dialog" aria-modal="true">
       <div
         aria-hidden="true"
         className="absolute inset-0 cursor-default bg-stone-950/45 backdrop-blur-sm"
@@ -174,12 +329,21 @@ export default function CartDrawer({
           </div>
 
           {!isEmpty && (
-            <div className="relative z-10 mt-4 flex items-center justify-between gap-3 rounded-[1.2rem] bg-white/12 px-4 py-3 text-sm ring-1 ring-white/14">
-              <span className="font-semibold text-emerald-50">
-                {cartCount} {getProductWord(cartCount)}
-              </span>
+            <div className="relative z-10 mt-4 grid gap-2 rounded-[1.2rem] bg-white/12 px-4 py-3 text-sm ring-1 ring-white/14">
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-semibold text-emerald-50">
+                  {cartCount} {getProductWord(cartCount)}
+                </span>
 
-              <span className="text-xl font-black">{formatUAH(total)}</span>
+                <span className="text-xl font-black">{formatUAH(total)}</span>
+              </div>
+
+              {isSegmented && (
+                <p className="flex items-center gap-2 text-xs font-semibold leading-5 text-emerald-50/90">
+                  <Layers3 size={15} className="shrink-0" />
+                  Кошик розділено на {groups.length} окремі замовлення.
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -195,8 +359,7 @@ export default function CartDrawer({
             </p>
 
             <p className="mt-2 max-w-xs text-sm leading-6 text-stone-500">
-              Додайте товари з каталогу, а кошик залишиться тут, поверх
-              поточної сторінки.
+              Додайте товари з каталогу, а кошик залишиться тут, поверх поточної сторінки.
             </p>
 
             <button
@@ -211,133 +374,24 @@ export default function CartDrawer({
           <>
             <div className="modal-scrollbar flex-1 overflow-y-auto px-4 py-4 sm:px-5">
               <div className="space-y-3">
-                {cartItems.map((item) => {
-                  const productId = getItemId(item);
-                  const quantity = Number(item.quantity || 0);
-                  const itemTotal = Number(item.price || 0) * quantity;
-
-                  return (
-                    <div
-                      key={productId}
-                      className="eg-card flex gap-3 rounded-[1.35rem] border border-stone-200 bg-white p-3 shadow-sm hover:border-emerald-100 hover:shadow-md hover:shadow-emerald-900/10"
-                    >
-                      <img
-                        src={item.image || logoEvergreen}
-                        alt={item.name}
-                        onError={handleImageError}
-                        className="h-[72px] w-[72px] shrink-0 rounded-[1rem] bg-stone-50 object-cover"
-                      />
-
-                      <div className="min-w-0 flex-1">
-                        <h3 className="line-clamp-2 text-sm font-black leading-5 text-stone-950">
-                          {item.name}
-                        </h3>
-
-                        {(item.brand || item.unit || item.packageInfo) && (
-                          <p className="mt-1 line-clamp-1 text-xs leading-5 text-stone-500">
-                            {[item.brand, item.unit, item.packageInfo]
-                              .filter(Boolean)
-                              .join(" · ")}
-                          </p>
-                        )}
-
-                        <div className="mt-3 flex items-center justify-between gap-2">
-                          <div className="flex h-10 overflow-hidden rounded-xl border border-stone-200 bg-stone-50">
-                            <button
-                              type="button"
-                              onClick={() => decreaseItem(item)}
-                              className="eg-counter-button flex h-10 w-10 items-center justify-center text-stone-700 hover:bg-emerald-100 hover:text-emerald-900"
-                              aria-label="Зменшити кількість"
-                            >
-                              <Icon name="minus" size={14} />
-                            </button>
-
-                            <span className="flex h-10 min-w-10 items-center justify-center bg-white px-2 text-sm font-black text-stone-950">
-                              {quantity}
-                            </span>
-
-                            <button
-                              type="button"
-                              onClick={() => increaseItem(item)}
-                              className="eg-counter-button flex h-10 w-10 items-center justify-center text-stone-700 hover:bg-emerald-100 hover:text-emerald-900"
-                              aria-label="Збільшити кількість"
-                            >
-                              <Icon name="plus" size={14} />
-                            </button>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-black text-stone-950">
-                              {formatUAH(itemTotal)}
-                            </p>
-
-                            <button
-                              type="button"
-                              onClick={() => removeFromCart?.(productId)}
-                              className="eg-icon-button flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 text-stone-500 hover:bg-red-50 hover:text-red-600"
-                              aria-label="Видалити товар"
-                            >
-                              <Icon name="trash" size={15} />
-                            </button>
-                          </div>
-                        </div>
-
-                        <p
-                          className={`mt-2 w-fit rounded-full px-2.5 py-1 text-[11px] font-black ${
-                            item.fulfillmentType === "supplier_order"
-                              ? "bg-blue-50 text-blue-800"
-                              : "bg-emerald-50 text-emerald-800"
-                          }`}
-                        >
-                          {item.fulfillmentType === "supplier_order"
-                            ? `Під замовлення${
-                                item.supplier?.name ? ` · ${item.supplier.name}` : ""
-                              }`
-                            : "Є в наявності"}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+                {groups.map((group) => (
+                  <CartGroup
+                    key={group.id}
+                    group={group}
+                    changeQuantity={changeQuantity}
+                    removeFromCart={removeFromCart}
+                    onImageError={handleImageError}
+                    onShowSupplierProducts={onShowSupplierProducts}
+                  />
+                ))}
               </div>
             </div>
 
             <div className="border-t border-stone-200 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 sm:px-5 sm:pb-5">
-              {supplierOrderSummary?.hasSupplierOrder && (
-                <div
-                  className={`mb-4 rounded-[1.2rem] border px-4 py-3 text-sm leading-6 ${
-                    supplierOrderSummary.canCheckout
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-950"
-                      : "border-amber-200 bg-amber-50 text-amber-950"
-                  }`}
-                >
-                  <p className="whitespace-pre-line font-semibold">
-                    {supplierOrderSummary.canCheckout
-                      ? `Мінімум від ${supplierOrderSummary.supplierName} виконано.`
-                      : supplierOrderSummary.message}
-                  </p>
-
-                  {supplierOrderSummary.supplierId && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onShowSupplierProducts?.(
-                          supplierOrderSummary.supplierId,
-                          supplierOrderSummary.supplierName
-                        )
-                      }
-                      className="eg-button mt-2 rounded-xl bg-white px-3 py-2 text-xs font-black text-stone-900 shadow-sm hover:bg-stone-50"
-                    >
-                      Показати товари цього постачальника
-                    </button>
-                  )}
-                </div>
-              )}
-
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs font-black uppercase tracking-wide text-stone-500">
-                    Разом
+                    У кошику
                   </p>
 
                   <p className="mt-1 text-2xl font-black text-stone-950">
@@ -347,9 +401,7 @@ export default function CartDrawer({
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setCart?.({});
-                  }}
+                  onClick={() => setCart?.({})}
                   className="eg-button rounded-2xl border border-stone-300 px-4 py-2.5 text-sm font-black text-stone-700 hover:bg-stone-100"
                 >
                   Очистити
@@ -370,7 +422,7 @@ export default function CartDrawer({
                   onClick={openCheckout}
                   className="eg-button eg-sweep flex items-center justify-center gap-2 rounded-2xl bg-emerald-900 px-4 py-3 text-sm font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
                 >
-                  Оформити
+                  Обрати замовлення
                   <ArrowRight size={17} strokeWidth={2.2} />
                 </button>
               </div>

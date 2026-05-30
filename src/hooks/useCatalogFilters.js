@@ -74,6 +74,53 @@ export function useCatalogFilters({
     }
   }, [selectedFulfillmentType]);
 
+  useEffect(() => {
+    if (selectedCategory === "all" && selectedSubcategory === "all") return;
+
+    const scopeProducts = products.filter((product) => {
+      if (product.active === false) return false;
+
+      const isSupplierOrder = product.fulfillmentType === "supplier_order";
+
+      if (selectedFulfillmentType === "supplier_order") {
+        return (
+          isSupplierOrder &&
+          selectedSupplierId &&
+          String(product.supplierId || "") === String(selectedSupplierId)
+        );
+      }
+
+      return !isSupplierOrder;
+    });
+
+    if (
+      selectedCategory !== "all" &&
+      !scopeProducts.some((product) => product.category === selectedCategory)
+    ) {
+      setSelectedCategory("all");
+      setSelectedSubcategory("all");
+      return;
+    }
+
+    if (
+      selectedSubcategory !== "all" &&
+      !scopeProducts.some((product) => {
+        return (
+          product.category === selectedCategory &&
+          product.subcategory === selectedSubcategory
+        );
+      })
+    ) {
+      setSelectedSubcategory("all");
+    }
+  }, [
+    products,
+    selectedCategory,
+    selectedSubcategory,
+    selectedFulfillmentType,
+    selectedSupplierId,
+  ]);
+
   const productsWithPopularity = useMemo(() => {
     return markPopularProducts(products, 6);
   }, [products]);
@@ -156,8 +203,8 @@ export function useCatalogFilters({
           : !isSupplierOrder;
       const supplierMatch =
         selectedFulfillmentType !== "supplier_order" ||
-        !selectedSupplierId ||
-        String(product.supplierId || "") === String(selectedSupplierId);
+        (Boolean(selectedSupplierId) &&
+          String(product.supplierId || "") === String(selectedSupplierId));
 
       return (
         product.active !== false &&

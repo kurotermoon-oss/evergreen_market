@@ -16,7 +16,7 @@ export default function FloatingCartButton({
       aria-haspopup="dialog"
       aria-expanded={isOpen}
       title="Кошик"
-      className={`eg-floating-cart eg-button group fixed bottom-8 right-8 z-[70] hidden h-[4.9rem] w-[4.9rem] items-center justify-center rounded-[1.55rem] border border-white/70 text-white shadow-2xl shadow-emerald-950/25 ring-4 ring-white/75 transition hover:-translate-y-1 md:flex ${
+      className={`eg-floating-cart eg-button group fixed z-[160] hidden h-[4.9rem] w-[4.9rem] items-center justify-center rounded-[1.55rem] border border-white/70 text-white shadow-2xl shadow-emerald-950/25 ring-4 ring-white/75 transition hover:-translate-y-1 md:flex ${
         isOpen
           ? "bg-stone-950 hover:bg-stone-900"
           : cartCount > 0

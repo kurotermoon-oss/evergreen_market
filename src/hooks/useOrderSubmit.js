@@ -20,54 +20,48 @@ function extractBackendMessage(error) {
   );
 }
 
+function getCartItemId(item) {
+  return item.productId || item.id;
+}
+
 export function useOrderSubmit({
   cartItems,
-  supplierOrderSummary,
   form,
   customer,
   isAdmin,
   loadAdminData,
   loadCustomerOrders,
   clearCart,
+  clearCartItems,
   setView,
 }) {
   const [orderMessage, setOrderMessage] = useState("");
   const [createdOrder, setCreatedOrder] = useState(null);
 
-  async function submitOrder() {
+  async function submitOrder(itemsToSubmit = cartItems) {
+    const selectedItems = Array.isArray(itemsToSubmit)
+      ? itemsToSubmit.filter(Boolean)
+      : cartItems;
+
     const hasName = Boolean(form.name || customer?.name);
     const hasContact = Boolean(
       form.phone || form.telegram || customer?.phone || customer?.telegram
     );
 
-    if (!cartItems.length || !hasName || !hasContact) {
+    if (!selectedItems.length || !hasName || !hasContact) {
       return {
         ok: false,
         message: "Додайте товари, імʼя та телефон або Telegram.",
         errors: {
-          cart: !cartItems.length ? "Кошик порожній" : "",
+          cart: !selectedItems.length ? "Оберіть сегмент кошика для замовлення" : "",
           name: !hasName ? "Вкажіть імʼя" : "",
           contact: !hasContact ? "Вкажіть телефон або Telegram" : "",
         },
       };
     }
 
-    if (supplierOrderSummary && !supplierOrderSummary.canCheckout) {
-      return {
-        ok: false,
-        message:
-          supplierOrderSummary.message ||
-          "Перевірте товари під замовлення в кошику.",
-        errors: {
-          cart:
-            supplierOrderSummary.message ||
-            "Перевірте товари під замовлення в кошику.",
-        },
-      };
-    }
-
-    const items = cartItems.map((item) => ({
-      id: item.productId || item.id,
+    const items = selectedItems.map((item) => ({
+      id: getCartItemId(item),
       quantity: Number(item.quantity || 1),
     }));
 
@@ -87,7 +81,11 @@ export function useOrderSubmit({
         customer,
       });
 
-      clearCart?.();
+      if (clearCartItems) {
+        clearCartItems(items.map((item) => item.id));
+      } else {
+        clearCart?.();
+      }
 
       if (isAdmin) {
         await loadAdminData?.();

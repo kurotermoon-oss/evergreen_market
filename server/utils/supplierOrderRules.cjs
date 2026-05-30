@@ -47,6 +47,21 @@ function validateSupplierOrderItems(items = []) {
     return item?.fulfillmentType === SUPPLIER_ORDER;
   });
 
+  const inStockItems = items.filter((item) => {
+    return item?.fulfillmentType !== SUPPLIER_ORDER;
+  });
+
+  if (supplierOrderItems.length && inStockItems.length) {
+    return createValidationResult(
+      "Товари в наявності та товари під замовлення потрібно оформлювати окремими замовленнями.",
+      {
+        error: "MIXED_FULFILLMENT_ORDER",
+        hint:
+          "Оформіть усі товари з вкладки \"Є в наявності\" окремо або виберіть один сегмент постачальника.",
+      }
+    );
+  }
+
   if (!supplierOrderItems.length) {
     return {
       ok: true,

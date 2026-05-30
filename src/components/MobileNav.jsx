@@ -175,7 +175,7 @@ export default function MobileNav({
   });
 
   return (
-    <nav className="eg-mobile-nav eg-panel fixed left-1/2 z-[70] flex w-[calc(100vw-1rem)] max-w-[430px] -translate-x-1/2 items-center gap-1 rounded-[1.6rem] border border-emerald-700/50 bg-emerald-950/95 p-1.5 shadow-[0_18px_44px_rgba(2,44,34,0.38)] backdrop-blur-2xl md:hidden">
+    <nav className="eg-mobile-nav eg-panel fixed left-1/2 z-[90] flex w-[calc(100vw-1rem)] max-w-[430px] -translate-x-1/2 items-center gap-1 rounded-[1.6rem] border border-emerald-700/50 bg-emerald-950/95 p-1.5 shadow-[0_18px_44px_rgba(2,44,34,0.38)] backdrop-blur-2xl md:hidden">
       <div className="pointer-events-none absolute inset-0 rounded-[1.6rem] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_55%)]" />
 
       {navItems.map((item) => {

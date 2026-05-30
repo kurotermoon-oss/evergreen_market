@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  buildCartOrderGroups,
   buildCartSupplierSummary,
   validateAddToCart,
 } from "../utils/cartSupplierRules.js";
@@ -162,6 +163,10 @@ export function useCart(products = []) {
     return buildCartSupplierSummary(cartItems);
   }, [cartItems]);
 
+  const cartOrderGroups = useMemo(() => {
+    return buildCartOrderGroups(cartItems);
+  }, [cartItems]);
+
   function addToCart(product) {
     if (!product?.id) return;
 
@@ -217,10 +222,29 @@ export function useCart(products = []) {
     setCart({});
   }
 
+  function clearCartItems(productIds = []) {
+    const idsToRemove = new Set(
+      productIds.map((productId) => String(productId)).filter(Boolean)
+    );
+
+    if (!idsToRemove.size) return;
+
+    setCart((currentCart) => {
+      const nextCart = { ...currentCart };
+
+      idsToRemove.forEach((productId) => {
+        delete nextCart[productId];
+      });
+
+      return nextCart;
+    });
+  }
+
   return {
     cart,
     setCart,
     cartItems,
+    cartOrderGroups,
     total,
     cartCount,
     supplierOrderSummary,
@@ -230,5 +254,6 @@ export function useCart(products = []) {
     changeQuantity,
     removeFromCart,
     clearCart,
+    clearCartItems,
   };
 }

@@ -8,6 +8,7 @@ import {
   Menu,
   MoreHorizontal,
   Search,
+  Truck,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -59,6 +60,60 @@ const SORT_OPTIONS = [
   { value: "price-desc", label: "Спочатку дорожчі" },
   { value: "name-asc", label: "За назвою" },
 ];
+
+function SupplierTileGrid({ suppliers = [], onSelect }) {
+  if (!suppliers.length) {
+    return (
+      <div className="eg-panel rounded-[2rem] border border-dashed border-stone-200 bg-white p-10 text-center shadow-sm">
+        <p className="text-xl font-black text-stone-950">
+          Постачальників поки немає
+        </p>
+
+        <p className="mt-2 text-sm leading-6 text-stone-500">
+          Коли зʼявляться товари під замовлення, тут будуть плитки постачальників.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="eg-catalog-results grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 lg:grid-cols-3">
+      {suppliers.map((supplier) => (
+        <button
+          key={supplier.id}
+          type="button"
+          onClick={() => onSelect?.(supplier.id)}
+          className="eg-button eg-premium-card min-h-[168px] rounded-[1.6rem] border border-emerald-100 bg-white/92 p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50/70 hover:shadow-lg hover:shadow-emerald-900/10"
+        >
+          <span className="flex items-start justify-between gap-4">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[1.05rem] bg-blue-50 text-blue-800 ring-1 ring-blue-100">
+              <Truck size={23} />
+            </span>
+
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-950">
+              {supplier.count} {getProductWord(supplier.count)}
+            </span>
+          </span>
+
+          <span className="mt-5 block text-xl font-black leading-tight text-stone-950">
+            {supplier.name}
+          </span>
+
+          <span className="mt-2 block text-sm font-semibold leading-6 text-stone-600">
+            Мінімальне замовлення:{" "}
+            <span className="font-black text-stone-950">
+              {formatUAH(supplier.minOrderAmount)}
+            </span>
+          </span>
+
+          <span className="mt-4 inline-flex min-h-10 items-center rounded-2xl bg-emerald-900 px-4 text-sm font-black text-white">
+            Відкрити каталог
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function CatalogView({
   categories,
@@ -114,9 +169,37 @@ export default function CatalogView({
   const [mobileCategoryId, setMobileCategoryId] = useState(null);
   const [catalogMenuTop, setCatalogMenuTop] = useState(96);
 
+  const catalogScopeProducts = useMemo(() => {
+    return products.filter((product) => {
+      if (product.active === false) return false;
+
+      const isSupplierOrder = product.fulfillmentType === "supplier_order";
+
+      if (selectedFulfillmentType === "supplier_order") {
+        return (
+          isSupplierOrder &&
+          selectedSupplierId &&
+          String(product.supplierId || "") === String(selectedSupplierId)
+        );
+      }
+
+      return !isSupplierOrder;
+    });
+  }, [products, selectedFulfillmentType, selectedSupplierId]);
+
+  const catalogCategoryIds = useMemo(() => {
+    return new Set(
+      catalogScopeProducts
+        .map((product) => product.category)
+        .filter(Boolean)
+    );
+  }, [catalogScopeProducts]);
+
   const catalogCategories = useMemo(() => {
-    return categories.filter((category) => category.id !== "all");
-  }, [categories]);
+    return categories.filter((category) => {
+      return category.id !== "all" && catalogCategoryIds.has(category.id);
+    });
+  }, [categories, catalogCategoryIds]);
 
   const activeCategory = categories.find(
     (category) => category.id === selectedCategory
@@ -135,7 +218,14 @@ export default function CatalogView({
   );
 
   const previewSubcategories = (previewCategory?.subcategories || []).filter(
-    (subcategory) => subcategory.active !== false
+    (subcategory) =>
+      subcategory.active !== false &&
+      catalogScopeProducts.some((product) => {
+        return (
+          product.category === previewCategory?.id &&
+          product.subcategory === subcategory.id
+        );
+      })
   );
 
   const mobileCategory = categories.find(
@@ -143,11 +233,25 @@ export default function CatalogView({
   );
 
   const mobileSubcategories = (mobileCategory?.subcategories || []).filter(
-    (subcategory) => subcategory.active !== false
+    (subcategory) =>
+      subcategory.active !== false &&
+      catalogScopeProducts.some((product) => {
+        return (
+          product.category === mobileCategory?.id &&
+          product.subcategory === subcategory.id
+        );
+      })
   );
 
   const activeSubcategories = (activeCategory?.subcategories || []).filter(
-    (subcategory) => subcategory.active !== false
+    (subcategory) =>
+      subcategory.active !== false &&
+      catalogScopeProducts.some((product) => {
+        return (
+          product.category === activeCategory?.id &&
+          product.subcategory === subcategory.id
+        );
+      })
   );
   const paginationItems = getPaginationItems(currentPage, totalProductPages);
 
@@ -199,24 +303,6 @@ export default function CatalogView({
     });
   }, [products]);
 
-  const catalogScopeProducts = useMemo(() => {
-    return products.filter((product) => {
-      if (product.active === false) return false;
-
-      const isSupplierOrder = product.fulfillmentType === "supplier_order";
-
-      if (selectedFulfillmentType === "supplier_order") {
-        return (
-          isSupplierOrder &&
-          (!selectedSupplierId ||
-            String(product.supplierId || "") === String(selectedSupplierId))
-        );
-      }
-
-      return !isSupplierOrder;
-    });
-  }, [products, selectedFulfillmentType, selectedSupplierId]);
-
   const productCounts = useMemo(() => {
     const categoryCounts = {};
     const subcategoryCounts = {};
@@ -263,10 +349,24 @@ export default function CatalogView({
       .slice(0, 6);
   }, [catalogScopeProducts, query]);
 
-  const pageTitle =
-    selectedCategory === "all"
-      ? "Каталог товарів"
-      : activeCategory?.name || "Каталог товарів";
+  const selectedSupplier = supplierFilters.find((supplier) => {
+    return String(supplier.id) === String(selectedSupplierId);
+  });
+
+  const isSupplierSelectionMode =
+    selectedFulfillmentType === "supplier_order" && !selectedSupplierId;
+
+  const pageTitle = isSupplierSelectionMode
+    ? "Постачальники"
+    : selectedSupplier
+      ? selectedSupplier.name
+      : selectedCategory === "all"
+        ? "Каталог товарів"
+        : activeCategory?.name || "Каталог товарів";
+
+  const pageCountLabel = isSupplierSelectionMode
+    ? `${supplierFilters.length} постачальників`
+    : `${totalProducts} ${getProductWord(totalProducts)}`;
 
   const selectedSortOption =
     SORT_OPTIONS.find((option) => option.value === sortBy) || SORT_OPTIONS[0];
@@ -537,11 +637,15 @@ export default function CatalogView({
   function selectFulfillmentTab(nextFulfillmentType) {
     setSelectedFulfillmentType(nextFulfillmentType);
     setSelectedSupplierId("");
+    setSelectedCategory("all");
+    setSelectedSubcategory("all");
     setCurrentPage(1);
   }
 
   function selectSupplierFilter(supplierId) {
     setSelectedSupplierId(supplierId);
+    setSelectedCategory("all");
+    setSelectedSubcategory("all");
     setCurrentPage(1);
   }
 
@@ -1248,7 +1352,7 @@ export default function CatalogView({
           </h1>
 
           <span className="w-fit rounded-full bg-emerald-100 px-3.5 py-1.5 text-[13px] font-extrabold text-emerald-950 ring-1 ring-emerald-200/70">
-            {totalProducts} товарів
+            {pageCountLabel}
           </span>
         </div>
 
@@ -1505,7 +1609,12 @@ export default function CatalogView({
       </section>
 
       <section className="min-w-0">
-          {visibleProducts.length > 0 ? (
+          {isSupplierSelectionMode ? (
+            <SupplierTileGrid
+              suppliers={supplierFilters}
+              onSelect={selectSupplierFilter}
+            />
+          ) : visibleProducts.length > 0 ? (
             <div
               key={catalogResultsKey}
               className="eg-catalog-results grid grid-cols-1 gap-3 min-[430px]:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
@@ -1546,7 +1655,7 @@ export default function CatalogView({
             </div>
           )}
 
-          {totalProductPages > 1 && (
+          {!isSupplierSelectionMode && totalProductPages > 1 && (
             <nav
               className="mt-8 flex flex-col items-center justify-center gap-3"
               aria-label="Пагінація товарів"

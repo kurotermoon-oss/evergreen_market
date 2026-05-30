@@ -143,6 +143,9 @@ export default function ProductDetailsView({
       return (
         item.active !== false &&
         item.category === product.category &&
+        item.fulfillmentType === product.fulfillmentType &&
+        (product.fulfillmentType !== "supplier_order" ||
+          String(item.supplierId || "") === String(product.supplierId || "")) &&
         String(item.id) !== String(product.id)
       );
     })
@@ -333,7 +336,7 @@ export default function ProductDetailsView({
   }
 
   return (
-    <main className="eg-ambient mx-auto max-w-7xl px-4 pb-44 pt-8 sm:px-6 md:pb-32 lg:px-8">
+    <main className="eg-ambient eg-product-details-page mx-auto max-w-7xl px-4 pb-44 pt-8 sm:px-6 md:pb-32 lg:px-8">
       {/* BREADCRUMBS */}
 
       <nav className="mb-6 flex min-w-0 flex-wrap items-center gap-2 text-sm text-stone-500">
@@ -564,7 +567,7 @@ export default function ProductDetailsView({
       </section>
 
       {showFloatingActions && (
-        <div className="fixed bottom-[6.35rem] left-3 right-[5.25rem] z-[75] max-w-[360px] md:bottom-6 md:left-1/2 md:right-auto md:w-full md:max-w-md md:-translate-x-1/2">
+        <div className="eg-product-floating-actions fixed z-[80] md:z-[110]">
           <div className="rounded-[1.45rem] border border-white/75 bg-white/95 p-2 shadow-[0_18px_46px_rgba(6,78,59,0.22)] backdrop-blur-2xl">
             {renderPurchaseActions(true)}
           </div>

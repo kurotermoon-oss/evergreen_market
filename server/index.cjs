@@ -1047,33 +1047,42 @@ async function sendTelegramMessage(text) {
     };
   }
 
-  const response = await fetch(
-    `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text,
-        parse_mode: "HTML",
-      }),
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text,
+          parse_mode: "HTML",
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      console.error("[Telegram error]", errorText);
+
+      return {
+        ok: false,
+        error: errorText,
+      };
     }
-  );
 
-  if (!response.ok) {
-    const errorText = await response.text();
-
-    console.error("[Telegram error]", errorText);
+    return response.json();
+  } catch (error) {
+    console.error("[Telegram request failed]", error);
 
     return {
       ok: false,
-      error: errorText,
+      error: error.message || "Telegram request failed",
     };
   }
-
-  return response.json();
 }
 
 async function sendTelegramDirectMessage(chatId, text) {
@@ -1090,33 +1099,42 @@ async function sendTelegramDirectMessage(chatId, text) {
     };
   }
 
-  const response = await fetch(
-    `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: "HTML",
-      }),
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text,
+          parse_mode: "HTML",
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      console.error("[Customer Telegram error]", errorText);
+
+      return {
+        ok: false,
+        error: errorText,
+      };
     }
-  );
 
-  if (!response.ok) {
-    const errorText = await response.text();
-
-    console.error("[Customer Telegram error]", errorText);
+    return response.json();
+  } catch (error) {
+    console.error("[Customer Telegram request failed]", error);
 
     return {
       ok: false,
-      error: errorText,
+      error: error.message || "Customer Telegram request failed",
     };
   }
-
-  return response.json();
 }
 
 function buildCustomerOrderReadyMessage(order) {

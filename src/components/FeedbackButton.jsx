@@ -57,7 +57,11 @@ function getInputClass(hasError) {
   }`;
 }
 
-export default function FeedbackButton({ customer = null, setView }) {
+export default function FeedbackButton({
+  customer = null,
+  setView,
+  isProductView = false,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -140,7 +144,9 @@ export default function FeedbackButton({ customer = null, setView }) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={`eg-button group fixed bottom-[6.8rem] right-4 z-[68] flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.2rem] border text-white shadow-2xl ring-4 ring-white/70 md:bottom-8 md:right-[8.4rem] md:h-[4.9rem] md:w-[4.9rem] md:rounded-[1.55rem] ${
+        className={`eg-floating-feedback eg-button group fixed z-[85] flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.2rem] border text-white shadow-2xl ring-4 ring-white/70 md:z-[155] md:h-[4.9rem] md:w-[4.9rem] md:rounded-[1.55rem] ${
+          isProductView ? "eg-floating-feedback-product" : ""
+        } ${
           isOpen
             ? "border-emerald-950 bg-white text-emerald-950 shadow-emerald-950/12"
             : "border-emerald-700/50 bg-emerald-950 shadow-emerald-950/24 hover:bg-emerald-900"

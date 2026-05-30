@@ -14,7 +14,6 @@ export default function SuccessView({
   const orderNumber = createdOrder?.orderNumber;
 
   function returnToCatalog() {
-    setCart([]);
     setOrderMessage("");
     setCreatedOrder(null);
     setView("catalog");

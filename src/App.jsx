@@ -93,10 +93,11 @@ const {
   cart,
   setCart,
   clearCart,
+  clearCartItems,
   cartItems,
+  cartOrderGroups,
   total,
   cartCount,
-  supplierOrderSummary,
   cartNotice,
   clearCartNotice,
   addToCart,
@@ -244,13 +245,13 @@ const {
 } = useOrderSubmit({
   cart,
   cartItems,
-  supplierOrderSummary,
   form,
   customer,
   isAdmin,
   loadAdminData,
   loadCustomerOrders,
   clearCart,
+  clearCartItems,
   setView,
 });
 
@@ -595,8 +596,8 @@ return (
       {view === "cart" && (
         <CartView
           cartItems={cartItems}
+          cartOrderGroups={cartOrderGroups}
           total={total}
-          supplierOrderSummary={supplierOrderSummary}
           form={form}
           updateForm={updateForm}
           changeQuantity={changeQuantity}
@@ -701,7 +702,11 @@ return (
       />
 
       {view !== "admin" && (
-        <FeedbackButton customer={customer} setView={setView} />
+        <FeedbackButton
+          customer={customer}
+          setView={setView}
+          isProductView={view === "product"}
+        />
       )}
 
       <MobileNav
@@ -725,9 +730,9 @@ return (
       <CartDrawer
         isOpen={isCartDrawerOpen}
         cartItems={cartItems}
+        cartOrderGroups={cartOrderGroups}
         total={total}
         cartCount={cartCount}
-        supplierOrderSummary={supplierOrderSummary}
         changeQuantity={changeQuantity}
         removeFromCart={removeFromCart}
         setCart={setCart}

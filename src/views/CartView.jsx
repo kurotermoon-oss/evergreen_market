@@ -1,8 +1,14 @@
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AlertTriangle, Layers3, Store, Truck } from "lucide-react";
 import { getRecentOrders, clearRecentOrders } from "../utils/recentOrders.js";
 import Icon from "../components/Icon.jsx";
 import OrderRulesModal from "../components/OrderRulesModal.jsx";
+import logoEvergreen from "../img/logo_evergreen.webp";
 import { formatUAH } from "../utils/formatUAH.js";
+import {
+  FULFILLMENT_SUPPLIER_ORDER,
+  buildCartOrderGroups,
+} from "../utils/cartSupplierRules.js";
 
 function normalizePhone(value) {
   const digits = String(value || "").replace(/\D/g, "");
@@ -47,6 +53,22 @@ function getInputClass(hasError, extraClass = "") {
   } ${extraClass}`;
 }
 
+function getItemId(item) {
+  return item.productId || item.id;
+}
+
+function getProductWord(count) {
+  const normalizedCount = Math.abs(Number(count) || 0);
+  const lastDigit = normalizedCount % 10;
+  const lastTwoDigits = normalizedCount % 100;
+
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return "товарів";
+  if (lastDigit === 1) return "товар";
+  if (lastDigit >= 2 && lastDigit <= 4) return "товари";
+
+  return "товарів";
+}
+
 function FieldError({ children }) {
   if (!children) return null;
 
@@ -56,7 +78,6 @@ function FieldError({ children }) {
     </p>
   );
 }
-
 
 function formatRecentOrderDate(value) {
   if (!value) return "—";
@@ -93,8 +114,8 @@ function RecentOrdersCard({ customer, setView }) {
           </h2>
 
           <p className="mt-2 text-sm leading-6 text-stone-500">
-            Це локальна історія цього браузера. Якщо очистити кеш або відкрити
-            сайт з іншого пристрою, ці номери можуть не відображатися.
+            Це локальна історія цього браузера. Повна історія доступна в
+            особистому кабінеті після входу.
           </p>
         </div>
 
@@ -167,11 +188,214 @@ function RecentOrdersCard({ customer, setView }) {
   );
 }
 
+function CartLineItem({
+  item,
+  changeQuantity,
+  removeFromCart,
+}) {
+  const productId = getItemId(item);
+  const quantity = Number(item.quantity || 0);
+  const itemTotal = Number(item.price || 0) * quantity;
+
+  function decreaseItem() {
+    changeQuantity(productId, Math.max(0, quantity - 1));
+  }
+
+  function increaseItem() {
+    changeQuantity(productId, quantity + 1);
+  }
+
+  function handleImageError(event) {
+    event.currentTarget.src = logoEvergreen;
+    event.currentTarget.alt = "Evergreen coffee";
+    event.currentTarget.className =
+      "h-20 w-20 shrink-0 rounded-[1.15rem] bg-emerald-50 object-contain p-3 sm:h-24 sm:w-24 sm:rounded-[1.4rem]";
+  }
+
+  return (
+    <div className="eg-card flex gap-3 rounded-[1.35rem] border border-stone-200 bg-white/90 p-3 backdrop-blur hover:border-emerald-100 hover:shadow-md hover:shadow-emerald-900/10 sm:gap-4 sm:rounded-[1.65rem] sm:p-4">
+      <img
+        src={item.image || logoEvergreen}
+        alt={item.name}
+        onError={handleImageError}
+        className="eg-image h-20 w-20 shrink-0 rounded-[1.15rem] object-cover hover:scale-[1.05] sm:h-24 sm:w-24 sm:rounded-[1.4rem]"
+      />
+
+      <div className="min-w-0 flex-1">
+        <h3 className="line-clamp-2 text-base font-bold leading-snug text-stone-950">
+          {item.name}
+        </h3>
+
+        {(item.brand || item.unit || item.packageInfo) && (
+          <p className="mt-1 line-clamp-2 text-sm leading-5 text-stone-500">
+            {[item.brand, item.unit, item.packageInfo].filter(Boolean).join(" · ")}
+          </p>
+        )}
+
+        <p className="mt-1 text-sm leading-5 text-stone-500">
+          {formatUAH(item.price)} за одиницю
+        </p>
+
+        <div className="mt-4 flex flex-col gap-3 min-[390px]:flex-row min-[390px]:items-center min-[390px]:justify-between">
+          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 shadow-sm">
+            <div className="flex h-11 items-center sm:h-12">
+              <button
+                type="button"
+                onClick={decreaseItem}
+                className="eg-counter-button flex h-11 w-11 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900 sm:h-12 sm:w-12"
+                aria-label="Зменшити кількість"
+              >
+                <Icon name="minus" size={16} />
+              </button>
+
+              <span className="flex h-11 min-w-11 items-center justify-center bg-white px-1 text-center font-black text-stone-950 sm:h-12 sm:min-w-12">
+                {quantity}
+              </span>
+
+              <button
+                type="button"
+                onClick={increaseItem}
+                className="eg-counter-button flex h-11 w-11 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900 sm:h-12 sm:w-12"
+                aria-label="Збільшити кількість"
+              >
+                <Icon name="plus" size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 min-[390px]:justify-start">
+            <p className="text-lg font-black leading-none text-stone-950 sm:text-base">
+              {formatUAH(itemTotal)}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => removeFromCart(productId)}
+              className="eg-icon-button rounded-xl bg-stone-100 p-3 text-stone-500 hover:bg-red-50 hover:text-red-600"
+              aria-label="Видалити товар"
+            >
+              <Icon name="trash" size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CartOrderGroupCard({
+  group,
+  isSelected,
+  onSelect,
+  changeQuantity,
+  removeFromCart,
+  onShowSupplierProducts,
+}) {
+  const isSupplierOrder = group.type === FULFILLMENT_SUPPLIER_ORDER;
+  const GroupIcon = isSupplierOrder ? Truck : Store;
+
+  return (
+    <section
+      className={`rounded-[1.7rem] border p-3 transition sm:rounded-[2rem] sm:p-4 ${
+        isSelected
+          ? "border-emerald-800 bg-emerald-50/80 shadow-lg shadow-emerald-900/10"
+          : "border-stone-200 bg-stone-50/80"
+      }`}
+    >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span
+            className={`grid h-12 w-12 shrink-0 place-items-center rounded-[1.1rem] ${
+              isSupplierOrder
+                ? "bg-blue-50 text-blue-800 ring-1 ring-blue-100"
+                : "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-100"
+            }`}
+          >
+            <GroupIcon size={22} />
+          </span>
+
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-wide text-stone-500">
+              {isSupplierOrder ? "Під замовлення" : "Є в наявності"}
+            </p>
+
+            <h2 className="mt-1 text-xl font-black leading-tight text-stone-950">
+              {group.title}
+            </h2>
+
+            <p className="mt-1 text-sm font-semibold leading-6 text-stone-600">
+              {group.description}
+            </p>
+          </div>
+        </div>
+
+        <div className="shrink-0 text-left sm:text-right">
+          <p className="text-sm font-semibold text-stone-500">
+            {group.count} {getProductWord(group.count)}
+          </p>
+          <p className="mt-1 text-2xl font-black text-stone-950">
+            {formatUAH(group.total)}
+          </p>
+        </div>
+      </div>
+
+      {group.message && (
+        <div
+          className={`mt-4 flex gap-2 rounded-[1.25rem] border px-4 py-3 text-sm font-semibold leading-6 ${
+            group.canCheckout
+              ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+              : "border-amber-200 bg-amber-50 text-amber-950"
+          }`}
+        >
+          <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+          <span>{group.message}</span>
+        </div>
+      )}
+
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <button
+          type="button"
+          onClick={onSelect}
+          className={`eg-button min-h-11 rounded-2xl px-4 text-sm font-black ${
+            isSelected
+              ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+              : "bg-white text-emerald-950 ring-1 ring-emerald-100 hover:bg-emerald-50"
+          }`}
+        >
+          {isSelected ? "Обрано для оформлення" : "Оформити цей сегмент"}
+        </button>
+
+        {isSupplierOrder && group.supplierId && (
+          <button
+            type="button"
+            onClick={() =>
+              onShowSupplierProducts?.(group.supplierId, group.supplierName)
+            }
+            className="eg-button min-h-11 rounded-2xl bg-white px-4 text-sm font-black text-stone-900 shadow-sm ring-1 ring-stone-100 hover:bg-stone-50"
+          >
+            Добрати товари постачальника
+          </button>
+        )}
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {group.items.map((item) => (
+          <CartLineItem
+            key={getItemId(item)}
+            item={item}
+            changeQuantity={changeQuantity}
+            removeFromCart={removeFromCart}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function CartView({
   cartItems,
+  cartOrderGroups,
   total,
-  supplierOrderSummary,
   form,
   customer,
   updateForm,
@@ -185,39 +409,49 @@ export default function CartView({
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState("");
   const checkoutRef = useRef(null);
+
+  const orderGroups = useMemo(() => {
+    return cartOrderGroups?.length
+      ? cartOrderGroups
+      : buildCartOrderGroups(cartItems);
+  }, [cartItems, cartOrderGroups]);
+
+  useEffect(() => {
+    if (!orderGroups.length) {
+      setSelectedGroupId("");
+      return;
+    }
+
+    if (!orderGroups.some((group) => group.id === selectedGroupId)) {
+      setSelectedGroupId(orderGroups[0].id);
+    }
+  }, [orderGroups, selectedGroupId]);
+
+  const selectedGroup =
+    orderGroups.find((group) => group.id === selectedGroupId) ||
+    orderGroups[0] ||
+    null;
 
   const needsDelivery = form.deliveryType === "building";
   const isEmpty = cartItems.length === 0;
+  const isSegmented = orderGroups.length > 1;
 
   const hasBasicRequiredFields =
-    cartItems.length > 0 &&
+    Boolean(selectedGroup?.items?.length) &&
     String(form.name || "").trim() &&
     (String(form.phone || "").trim() || String(form.telegram || "").trim());
 
   const canSubmit = Boolean(
-    hasBasicRequiredFields && (supplierOrderSummary?.canCheckout ?? true)
+    hasBasicRequiredFields && selectedGroup?.canCheckout
   );
 
-  function getItemId(item) {
-    return item.productId || item.id;
-  }
+  function openCheckout(groupId = selectedGroup?.id) {
+    if (groupId) {
+      setSelectedGroupId(groupId);
+    }
 
-  function decreaseItem(item) {
-    const productId = getItemId(item);
-    const nextQuantity = Number(item.quantity || 1) - 1;
-
-    changeQuantity(productId, Math.max(0, nextQuantity));
-  }
-
-  function increaseItem(item) {
-    const productId = getItemId(item);
-    const nextQuantity = Number(item.quantity || 0) + 1;
-
-    changeQuantity(productId, nextQuantity);
-  }
-
-  function openCheckout() {
     setIsCheckoutOpen(true);
 
     window.setTimeout(() => {
@@ -226,6 +460,12 @@ export default function CartView({
         block: "start",
       });
     }, 80);
+  }
+
+  function selectGroup(groupId) {
+    setSelectedGroupId(groupId);
+    setFieldErrors((current) => ({ ...current, cart: "" }));
+    setFormError("");
   }
 
   function updateFormAndClearError(field, value) {
@@ -244,14 +484,12 @@ export default function CartView({
   function validateOrderForm() {
     const errors = {};
 
-    if (!cartItems.length) {
-      errors.cart = "Кошик порожній";
-    }
-
-    if (supplierOrderSummary && !supplierOrderSummary.canCheckout) {
+    if (!selectedGroup?.items?.length) {
+      errors.cart = "Оберіть сегмент кошика для замовлення";
+    } else if (!selectedGroup.canCheckout) {
       errors.cart =
-        supplierOrderSummary.message ||
-        "Перевірте товари під замовлення в кошику.";
+        selectedGroup.message ||
+        "Цей сегмент кошика поки не можна оформити.";
     }
 
     const name = String(form.name || "").trim();
@@ -302,7 +540,7 @@ export default function CartView({
     setFieldErrors({});
     setFormError("");
 
-    const result = await submitOrder();
+    const result = await submitOrder(selectedGroup.items);
 
     if (result?.ok === false) {
       setFieldErrors(result.errors || {});
@@ -312,31 +550,31 @@ export default function CartView({
 
   return (
     <main className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-10 lg:px-8">
-        {isEmpty ? (
-          <div className="space-y-5">
-            <div className="eg-glass eg-premium-card mx-auto max-w-2xl rounded-[2.5rem] px-16 py-24 text-center">
-              <Icon name="package" className="mx-auto text-stone-400" size={72} />
+      {isEmpty ? (
+        <div className="space-y-5">
+          <div className="eg-glass eg-premium-card mx-auto max-w-2xl rounded-[2.5rem] px-16 py-24 text-center">
+            <Icon name="package" className="mx-auto text-stone-400" size={72} />
 
-              <p className="mt-6 text-2xl font-black text-stone-950">
-                Кошик порожній
-              </p>
+            <p className="mt-6 text-2xl font-black text-stone-950">
+              Кошик порожній
+            </p>
 
-              <p className="mt-2 text-sm leading-6 text-stone-500">
-                Додайте щось смачне, щоб оформити замовлення.
-              </p>
+            <p className="mt-2 text-sm leading-6 text-stone-500">
+              Додайте щось смачне, щоб оформити замовлення.
+            </p>
 
-              <button
-                type="button"
-                onClick={() => setView("catalog")}
-                className="eg-button eg-sweep mt-8 rounded-2xl bg-emerald-900 px-7 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
-              >
-                Перейти до каталогу
-              </button>
-            </div>
-
-            <RecentOrdersCard customer={customer} setView={setView} />
+            <button
+              type="button"
+              onClick={() => setView("catalog")}
+              className="eg-button eg-sweep mt-8 rounded-2xl bg-emerald-900 px-7 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
+            >
+              Перейти до каталогу
+            </button>
           </div>
-        ) : (
+
+          <RecentOrdersCard customer={customer} setView={setView} />
+        </div>
+      ) : (
         <div className="eg-stagger grid gap-5 sm:gap-8 lg:grid-cols-[1fr_0.88fr]">
           <section className="eg-glass eg-premium-card rounded-[1.7rem] p-4 sm:rounded-[2.2rem] sm:p-6 lg:p-8">
             <div className="mb-5 flex items-start justify-between gap-3 sm:mb-6 sm:items-center sm:gap-4">
@@ -348,6 +586,15 @@ export default function CartView({
                 <h1 className="mt-2 text-[2rem] font-black leading-tight text-stone-950 sm:text-3xl">
                   Ваше замовлення
                 </h1>
+
+                {isSegmented && (
+                  <p className="mt-2 flex max-w-2xl items-start gap-2 text-sm font-semibold leading-6 text-stone-600">
+                    <Layers3 size={17} className="mt-1 shrink-0 text-emerald-800" />
+                    Кошик розділено на окремі сегменти. Можна оформити всі
+                    товари в наявності разом або окреме замовлення від одного
+                    постачальника.
+                  </p>
+                )}
               </div>
 
               <button
@@ -364,142 +611,27 @@ export default function CartView({
             </div>
 
             <div className="space-y-4">
-              {cartItems.map((item) => {
-                const productId = getItemId(item);
-                const quantity = Number(item.quantity || 0);
-                const itemTotal = Number(item.price || 0) * quantity;
-
-                return (
-                  <div
-                    key={productId}
-                    className="eg-card eg-premium-card flex gap-3 rounded-[1.55rem] border border-stone-200 bg-white/85 p-3 backdrop-blur hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10 sm:gap-4 sm:rounded-[2rem] sm:p-4"
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="eg-image h-20 w-20 shrink-0 rounded-[1.15rem] object-cover hover:scale-[1.05] sm:h-24 sm:w-24 sm:rounded-[1.4rem]"
-                    />
-
-                    <div className="min-w-0 flex-1">
-                      <h3 className="line-clamp-2 text-base font-bold leading-snug text-stone-950">
-                        {item.name}
-                      </h3>
-
-                      {(item.brand || item.unit || item.packageInfo) && (
-                        <p className="mt-1 line-clamp-2 text-sm leading-5 text-stone-500">
-                          {[item.brand, item.unit, item.packageInfo]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </p>
-                      )}
-
-                      <p className="mt-1 text-sm leading-5 text-stone-500">
-                        {formatUAH(item.price)} за одиницю
-                      </p>
-
-                      <p
-                        className={`mt-2 w-fit rounded-full px-3 py-1 text-xs font-black ${
-                          item.fulfillmentType === "supplier_order"
-                            ? "bg-blue-50 text-blue-800"
-                            : "bg-emerald-50 text-emerald-800"
-                        }`}
-                      >
-                        {item.fulfillmentType === "supplier_order"
-                          ? `Під замовлення${
-                              item.supplier?.name ? ` · ${item.supplier.name}` : ""
-                            }`
-                          : "Є в наявності"}
-                      </p>
-
-                      <div className="mt-4 flex flex-col gap-3 min-[390px]:flex-row min-[390px]:items-center min-[390px]:justify-between">
-                        <div className="overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 shadow-sm">
-                          <div className="flex h-11 items-center sm:h-12">
-                            <button
-                              type="button"
-                              onClick={() => decreaseItem(item)}
-                              className="eg-counter-button flex h-11 w-11 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900 sm:h-12 sm:w-12"
-                              aria-label="Зменшити кількість"
-                            >
-                              <Icon name="minus" size={16} />
-                            </button>
-
-                            <span className="flex h-11 min-w-11 items-center justify-center bg-white px-1 text-center font-black text-stone-950 sm:h-12 sm:min-w-12">
-                              {quantity}
-                            </span>
-
-                            <button
-                              type="button"
-                              onClick={() => increaseItem(item)}
-                              className="eg-counter-button flex h-11 w-11 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900 sm:h-12 sm:w-12"
-                              aria-label="Збільшити кількість"
-                            >
-                              <Icon name="plus" size={16} />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-3 min-[390px]:justify-start">
-                          <p className="text-lg font-black leading-none text-stone-950 sm:text-base">
-                            {formatUAH(itemTotal)}
-                          </p>
-
-                          <button
-                            type="button"
-                            onClick={() => removeFromCart(productId)}
-                            className="eg-icon-button rounded-xl bg-stone-100 p-3 text-stone-500 hover:bg-red-50 hover:text-red-600"
-                            aria-label="Видалити товар"
-                          >
-                            <Icon name="trash" size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {orderGroups.map((group) => (
+                <CartOrderGroupCard
+                  key={group.id}
+                  group={group}
+                  isSelected={selectedGroup?.id === group.id}
+                  onSelect={() => {
+                    selectGroup(group.id);
+                    openCheckout(group.id);
+                  }}
+                  changeQuantity={changeQuantity}
+                  removeFromCart={removeFromCart}
+                  onShowSupplierProducts={onShowSupplierProducts}
+                />
+              ))}
             </div>
 
             <FieldError>{fieldErrors.cart}</FieldError>
 
-            {supplierOrderSummary?.hasSupplierOrder && (
-              <div
-                className={`mt-5 rounded-[1.5rem] border p-4 text-sm leading-6 ${
-                  supplierOrderSummary.canCheckout
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-950"
-                    : "border-amber-200 bg-amber-50 text-amber-950"
-                }`}
-              >
-                {supplierOrderSummary.canCheckout ? (
-                  <p className="font-black">
-                    Мінімальне замовлення від{" "}
-                    {supplierOrderSummary.supplierName} виконано.
-                  </p>
-                ) : (
-                  <p className="whitespace-pre-line font-semibold">
-                    {supplierOrderSummary.message}
-                  </p>
-                )}
-
-                {supplierOrderSummary.supplierId && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onShowSupplierProducts?.(
-                        supplierOrderSummary.supplierId,
-                        supplierOrderSummary.supplierName
-                      )
-                    }
-                    className="eg-button mt-3 rounded-2xl bg-white px-4 py-2 text-sm font-black text-stone-900 shadow-sm hover:bg-stone-50"
-                  >
-                    Показати товари цього постачальника
-                  </button>
-                )}
-              </div>
-            )}
-
             <button
               type="button"
-              onClick={openCheckout}
+              onClick={() => openCheckout()}
               className="eg-button eg-sweep group mt-5 block w-full overflow-hidden rounded-[1.7rem] bg-[linear-gradient(135deg,#064e3b_0%,#022c22_58%,#0f766e_100%)] p-0 text-left text-white shadow-[0_18px_36px_rgba(6,78,59,0.24)] ring-1 ring-emerald-900/15 sm:mt-6 sm:rounded-[2rem] lg:hidden"
               aria-expanded={isCheckoutOpen}
               aria-controls="checkout-form"
@@ -515,19 +647,19 @@ export default function CartView({
                     </span>
 
                     <span className="mt-1 block text-sm font-black leading-snug sm:text-base">
-                      Разом у кошику
+                      {selectedGroup?.label || "Оберіть сегмент"}
                     </span>
                   </div>
 
                   <span className="min-w-0 shrink text-right text-2xl font-black leading-none sm:text-3xl">
-                    {formatUAH(total)}
+                    {formatUAH(selectedGroup?.total || 0)}
                   </span>
                 </div>
 
                 <span className="flex items-center justify-between gap-3 rounded-[1.2rem] bg-white/12 px-3.5 py-3 text-sm font-black text-white shadow-inner shadow-white/5 ring-1 ring-white/15 sm:rounded-[1.35rem] sm:px-4">
                   <span className="flex min-w-0 items-center gap-2">
                     <Icon name="send" size={17} />
-                    <span className="truncate">Оформити замовлення</span>
+                    <span className="truncate">Оформити вибраний сегмент</span>
                   </span>
 
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-300 text-emerald-950 shadow-lg shadow-black/15 transition group-hover:translate-x-0.5">
@@ -540,12 +672,24 @@ export default function CartView({
             <div className="eg-premium-card mt-6 hidden overflow-hidden rounded-[2rem] bg-emerald-950 p-7 text-white shadow-xl shadow-emerald-950/20 lg:block">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_40%)]" />
 
-              <div className="relative z-10 flex items-center justify-between">
-                <span className="text-emerald-100">Разом</span>
+              <div className="relative z-10 flex items-center justify-between gap-4">
+                <span className="text-emerald-100">У кошику разом</span>
 
-                <span className="text-3xl font-black">
-                  {formatUAH(total)}
-                </span>
+                <span className="text-3xl font-black">{formatUAH(total)}</span>
+              </div>
+
+              <div className="relative z-10 mt-4 rounded-[1.2rem] bg-white/10 p-4 ring-1 ring-white/10">
+                <p className="text-sm font-semibold text-emerald-100">
+                  Обрано до оформлення
+                </p>
+
+                <p className="mt-1 text-lg font-black">
+                  {selectedGroup?.label || "Оберіть сегмент"}
+                </p>
+
+                <p className="mt-2 text-2xl font-black">
+                  {formatUAH(selectedGroup?.total || 0)}
+                </p>
               </div>
             </div>
           </section>
@@ -564,6 +708,17 @@ export default function CartView({
             <h2 className="mt-2 text-3xl font-black text-stone-950">
               Куди надіслати замовлення
             </h2>
+
+            <div className="mt-5 rounded-[1.6rem] border border-emerald-100 bg-emerald-50/70 p-4 text-sm leading-6 text-emerald-950">
+              <p className="font-black">Зараз оформлюється:</p>
+              <p className="mt-1 font-semibold">
+                {selectedGroup?.label || "Оберіть сегмент"} ·{" "}
+                {formatUAH(selectedGroup?.total || 0)}
+              </p>
+              {selectedGroup?.message && (
+                <p className="mt-2 text-amber-900">{selectedGroup.message}</p>
+              )}
+            </div>
 
             <OrderRulesModal />
 
@@ -655,7 +810,7 @@ export default function CartView({
                 </div>
 
                 <p className="mt-2 text-sm leading-6 text-stone-500">
-                  Для оформлення замовлення достатньо вказати{" "}
+                  Для оформлення достатньо вказати{" "}
                   <span className="font-semibold">телефон або Telegram</span>.
                 </p>
 
@@ -781,12 +936,13 @@ export default function CartView({
                 className="eg-button eg-sweep flex w-full items-center justify-center gap-2 rounded-[1.4rem] bg-emerald-900 px-6 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <Icon name="send" size={18} />
-                Оформити замовлення
+                Оформити вибраний сегмент
               </button>
 
               {!canSubmit && (
                 <p className="text-center text-sm text-stone-500">
-                  Додайте товари, імʼя та телефон або Telegram.
+                  Оберіть сегмент, перевірте мінімальну суму, імʼя та телефон
+                  або Telegram.
                 </p>
               )}
             </div>

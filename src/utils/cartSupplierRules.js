@@ -1,10 +1,25 @@
 export const FULFILLMENT_IN_STOCK = "in_stock";
 export const FULFILLMENT_SUPPLIER_ORDER = "supplier_order";
+export const IN_STOCK_GROUP_ID = "in_stock";
 
 function toMoney(value) {
   const number = Number(value || 0);
 
   return Number.isFinite(number) ? Math.max(0, Math.round(number)) : 0;
+}
+
+function getItemTotal(item = {}) {
+  const total = Number(item.total);
+
+  if (Number.isFinite(total)) {
+    return Math.max(0, Math.round(total));
+  }
+
+  return toMoney(item.price) * Math.max(1, Number(item.quantity) || 1);
+}
+
+function getItemQuantity(item = {}) {
+  return Math.max(1, Number(item.quantity) || 1);
 }
 
 export function getProductFulfillmentType(product) {
@@ -15,6 +30,10 @@ export function getProductFulfillmentType(product) {
 
 export function isSupplierOrderProduct(product) {
   return getProductFulfillmentType(product) === FULFILLMENT_SUPPLIER_ORDER;
+}
+
+export function isInStockProduct(product) {
+  return !isSupplierOrderProduct(product);
 }
 
 export function getProductSupplierId(product) {
@@ -37,34 +56,122 @@ export function getFulfillmentLabel(product) {
   return isSupplierOrderProduct(product) ? "Під замовлення" : "Є в наявності";
 }
 
-export function buildSupplierConflictMessage(existingSupplierName) {
-  return [
-    `У кошику вже є товари під замовлення від ${existingSupplierName}.`,
-    "В одному замовленні можна оформити товари під замовлення тільки від одного постачальника.",
-    "Щоб додати товар від іншого постачальника, оформіть окреме замовлення або очистіть кошик.",
-  ].join("\n\n");
+export function getOrderGroupLabel(group) {
+  if (group?.type === FULFILLMENT_SUPPLIER_ORDER) {
+    return group.supplierName || "Постачальник";
+  }
+
+  return "Є в наявності";
 }
 
-function buildInvalidSummary(message) {
+function createInStockGroup(items = []) {
+  const total = items.reduce((sum, item) => sum + getItemTotal(item), 0);
+  const count = items.reduce((sum, item) => sum + getItemQuantity(item), 0);
+
   return {
-    hasSupplierOrder: true,
-    isValid: false,
-    canCheckout: false,
-    message,
+    id: IN_STOCK_GROUP_ID,
+    type: FULFILLMENT_IN_STOCK,
+    title: "Є в наявності",
+    label: "Є в наявності",
+    description:
+      "Ці товари можна оформити разом без мінімальної суми, навіть якщо в адмінці вони привʼязані до різних постачальників.",
+    items,
+    count,
+    total,
     supplier: null,
     supplierId: "",
     supplierName: "",
-    currentAmount: 0,
     minOrderAmount: 0,
     missingAmount: 0,
-    isMinimumMet: false,
+    isMinimumMet: true,
+    isValid: true,
+    canCheckout: items.length > 0,
+    message: items.length ? "" : "У цьому сегменті немає товарів.",
   };
 }
 
-export function buildCartSupplierSummary(cartItems = []) {
-  const supplierOrderItems = cartItems.filter(isSupplierOrderProduct);
+function createSupplierGroup(items = [], supplierId = "") {
+  const firstItem = items[0] || {};
+  const supplier = getProductSupplier(firstItem);
+  const supplierName = getProductSupplierName(firstItem);
+  const total = items.reduce((sum, item) => sum + getItemTotal(item), 0);
+  const count = items.reduce((sum, item) => sum + getItemQuantity(item), 0);
+  const minOrderAmount = toMoney(supplier?.minOrderAmount);
+  const missingAmount = Math.max(0, minOrderAmount - total);
 
-  if (!supplierOrderItems.length) {
+  let isValid = true;
+  let message = "";
+
+  if (!supplierId || !supplier) {
+    isValid = false;
+    message = `Товар "${firstItem.name || "під замовлення"}" не має постачальника.`;
+  } else if (supplier.isActive === false) {
+    isValid = false;
+    message = `Постачальник ${supplierName} зараз вимкнений. Оформити товари під замовлення від нього неможливо.`;
+  } else if (missingAmount > 0) {
+    message = `Мінімальне замовлення від ${supplierName} - ${minOrderAmount} грн. Зараз у сегменті ${total} грн. Додайте ще ${missingAmount} грн товарів цього постачальника.`;
+  }
+
+  const isMinimumMet = missingAmount <= 0;
+
+  return {
+    id: `supplier:${supplierId || "missing"}`,
+    type: FULFILLMENT_SUPPLIER_ORDER,
+    title: supplierName,
+    label: `Під замовлення · ${supplierName}`,
+    description: `Окреме замовлення від ${supplierName}. У цей сегмент не додаються товари з вкладки "Є в наявності".`,
+    items,
+    count,
+    total,
+    supplier,
+    supplierId,
+    supplierName,
+    minOrderAmount,
+    missingAmount,
+    isMinimumMet,
+    isValid,
+    canCheckout: items.length > 0 && isValid && isMinimumMet,
+    message,
+  };
+}
+
+export function buildCartOrderGroups(cartItems = []) {
+  const inStockItems = [];
+  const supplierItemsById = new Map();
+
+  cartItems.forEach((item) => {
+    if (!isSupplierOrderProduct(item)) {
+      inStockItems.push(item);
+      return;
+    }
+
+    const supplierId = getProductSupplierId(item);
+    const groupKey = supplierId || `missing:${item.productId || item.id || ""}`;
+    const currentItems = supplierItemsById.get(groupKey) || [];
+
+    currentItems.push(item);
+    supplierItemsById.set(groupKey, currentItems);
+  });
+
+  const groups = [];
+
+  if (inStockItems.length) {
+    groups.push(createInStockGroup(inStockItems));
+  }
+
+  for (const [supplierId, items] of supplierItemsById.entries()) {
+    groups.push(createSupplierGroup(items, supplierId));
+  }
+
+  return groups;
+}
+
+export function buildCartSupplierSummary(cartItems = []) {
+  const supplierGroups = buildCartOrderGroups(cartItems).filter((group) => {
+    return group.type === FULFILLMENT_SUPPLIER_ORDER;
+  });
+
+  if (!supplierGroups.length) {
     return {
       hasSupplierOrder: false,
       isValid: true,
@@ -80,62 +187,43 @@ export function buildCartSupplierSummary(cartItems = []) {
     };
   }
 
-  const suppliersById = new Map();
-  let currentAmount = 0;
+  const invalidGroup = supplierGroups.find((group) => !group.isValid);
 
-  for (const item of supplierOrderItems) {
-    const supplierId = getProductSupplierId(item);
-    const supplier = getProductSupplier(item);
-
-    if (!supplierId || !supplier) {
-      return buildInvalidSummary(
-        `Товар "${item.name || "під замовлення"}" не має постачальника.`
-      );
-    }
-
-    if (supplier.isActive === false) {
-      return buildInvalidSummary(
-        `Постачальник ${getProductSupplierName(item)} зараз вимкнений. Оформити товари під замовлення від нього неможливо.`
-      );
-    }
-
-    suppliersById.set(supplierId, supplier);
-    currentAmount += toMoney(item.total || item.price * item.quantity);
+  if (invalidGroup) {
+    return {
+      hasSupplierOrder: true,
+      isValid: false,
+      canCheckout: false,
+      message: invalidGroup.message,
+      supplier: invalidGroup.supplier,
+      supplierId: invalidGroup.supplierId,
+      supplierName: invalidGroup.supplierName,
+      currentAmount: invalidGroup.total,
+      minOrderAmount: invalidGroup.minOrderAmount,
+      missingAmount: invalidGroup.missingAmount,
+      isMinimumMet: invalidGroup.isMinimumMet,
+    };
   }
 
-  if (suppliersById.size > 1) {
-    const firstSupplier = suppliersById.values().next().value;
-
-    return buildInvalidSummary(
-      buildSupplierConflictMessage(firstSupplier?.name || "іншого постачальника")
-    );
-  }
-
-  const supplier = suppliersById.values().next().value;
-  const supplierId = supplier?.id || "";
-  const supplierName = supplier?.name || "постачальника";
-  const minOrderAmount = toMoney(supplier?.minOrderAmount);
-  const missingAmount = Math.max(0, minOrderAmount - currentAmount);
-  const isMinimumMet = missingAmount <= 0;
+  const blockedGroup = supplierGroups.find((group) => !group.canCheckout);
+  const primaryGroup = blockedGroup || supplierGroups[0];
 
   return {
     hasSupplierOrder: true,
     isValid: true,
-    canCheckout: isMinimumMet,
-    message: isMinimumMet
-      ? ""
-      : `Для товарів від ${supplierName} мінімальна сума замовлення - ${minOrderAmount} грн.\n\nЗараз у кошику: ${currentAmount} грн.\n\nДодайте ще ${missingAmount} грн товарів цього постачальника.`,
-    supplier,
-    supplierId,
-    supplierName,
-    currentAmount,
-    minOrderAmount,
-    missingAmount,
-    isMinimumMet,
+    canCheckout: !blockedGroup,
+    message: primaryGroup.message,
+    supplier: primaryGroup.supplier,
+    supplierId: primaryGroup.supplierId,
+    supplierName: primaryGroup.supplierName,
+    currentAmount: primaryGroup.total,
+    minOrderAmount: primaryGroup.minOrderAmount,
+    missingAmount: primaryGroup.missingAmount,
+    isMinimumMet: primaryGroup.isMinimumMet,
   };
 }
 
-export function validateAddToCart(product, cartItems = []) {
+export function validateAddToCart(product) {
   if (!isSupplierOrderProduct(product)) {
     return {
       ok: true,
@@ -157,29 +245,6 @@ export function validateAddToCart(product, cartItems = []) {
     return {
       ok: false,
       message: `Постачальник ${getProductSupplierName(product)} зараз вимкнений. Оформити товари під замовлення від нього неможливо.`,
-    };
-  }
-
-  const summary = buildCartSupplierSummary(cartItems);
-
-  if (!summary.hasSupplierOrder) {
-    return {
-      ok: true,
-      message: "",
-    };
-  }
-
-  if (!summary.isValid) {
-    return {
-      ok: false,
-      message: summary.message,
-    };
-  }
-
-  if (summary.supplierId && summary.supplierId !== supplierId) {
-    return {
-      ok: false,
-      message: buildSupplierConflictMessage(summary.supplierName),
     };
   }
 
