@@ -1,11 +1,17 @@
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import PageLoader from "./components/PageLoader.jsx";
-import { api } from "./api/client.js";
 import {
   DEFAULT_FORM,
   PRODUCTS_PER_PAGE,
 } from "./data/defaults.js";
+import { applyPageMeta, getPageMeta } from "./utils/pageMeta.js";
+import {
+  getPathForView,
+  getRouteFromLocation,
+  isCartRoute,
+  normalizePathname,
+} from "./utils/routes.js";
 
 
 import { useCart } from "./hooks/useCart.js";
@@ -29,6 +35,7 @@ import FeedbackButton from "./components/FeedbackButton.jsx";
 import HomeView from "./views/HomeView.jsx";
 import CatalogView from "./views/CatalogView.jsx";
 import CartView from "./views/CartView.jsx";
+import ContactsView from "./views/ContactsView.jsx";
 import SuccessView from "./views/SuccessView.jsx";
 import AdminView from "./views/AdminView.jsx";
 import AdminLoginView from "./views/AdminLoginView.jsx";
@@ -36,38 +43,27 @@ import ProductDetailsView from "./views/ProductDetailsView.jsx";
 
 import CustomerAuthView from "./views/CustomerAuthView.jsx";
 import AccountView from "./views/AccountView.jsx";
-const VIEW_STORAGE_KEY = "evergreen_current_view";
-
-const RESTORABLE_VIEWS = new Set([
-  "home",
-  "catalog",
-  "cart",
-  "customer-auth",
-  "account",
-  "admin",
-]);
-
-function getInitialView() {
-  const params = new URLSearchParams(window.location.search);
-
-  if (params.get("admin") === "1") {
-    return "admin";
-  }
-
-  const savedView = localStorage.getItem(VIEW_STORAGE_KEY);
-
-  if (RESTORABLE_VIEWS.has(savedView)) {
-    return savedView;
-  }
-
-  return "home";
-}
 
 export default function App() {
-  const [view, setView] = useState(getInitialView);
+  const [route, setRoute] = useState(() =>
+    getRouteFromLocation(window.location)
+  );
+  const view = route.view;
+  const pageKey = isCartRoute(view) ? "cart" : view;
+  const setView = useCallback((nextView, options = {}) => {
+    const targetPath = getPathForView(nextView, options);
+    const currentPath = `${normalizePathname(window.location.pathname)}${
+      window.location.search || ""
+    }`;
+
+    if (currentPath !== targetPath) {
+      window.history.pushState({ view: nextView }, "", targetPath);
+    }
+
+    setRoute(getRouteFromLocation(window.location));
+  }, []);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const [shouldScrollToContacts, setShouldScrollToContacts] = useState(false);
 
   const {
     categories,
@@ -85,6 +81,25 @@ useEffect(() => {
 
   return () => window.clearTimeout(timeoutId);
 }, []);
+
+useEffect(() => {
+  function handleRouteChange() {
+    setRoute(getRouteFromLocation(window.location));
+  }
+
+  window.addEventListener("popstate", handleRouteChange);
+
+  return () => {
+    window.removeEventListener("popstate", handleRouteChange);
+  };
+}, []);
+
+useEffect(() => {
+  if (!route.isNotFound) return;
+
+  window.history.replaceState({ view: "home" }, "", getPathForView("home"));
+  setRoute(getRouteFromLocation(window.location));
+}, [route.isNotFound]);
 
 
 
@@ -287,23 +302,6 @@ useEffect(() => {
   bootstrap();
 }, []);
 
-  
-useEffect(() => {
-  let viewToSave = view;
-
-  if (view === "product") {
-    viewToSave = "catalog";
-  }
-
-  if (view === "success") {
-    viewToSave = "home";
-  }
-
-  if (RESTORABLE_VIEWS.has(viewToSave)) {
-    localStorage.setItem(VIEW_STORAGE_KEY, viewToSave);
-  }
-}, [view]);
-
 useEffect(() => {
   window.scrollTo({ top: 0, behavior: "auto" });
 }, [view]);
@@ -315,15 +313,31 @@ useEffect(() => {
 }, [view]);
 
 useEffect(() => {
-  if (!shouldScrollToContacts || view !== "home") return;
+  if (view !== "product" || !route.productId) return;
 
-  const timeoutId = window.setTimeout(() => {
-    scrollToContacts();
-    setShouldScrollToContacts(false);
-  }, 120);
+  const sourceProducts =
+    isAdmin && adminProducts.length ? adminProducts : products;
+  const routedProduct = sourceProducts.find((item) => {
+    return String(item.id) === String(route.productId);
+  });
 
-  return () => window.clearTimeout(timeoutId);
-}, [shouldScrollToContacts, view]);
+  setSelectedProduct(routedProduct || null);
+}, [adminProducts, isAdmin, products, route.productId, view]);
+
+useEffect(() => {
+  const meta = getPageMeta(view, {
+    product: selectedProduct,
+  });
+
+  applyPageMeta(meta, route.path);
+}, [
+  route.path,
+  selectedProduct?.brand,
+  selectedProduct?.description,
+  selectedProduct?.details,
+  selectedProduct?.name,
+  view,
+]);
 
 useEffect(() => {
   const sourceProducts =
@@ -345,29 +359,8 @@ useEffect(() => {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-function scrollToContacts() {
-  const contacts = document.getElementById("contacts");
-
-  if (!contacts) return false;
-
-  contacts.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-
-  return true;
-}
-
 function openContacts() {
-  const contacts = document.getElementById("contacts");
-
-  if (contacts?.getClientRects().length) {
-    scrollToContacts();
-    return;
-  }
-
-  setShouldScrollToContacts(true);
-  setView("home");
+  setView("contacts");
 }
 
 
@@ -397,7 +390,9 @@ function applyCustomerToForm(customerData) {
 
   function openProduct(product) {
     setSelectedProduct(product);
-    setView("product");
+    setView("product", {
+      productId: product?.id,
+    });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -502,7 +497,7 @@ return (
         customer={customer}
       />
 <div
-  key={view}
+  key={pageKey}
   className={`eg-page pb-24 md:pb-0 ${
     view === "catalog" ? "eg-catalog-page" : ""
   } ${
@@ -593,7 +588,11 @@ return (
         />
       )}
 
-      {view === "cart" && (
+      {view === "contacts" && (
+        <ContactsView setView={setView} />
+      )}
+
+      {isCartRoute(view) && (
         <CartView
           cartItems={cartItems}
           cartOrderGroups={cartOrderGroups}
@@ -607,6 +606,7 @@ return (
           submitOrder={submitOrder}
           customer={customer}
           onShowSupplierProducts={showSupplierProducts}
+          startCheckoutOpen={view === "checkout"}
         />
       )}
 
@@ -691,7 +691,11 @@ return (
         />
       )}
 
-      <div className={view === "home" ? "" : "hidden md:block"}>
+      <div
+        className={
+          view === "contacts" ? "hidden" : view === "home" ? "" : "hidden md:block"
+        }
+      >
         <Footer />
       </div>
 

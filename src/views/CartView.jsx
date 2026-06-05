@@ -10,6 +10,8 @@ import {
   buildCartOrderGroups,
 } from "../utils/cartSupplierRules.js";
 
+const DELIVERY_ORDERS_ENABLED = false;
+
 function normalizePhone(value) {
   const digits = String(value || "").replace(/\D/g, "");
 
@@ -405,10 +407,11 @@ export default function CartView({
   setView,
   submitOrder,
   onShowSupplierProducts,
+  startCheckoutOpen = false,
 }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(startCheckoutOpen);
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const checkoutRef = useRef(null);
 
@@ -429,12 +432,30 @@ export default function CartView({
     }
   }, [orderGroups, selectedGroupId]);
 
+  useEffect(() => {
+    setIsCheckoutOpen(Boolean(startCheckoutOpen));
+  }, [startCheckoutOpen]);
+
+  useEffect(() => {
+    if (DELIVERY_ORDERS_ENABLED || form.deliveryType === "pickup") return;
+
+    updateForm("deliveryType", "pickup");
+    setFieldErrors((current) => ({
+      ...current,
+      building: "",
+      entrance: "",
+      floor: "",
+      apartment: "",
+    }));
+  }, [form.deliveryType, updateForm]);
+
   const selectedGroup =
     orderGroups.find((group) => group.id === selectedGroupId) ||
     orderGroups[0] ||
     null;
 
-  const needsDelivery = form.deliveryType === "building";
+  const needsDelivery =
+    DELIVERY_ORDERS_ENABLED && form.deliveryType === "building";
   const isEmpty = cartItems.length === 0;
   const isSegmented = orderGroups.length > 1;
 
@@ -453,6 +474,7 @@ export default function CartView({
     }
 
     setIsCheckoutOpen(true);
+    setView("checkout");
 
     window.setTimeout(() => {
       checkoutRef.current?.scrollIntoView({
@@ -758,7 +780,6 @@ export default function CartView({
 
                 <FieldError>{fieldErrors.name}</FieldError>
               </label>
-
               <div>
                 <p className="mb-2 text-sm font-semibold text-stone-700">
                   Контакт для звʼязку
@@ -817,7 +838,7 @@ export default function CartView({
                 <FieldError>{fieldErrors.contact}</FieldError>
               </div>
 
-              <label className="block">
+              <label className="hidden">
                 <span className="mb-2 block text-sm font-semibold text-stone-700">
                   Спосіб отримання
                 </span>
@@ -850,6 +871,23 @@ export default function CartView({
                   <option value="building">Доставка</option>
                 </select>
               </label>
+
+              <div className="rounded-[1.7rem] border border-emerald-100 bg-emerald-50/70 p-4 text-sm leading-6 text-emerald-950">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-emerald-900 shadow-sm ring-1 ring-emerald-100">
+                    <Store size={20} />
+                  </span>
+
+                  <div>
+                    <p className="font-black">Самовивіз з кав'ярні</p>
+                    <p className="mt-1 text-emerald-900">
+                      Доставку поки поставили на кавову паузу: маршрут ще
+                      налаштовуємо, а кошики вже нетерпляче чекають. Скоро
+                      повернемо цю можливість.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               {needsDelivery && (
                 <div className="eg-panel eg-soft-ring eg-premium-card grid gap-3 rounded-[2rem] bg-stone-50/90 p-5 backdrop-blur sm:grid-cols-2">

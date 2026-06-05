@@ -279,7 +279,7 @@ export default function Header({
       id: "contacts",
       label: "Контакти",
       Icon: ContactIcon,
-      isActive: false,
+      isActive: view === "contacts",
       onClick: onContactsClick,
     },
     {

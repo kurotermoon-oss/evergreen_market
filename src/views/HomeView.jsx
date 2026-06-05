@@ -5,7 +5,6 @@ import { getRandomItems } from "../utils/products.js";
 
 import {
   PickupIcon,
-  DeliveryIcon,
   PaymentIcon,
   GuestIcon,
 } from "../components/icons/HomeFeatureIcons.jsx";
@@ -23,16 +22,22 @@ function getSubcategoryLabel(count) {
   return `${count} підкатегорій`;
 }
 
-function HeroFeatureCard({ icon, title, text }) {
+function HeroStepCard({ number, icon, title, text }) {
   return (
-    <div className="eg-card eg-premium-card group rounded-3xl bg-white/90 p-5 shadow-sm ring-1 ring-stone-200 hover:shadow-md hover:ring-emerald-200">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-900 ring-1 ring-emerald-100 transition duration-200 group-hover:bg-emerald-900 group-hover:text-white">
-        {icon}
+    <div className="eg-card rounded-[1.35rem] bg-white/90 p-4 shadow-sm ring-1 ring-emerald-100 hover:bg-emerald-50/60 hover:shadow-md">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-900 text-sm font-black text-white shadow-md shadow-emerald-900/15">
+          {number}
+        </div>
+
+        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-emerald-50 text-emerald-900 ring-1 ring-emerald-100">
+          {icon}
+        </div>
       </div>
 
-      <p className="mt-4 font-black text-stone-950">{title}</p>
+      <p className="mt-3 font-black text-stone-950">{title}</p>
 
-      <p className="mt-2 text-sm leading-6 text-stone-500">{text}</p>
+      <p className="mt-1 text-sm leading-6 text-stone-500">{text}</p>
     </div>
   );
 }
@@ -65,13 +70,6 @@ export default function HomeView({
       .slice(0, 6);
   }, [categories]);
 
-  function scrollToContacts() {
-    document.getElementById("contacts")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
-
   function scrollPopularCarousel(direction) {
     if (!popularCarouselRef.current) return;
 
@@ -96,45 +94,54 @@ export default function HomeView({
             </h1>
 
             <p className="mt-5 max-w-2xl text-base leading-8 text-stone-600">
-              Свіжа кава, напої та товари для дому. Замовляйте онлайн —
-              забирайте самостійно або оформлюйте доставку по ЖК.
+              Кава, напої та товари для дому поруч. Замовляйте онлайн і
+              забирайте в кавʼярні на Білицькій, 20 без зайвого очікування.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-2 text-sm font-bold text-emerald-950">
               <span className="rounded-full bg-white/75 px-4 py-2 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
-                Самовивіз
+                Самовивіз на Білицькій, 20
               </span>
               <span className="rounded-full bg-white/75 px-4 py-2 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
-                Локальна доставка
+                Підтвердимо телефоном або в Telegram
               </span>
               <span className="rounded-full bg-white/75 px-4 py-2 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
                 Без обовʼязкової реєстрації
               </span>
             </div>
 
-            <div className="eg-stagger mt-8 grid gap-3 sm:grid-cols-2">
-              <HeroFeatureCard
-                icon={<PickupIcon />}
-                title="Самовивіз"
-                text="Замовте заздалегідь і заберіть у кавʼярні без зайвого очікування."
-              />
+            <div className="mt-5 rounded-[1.35rem] border border-emerald-200 bg-white/80 p-4 text-sm leading-6 text-stone-600 shadow-sm backdrop-blur">
+              <p className="font-black text-emerald-950">
+                Доставка скоро повернеться
+              </p>
 
-              <HeroFeatureCard
-                icon={<DeliveryIcon />}
-                title="Локальна доставка"
-                text="Привеземо замовлення просто до вас у межах комплексу."
-              />
+              <p className="mt-1">
+                Поки налаштовуємо маршрут, доставку поставили на кавову паузу.
+                Зараз замовлення можна забрати в кавʼярні, а ми підготуємо його
+                після підтвердження.
+              </p>
+            </div>
 
-              <HeroFeatureCard
-                icon={<PaymentIcon />}
-                title="Оплата після підтвердження"
-                text="Спочатку підтвердимо замовлення, а потім ви оплатите його на місці."
-              />
-
-              <HeroFeatureCard
+            <div className="eg-stagger mt-8 grid gap-3 md:grid-cols-3">
+              <HeroStepCard
+                number="1"
                 icon={<GuestIcon />}
-                title="Без обовʼязкової реєстрації"
-                text="Можна оформити замовлення як гість або зберегти історію в кабінеті."
+                title="Оберіть товари"
+                text="Кава, напої та товари для дому в одному каталозі."
+              />
+
+              <HeroStepCard
+                number="2"
+                icon={<PaymentIcon />}
+                title="Залиште контакт"
+                text="Швидко підтвердимо замовлення телефоном або в Telegram."
+              />
+
+              <HeroStepCard
+                number="3"
+                icon={<PickupIcon />}
+                title="Заберіть без черги"
+                text="Підготуємо покупку в кавʼярні на Білицькій, 20."
               />
             </div>
 
@@ -149,7 +156,7 @@ export default function HomeView({
 
               <button
                 type="button"
-                onClick={scrollToContacts}
+                onClick={() => setView("contacts")}
                 className="eg-button rounded-2xl border border-stone-300 bg-white/80 px-6 py-4 text-sm font-black text-stone-950 backdrop-blur hover:bg-white"
               >
                 Як нас знайти
@@ -158,63 +165,29 @@ export default function HomeView({
           </div>
 
           <div className="lg:justify-self-end">
-            <div className="eg-glass eg-premium-card eg-lift-soft rounded-[2rem] p-4">
-              <div className="eg-steam overflow-hidden rounded-[1.5rem]">
+            <div className="eg-glass eg-premium-card rounded-[2rem] p-4">
+              <div className="overflow-hidden rounded-[1.5rem]">
                 <img
                   src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop"
                   alt="Evergreen coffee"
-                  className="eg-image h-[340px] w-full object-cover hover:scale-[1.025] lg:h-[420px]"
+                  className="h-[340px] w-full object-cover lg:h-[420px]"
                 />
               </div>
 
               <div className="eg-panel mt-4 rounded-[1.5rem] bg-emerald-900 p-6 text-white">
                 <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-100">
-                  Місце, де час зупиняється на один ковток
+                  Самовивіз щодня
                 </p>
 
                 <p className="mt-3 text-2xl font-black">
-                  Кава поруч, коли вона потрібна.
+                  Білицька, 20 · 09:00-21:00
+                </p>
+
+                <p className="mt-2 text-sm leading-6 text-emerald-50">
+                  Підтвердимо замовлення і підготуємо його до вашого приходу.
                 </p>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="eg-panel eg-premium-card rounded-[2rem] border border-stone-200 bg-white p-6 shadow-sm lg:p-8">
-          <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
-            Як це працює
-          </p>
-
-          <div className="eg-stagger mt-6 grid gap-4 md:grid-cols-3">
-            {[
-              ["1", "Оберіть товари", "Додайте каву, напої або продукти до кошика."],
-              [
-                "2",
-                "Залиште контакти",
-                "Вкажіть телефон або Telegram, щоб ми підтвердили замовлення.",
-              ],
-              [
-                "3",
-                "Отримайте замовлення",
-                "Заберіть самостійно або замовте доставку по ЖК.",
-              ],
-            ].map(([number, title, text]) => (
-              <div
-                key={number}
-                className="eg-card rounded-[1.5rem] bg-stone-50 p-5 hover:bg-emerald-50/60 hover:shadow-sm"
-              >
-                <p className="text-3xl font-black text-emerald-900">
-                  {number}
-                </p>
-
-                <h3 className="mt-3 font-black text-stone-950">{title}</h3>
-
-                <p className="mt-2 text-sm leading-6 text-stone-500">{text}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -392,16 +365,16 @@ export default function HomeView({
               </h2>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50">
-                Заберіть замовлення самостійно в кавʼярні або оформіть
-                локальну доставку по ЖК. Карта, графік роботи та контакти —
-                внизу сторінки.
+                Заберіть замовлення самостійно в кавʼярні. Карта, графік
+                роботи та контакти вже на окремій сторінці, а доставку ми ще
+                готуємо до повернення.
               </p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
-                onClick={scrollToContacts}
+                onClick={() => setView("contacts")}
                 className="eg-button rounded-2xl bg-white px-5 py-3 text-sm font-black text-emerald-950 hover:bg-emerald-50"
               >
                 Адреса та контакти

@@ -718,7 +718,9 @@ export default function ProductDetailsView({
                   removeFromCart={removeFromCart}
                   openProduct={(selected) => {
                     setSelectedProduct(selected);
-                    setView("product");
+                    setView("product", {
+                      productId: selected?.id,
+                    });
                     setActiveSimilarIndex(index);
 
                     window.scrollTo({

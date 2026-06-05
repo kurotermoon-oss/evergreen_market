@@ -50,8 +50,11 @@ These scripts require a valid database environment.
 - `src/api/client.js` uses same-origin requests with `credentials: "include"`.
 - Admin and customer sessions are cookie/JWT based.
 - `server/index.cjs` serves `dist/` as static files when the build directory exists.
+- Public routing is URL-based. Key storefront routes are `/`, `/catalog`, `/contacts`, `/cart`, and `/checkout`; product details use `/products/:id`. Keep route changes in sync with `src/utils/routes.js`, page meta in `src/utils/pageMeta.js`, and backend sitemap output in `server/seoRoutes.cjs`.
+- `server/seoRoutes.cjs` serves `/sitemap.xml` and `/robots.txt`. Set `SITE_URL` or `PUBLIC_SITE_URL` in production when the deployed canonical origin cannot be derived from request headers or Railway variables.
 - `prisma/schema.prisma` is the source of truth for relational models. When schema changes, add a migration and update repository mappers plus frontend payload/default handling together.
 - Cart checkout is segmented: all `in_stock` items form one orderable group with no supplier minimum; each `supplier_order` supplier forms its own orderable group and must meet that supplier's `minOrderAmount`. The UI may keep mixed groups in one cart, but order submission must send only one segment.
+- Checkout delivery is temporarily disabled in the UI with `DELIVERY_ORDERS_ENABLED` in `src/views/CartView.jsx`. Keep orders as pickup until the business is ready to re-enable delivery; customer registration/profile address fields can remain for future use.
 - Telegram notifications are best-effort. Order creation must not fail just because Telegram `fetch` fails or Telegram API returns an error.
 
 ## Important File Map

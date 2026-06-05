@@ -275,7 +275,7 @@ export default function CartDrawer({
 
   function openCheckout() {
     onClose?.();
-    setView?.("cart");
+    setView?.("checkout");
   }
 
   function handleImageError(event) {

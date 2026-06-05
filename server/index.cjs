@@ -52,6 +52,7 @@ const adminAnalyticsRoutes = require("./routes/adminAnalytics.routes.cjs");
 const adminCustomersRoutes = require("./routes/adminCustomers.routes.cjs");
 const adminSecurityRoutes = require("./routes/adminSecurity.routes.cjs");
 const adminUploadsRoutes = require("./routes/adminUploads.routes.cjs");
+const { registerSeoRoutes } = require("./seoRoutes.cjs");
 
 
 const uploadsRoutes = require("./routes/uploads.routes.cjs");
@@ -3674,6 +3675,8 @@ app.patch("/api/admin/orders/:id/action", requireAdmin, async (req, res) => {
 });
 
 const clientDistPath = path.join(__dirname, "../dist");
+
+registerSeoRoutes(app);
 
 if (fs.existsSync(clientDistPath)) {
   app.use(express.static(clientDistPath));

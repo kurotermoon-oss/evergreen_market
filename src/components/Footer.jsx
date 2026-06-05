@@ -189,7 +189,7 @@ export default function Footer() {
           >
             вул. Білицька 20
             <br />
-            Щодня · 08:00–21:00
+            Щодня · 09:00–21:00
           </ContactCard>
         </div>
 
