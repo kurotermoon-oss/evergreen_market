@@ -111,15 +111,15 @@ export default function ProductCard({
     event.currentTarget.src = logoEvergreen;
     event.currentTarget.alt = "Evergreen coffee";
     event.currentTarget.className =
-      "eg-image relative z-10 max-h-[72%] max-w-[72%] object-contain opacity-80 group-hover:scale-[1.04]";
+      "eg-product-card-image eg-image relative z-10 max-h-[72%] max-w-[72%] object-contain opacity-80 group-hover:scale-[1.04]";
   }
 
   return (
-    <article className="eg-card eg-premium-card group flex h-full flex-col overflow-hidden rounded-[1.35rem] border border-stone-200 bg-white shadow-sm hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10 sm:rounded-3xl">
+    <article className="eg-product-card eg-card eg-premium-card group flex h-full flex-col overflow-hidden rounded-[1.35rem] border border-stone-200 bg-white shadow-sm hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10 sm:rounded-3xl">
       <button
         type="button"
         onClick={() => openProduct?.(product)}
-        className="relative flex h-36 w-full items-center justify-center overflow-hidden bg-gradient-to-br from-stone-50 via-white to-emerald-50/40 p-3 sm:h-48 sm:p-4 lg:h-56 lg:p-5"
+        className="eg-product-card-media relative flex h-36 w-full items-center justify-center overflow-hidden bg-gradient-to-br from-stone-50 via-white to-emerald-50/40 p-3 sm:h-48 sm:p-4 lg:h-56 lg:p-5"
         aria-label={`Відкрити товар ${product.name}`}
       >
         <ProductBadges
@@ -128,13 +128,15 @@ export default function ProductCard({
           available={available}
         />
 
-        <div className="pointer-events-none absolute inset-4 rounded-[1.5rem] bg-white/45 blur-2xl transition duration-300 group-hover:bg-emerald-100/50 sm:inset-6 sm:rounded-[2rem]" />
+        <div className="eg-product-card-glow pointer-events-none absolute inset-4 rounded-[1.5rem] bg-white/45 blur-2xl transition duration-300 group-hover:bg-emerald-100/50 sm:inset-6 sm:rounded-[2rem]" />
 
         <img
           src={product.image || logoEvergreen}
           alt={product.name}
+          loading="lazy"
+          decoding="async"
           onError={handleImageError}
-          className="eg-image relative z-10 max-h-full max-w-full object-contain drop-shadow-sm group-hover:scale-[1.06]"
+          className="eg-product-card-image eg-image relative z-10 max-h-full max-w-full object-contain drop-shadow-sm group-hover:scale-[1.06]"
         />
       </button>
 

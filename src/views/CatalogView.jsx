@@ -387,7 +387,28 @@ export default function CatalogView({
   }, [setSelectedBrands]);
 
   useEffect(() => {
-    function updateCatalogToolbarPin() {
+    let animationFrameId = 0;
+    let lastToolbarHeight = 0;
+    let lastPinnedState = false;
+    const desktopQuery = window.matchMedia("(min-width: 768px)");
+
+    function applyCatalogToolbarPin() {
+      animationFrameId = 0;
+
+      if (!desktopQuery.matches) {
+        if (lastToolbarHeight !== 0) {
+          lastToolbarHeight = 0;
+          setCatalogToolbarHeight(0);
+        }
+
+        if (lastPinnedState) {
+          lastPinnedState = false;
+          setIsCatalogToolbarPinned(false);
+        }
+
+        return;
+      }
+
       const shell = catalogToolbarShellRef.current;
       const toolbar = catalogToolbarRef.current;
 
@@ -397,20 +418,46 @@ export default function CatalogView({
       const nextToolbarHeight = toolbar.getBoundingClientRect().height;
       const shouldPin = window.scrollY > shellTop - 12;
 
-      setCatalogToolbarHeight(nextToolbarHeight);
-      setIsCatalogToolbarPinned(shouldPin);
+      if (Math.abs(nextToolbarHeight - lastToolbarHeight) > 1) {
+        lastToolbarHeight = nextToolbarHeight;
+        setCatalogToolbarHeight(nextToolbarHeight);
+      }
+
+      if (shouldPin !== lastPinnedState) {
+        lastPinnedState = shouldPin;
+        setIsCatalogToolbarPinned(shouldPin);
+      }
     }
 
-    updateCatalogToolbarPin();
+    function scheduleCatalogToolbarPin() {
+      if (animationFrameId) return;
+      animationFrameId = window.requestAnimationFrame(applyCatalogToolbarPin);
+    }
 
-    window.addEventListener("resize", updateCatalogToolbarPin);
-    window.addEventListener("scroll", updateCatalogToolbarPin, {
+    scheduleCatalogToolbarPin();
+
+    window.addEventListener("resize", scheduleCatalogToolbarPin);
+    window.addEventListener("scroll", scheduleCatalogToolbarPin, {
       passive: true,
     });
+    if (desktopQuery.addEventListener) {
+      desktopQuery.addEventListener("change", scheduleCatalogToolbarPin);
+    } else {
+      desktopQuery.addListener(scheduleCatalogToolbarPin);
+    }
 
     return () => {
-      window.removeEventListener("resize", updateCatalogToolbarPin);
-      window.removeEventListener("scroll", updateCatalogToolbarPin);
+      if (animationFrameId) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+
+      window.removeEventListener("resize", scheduleCatalogToolbarPin);
+      window.removeEventListener("scroll", scheduleCatalogToolbarPin);
+      if (desktopQuery.removeEventListener) {
+        desktopQuery.removeEventListener("change", scheduleCatalogToolbarPin);
+      } else {
+        desktopQuery.removeListener(scheduleCatalogToolbarPin);
+      }
     };
   }, []);
 
