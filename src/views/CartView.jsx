@@ -571,7 +571,7 @@ export default function CartView({
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-10 lg:px-8">
+    <main className="mx-auto max-w-7xl px-3 pb-36 pt-5 sm:px-6 sm:py-10 lg:px-8">
       {isEmpty ? (
         <div className="space-y-5">
           <div className="eg-glass eg-premium-card mx-auto max-w-2xl rounded-[2.5rem] px-16 py-24 text-center">
@@ -654,15 +654,15 @@ export default function CartView({
             <button
               type="button"
               onClick={() => openCheckout()}
-              className="eg-button eg-sweep group mt-5 block w-full overflow-hidden rounded-[1.7rem] bg-[linear-gradient(135deg,#064e3b_0%,#022c22_58%,#0f766e_100%)] p-0 text-left text-white shadow-[0_18px_36px_rgba(6,78,59,0.24)] ring-1 ring-emerald-900/15 sm:mt-6 sm:rounded-[2rem] lg:hidden"
+              className="eg-cart-checkout-card eg-button eg-sweep group mt-5 block w-full overflow-hidden rounded-[1.7rem] bg-[linear-gradient(135deg,#064e3b_0%,#022c22_58%,#0f766e_100%)] p-0 text-left text-white shadow-[0_18px_36px_rgba(6,78,59,0.24)] ring-1 ring-emerald-900/15 sm:mt-6 sm:rounded-[2rem] lg:hidden"
               aria-expanded={isCheckoutOpen}
               aria-controls="checkout-form"
             >
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,255,255,0.22),transparent_34%),radial-gradient(circle_at_88%_88%,rgba(253,186,116,0.18),transparent_36%)]" />
               <div className="absolute inset-x-5 top-0 h-px bg-white/35" />
 
-              <div className="relative z-10 grid gap-3 p-4 sm:gap-4 sm:p-5">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+              <div className="eg-cart-checkout-card-content relative z-10 grid gap-3 p-4 sm:gap-4 sm:p-5">
+                <div className="eg-cart-checkout-total-row grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                   <div className="min-w-0">
                     <span className="text-xs font-black uppercase tracking-wide text-emerald-100">
                       До сплати
@@ -673,15 +673,15 @@ export default function CartView({
                     </span>
                   </div>
 
-                  <span className="min-w-0 shrink text-right text-2xl font-black leading-none sm:text-3xl">
+                  <span className="eg-cart-checkout-total-amount min-w-0 shrink text-right text-2xl font-black leading-none sm:text-3xl">
                     {formatUAH(selectedGroup?.total || 0)}
                   </span>
                 </div>
 
-                <span className="flex items-center justify-between gap-3 rounded-[1.2rem] bg-white/12 px-3.5 py-3 text-sm font-black text-white shadow-inner shadow-white/5 ring-1 ring-white/15 sm:rounded-[1.35rem] sm:px-4">
+                <span className="eg-cart-checkout-action flex items-center justify-between gap-3 rounded-[1.2rem] bg-white/12 px-3.5 py-3 text-sm font-black text-white shadow-inner shadow-white/5 ring-1 ring-white/15 sm:rounded-[1.35rem] sm:px-4">
                   <span className="flex min-w-0 items-center gap-2">
                     <Icon name="send" size={17} />
-                    <span className="truncate">Оформити вибраний сегмент</span>
+                    <span className="eg-cart-checkout-action-copy truncate">Оформити вибраний сегмент</span>
                   </span>
 
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-300 text-emerald-950 shadow-lg shadow-black/15 transition group-hover:translate-x-0.5">
@@ -971,10 +971,12 @@ export default function CartView({
                 type="button"
                 onClick={handleSubmitOrder}
                 disabled={!canSubmit}
-                className="eg-button eg-sweep flex w-full items-center justify-center gap-2 rounded-[1.4rem] bg-emerald-900 px-6 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="eg-checkout-submit-button eg-button eg-sweep flex w-full items-center justify-center gap-2 rounded-[1.4rem] bg-emerald-900 px-6 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <Icon name="send" size={18} />
-                Оформити вибраний сегмент
+                <span className="eg-checkout-submit-copy">
+                  Оформити вибраний сегмент
+                </span>
               </button>
 
               {!canSubmit && (

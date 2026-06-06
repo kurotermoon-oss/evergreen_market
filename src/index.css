@@ -1216,6 +1216,58 @@ body.eg-catalog-open {
     width: 2rem;
   }
 
+  .eg-cart-checkout-card {
+    margin-bottom: 1rem;
+    border-radius: 1.5rem;
+  }
+
+  .eg-cart-checkout-card-content {
+    padding: 1rem;
+  }
+
+  .eg-cart-checkout-total-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.55rem;
+  }
+
+  .eg-cart-checkout-total-amount {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+    font-size: clamp(1.55rem, 7.4vw, 2rem);
+    line-height: 1.08;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  .eg-cart-checkout-action {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.5rem;
+    min-height: 4.35rem;
+    align-items: center;
+  }
+
+  .eg-cart-checkout-action-copy,
+  .eg-checkout-submit-copy {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  .eg-checkout-submit-button {
+    min-height: 3.75rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    text-align: center;
+  }
+
+  .eg-checkout-submit-button svg {
+    flex-shrink: 0;
+  }
+
   .eg-product-card:hover,
   .eg-product-card .eg-button:hover,
   .eg-product-card .eg-icon-button:hover {
