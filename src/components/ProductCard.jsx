@@ -208,17 +208,17 @@ export default function ProductCard({
             </button>
 
             {cartQty > 0 ? (
-              <div className="flex h-10 w-full min-w-0 items-center justify-between overflow-hidden rounded-xl bg-emerald-900 text-white shadow-sm sm:h-11 sm:min-w-[132px] sm:rounded-2xl">
+              <div className="eg-quantity-stepper grid h-10 w-full min-w-0 grid-cols-3 items-stretch overflow-hidden rounded-xl bg-emerald-900 text-white shadow-sm sm:h-11 sm:min-w-[132px] sm:rounded-2xl">
                 <button
                   type="button"
                   onClick={handleDecrease}
-                  className="eg-counter-button flex h-full w-9 shrink-0 items-center justify-center text-sm font-black hover:bg-emerald-800 sm:w-11"
+                  className="eg-counter-button flex h-full min-w-0 items-center justify-center text-sm font-black hover:bg-emerald-800"
                   aria-label="Зменшити кількість"
                 >
                   <Icon name="minus" size={12} />
                 </button>
 
-                <span className="flex h-full min-w-0 flex-1 items-center justify-center px-1 text-center text-xs font-black sm:text-sm">
+                <span className="flex h-full min-w-0 items-center justify-center px-1 text-center text-xs font-black sm:text-sm">
                   {cartQty}
                 </span>
 
@@ -226,7 +226,7 @@ export default function ProductCard({
                   type="button"
                   onClick={handleIncrease}
                   disabled={!available}
-                  className="eg-counter-button flex h-full w-9 shrink-0 items-center justify-center text-sm font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400 sm:w-11"
+                  className="eg-counter-button flex h-full min-w-0 items-center justify-center text-sm font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
                   aria-label="Збільшити кількість"
                 >
                   <Icon name="plus" size={12} />

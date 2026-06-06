@@ -1212,8 +1212,14 @@ body.eg-catalog-open {
     font-size: 0.6875rem;
   }
 
-  .eg-catalog-results .eg-product-card-actions > div button {
-    width: 2rem;
+  .eg-catalog-results .eg-product-card-actions .eg-quantity-stepper > button,
+  .eg-catalog-results .eg-product-card-actions .eg-quantity-stepper > span {
+    width: 100%;
+  }
+
+  .eg-quantity-stepper > button,
+  .eg-quantity-stepper > span {
+    min-width: 0;
   }
 
   .eg-cart-checkout-card {

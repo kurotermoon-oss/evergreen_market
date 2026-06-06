@@ -240,24 +240,24 @@ function CartLineItem({
 
         <div className="mt-4 flex flex-col gap-3 min-[390px]:flex-row min-[390px]:items-center min-[390px]:justify-between">
           <div className="overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 shadow-sm">
-            <div className="flex h-11 items-center sm:h-12">
+            <div className="eg-quantity-stepper grid h-11 w-[8.25rem] grid-cols-3 items-stretch sm:h-12 sm:w-36">
               <button
                 type="button"
                 onClick={decreaseItem}
-                className="eg-counter-button flex h-11 w-11 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900 sm:h-12 sm:w-12"
+                className="eg-counter-button flex h-full min-w-0 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900"
                 aria-label="Зменшити кількість"
               >
                 <Icon name="minus" size={16} />
               </button>
 
-              <span className="flex h-11 min-w-11 items-center justify-center bg-white px-1 text-center font-black text-stone-950 sm:h-12 sm:min-w-12">
+              <span className="flex h-full min-w-0 items-center justify-center bg-white px-1 text-center font-black text-stone-950">
                 {quantity}
               </span>
 
               <button
                 type="button"
                 onClick={increaseItem}
-                className="eg-counter-button flex h-11 w-11 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900 sm:h-12 sm:w-12"
+                className="eg-counter-button flex h-full min-w-0 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900"
                 aria-label="Збільшити кількість"
               >
                 <Icon name="plus" size={16} />
