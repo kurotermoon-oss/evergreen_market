@@ -1664,7 +1664,7 @@ export default function CatalogView({
           ) : visibleProducts.length > 0 ? (
             <div
               key={catalogResultsKey}
-              className="eg-catalog-results grid grid-cols-1 gap-3 min-[430px]:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
+              className="eg-catalog-results grid grid-cols-2 gap-2.5 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
             >
               {visibleProducts.map((product) => (
                 <ProductCard

@@ -140,7 +140,7 @@ export default function ProductCard({
         />
       </button>
 
-      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-4 lg:p-5">
+      <div className="eg-product-card-body flex min-w-0 flex-1 flex-col p-3 sm:p-4 lg:p-5">
         <div className="mb-2 flex items-start justify-between gap-2 sm:mb-3">
           <div className="min-w-0">
             <p className="line-clamp-1 text-[10px] font-black uppercase tracking-wide text-emerald-700 sm:text-xs">
@@ -164,12 +164,12 @@ export default function ProductCard({
           onClick={() => openProduct?.(product)}
           className="text-left"
         >
-          <h3 className="line-clamp-2 min-h-[40px] text-sm font-black leading-5 text-stone-950 transition hover:text-emerald-800 sm:min-h-[48px] sm:text-base sm:leading-6">
+          <h3 className="eg-product-card-title line-clamp-2 min-h-[40px] text-sm font-black leading-5 text-stone-950 transition hover:text-emerald-800 sm:min-h-[48px] sm:text-base sm:leading-6">
             {product.name}
           </h3>
         </button>
 
-        <p className="mt-1 line-clamp-1 text-xs leading-5 text-stone-500 sm:mt-2 sm:text-sm">
+        <p className="eg-product-card-meta mt-1 line-clamp-1 text-xs leading-5 text-stone-500 sm:mt-2 sm:text-sm">
           {unit}
           {packageInfo ? ` · ${packageInfo}` : ""}
         </p>
@@ -185,7 +185,7 @@ export default function ProductCard({
 
         <div className="mt-auto pt-3 sm:pt-5">
           <div className="mb-3 flex min-h-[28px] flex-wrap items-end gap-1.5 sm:mb-4 sm:gap-2">
-            <p className="text-lg font-black leading-none text-stone-950 sm:text-2xl">
+            <p className="eg-product-card-price text-lg font-black leading-none text-stone-950 sm:text-2xl">
               {formatUAH(product.price)}
             </p>
 
@@ -197,7 +197,7 @@ export default function ProductCard({
               )}
           </div>
 
-          <div className="grid grid-cols-2 items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(132px,auto)]">
+          <div className="eg-product-card-actions grid grid-cols-2 items-stretch gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(132px,auto)]">
             <button
               type="button"
               onClick={() => openProduct?.(product)}
