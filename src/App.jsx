@@ -49,21 +49,39 @@ export default function App() {
     getRouteFromLocation(window.location)
   );
   const view = route.view;
-  const pageKey = isCartRoute(view) ? "cart" : view;
   const setView = useCallback((nextView, options = {}) => {
     const targetPath = getPathForView(nextView, options);
     const currentPath = `${normalizePathname(window.location.pathname)}${
       window.location.search || ""
     }`;
 
+    if (currentPath === targetPath) {
+      return;
+    }
+
     if (currentPath !== targetPath) {
       window.history.pushState({ view: nextView }, "", targetPath);
     }
 
-    setRoute(getRouteFromLocation(window.location));
+    const nextRoute = getRouteFromLocation(window.location);
+
+    setRoute((currentRoute) => {
+      if (
+        currentRoute.view === nextRoute.view &&
+        currentRoute.path === nextRoute.path &&
+        currentRoute.productId === nextRoute.productId
+      ) {
+        return currentRoute;
+      }
+
+      return nextRoute;
+    });
   }, []);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isDesktopViewport, setIsDesktopViewport] = useState(() => {
+    return window.matchMedia("(min-width: 768px)").matches;
+  });
 
   const {
     categories,
@@ -91,6 +109,30 @@ useEffect(() => {
 
   return () => {
     window.removeEventListener("popstate", handleRouteChange);
+  };
+}, []);
+
+useEffect(() => {
+  const desktopQuery = window.matchMedia("(min-width: 768px)");
+
+  function handleViewportChange(event) {
+    setIsDesktopViewport(event.matches);
+  }
+
+  setIsDesktopViewport(desktopQuery.matches);
+
+  if (desktopQuery.addEventListener) {
+    desktopQuery.addEventListener("change", handleViewportChange);
+  } else {
+    desktopQuery.addListener(handleViewportChange);
+  }
+
+  return () => {
+    if (desktopQuery.removeEventListener) {
+      desktopQuery.removeEventListener("change", handleViewportChange);
+    } else {
+      desktopQuery.removeListener(handleViewportChange);
+    }
   };
 }, []);
 
@@ -497,7 +539,6 @@ return (
         customer={customer}
       />
 <div
-  key={pageKey}
   className={`eg-page pb-24 md:pb-0 ${
     view === "catalog" ? "eg-catalog-page" : ""
   } ${
@@ -691,13 +732,9 @@ return (
         />
       )}
 
-      <div
-        className={
-          view === "contacts" ? "hidden" : view === "home" ? "" : "hidden md:block"
-        }
-      >
+      {view !== "contacts" && (view === "home" || isDesktopViewport) && (
         <Footer />
-      </div>
+      )}
 
       <FloatingCartButton
         isOpen={isCartDrawerOpen}
