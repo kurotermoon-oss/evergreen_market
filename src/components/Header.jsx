@@ -228,8 +228,6 @@ export default function Header({
     if (!isMobileMenuOpen) return undefined;
 
     const desktopQuery = window.matchMedia("(min-width: 768px)");
-    const previousOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
 
     function closeOnEscape(event) {
       if (event.key === "Escape") {
@@ -243,14 +241,10 @@ export default function Header({
       }
     }
 
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
     window.addEventListener("keydown", closeOnEscape);
     desktopQuery.addEventListener("change", closeOnDesktop);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
       window.removeEventListener("keydown", closeOnEscape);
       desktopQuery.removeEventListener("change", closeOnDesktop);
     };
@@ -299,6 +293,7 @@ export default function Header({
   ];
 
   return (
+    <>
     <header
       ref={headerRef}
       className={`eg-site-header sticky top-0 z-40 overflow-visible border-b bg-white/80 backdrop-blur-2xl transition-all duration-500 ease-out ${
@@ -388,7 +383,7 @@ export default function Header({
             className="eg-icon-button grid h-11 w-11 place-items-center rounded-xl bg-white/90 text-emerald-950 shadow-sm ring-1 ring-emerald-100 hover:bg-emerald-50 md:hidden"
             aria-label={isMobileMenuOpen ? "Закрити меню" : "Відкрити меню"}
             aria-expanded={isMobileMenuOpen}
-            aria-haspopup="dialog"
+            aria-haspopup="menu"
           >
             {isMobileMenuOpen ? <X size={28} /> : <Menu size={30} />}
           </button>
@@ -412,51 +407,65 @@ export default function Header({
         </div>
       </div>
 
+    </header>
+
       {isMobileMenuOpen && (
         <div
-          className="eg-mobile-header-menu absolute inset-x-0 top-full z-[160] mx-auto flex max-h-[calc(100dvh-var(--eg-header-offset,0px))] max-w-[560px] flex-col overflow-y-auto border-t border-stone-100 bg-white px-6 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-7 text-stone-950 shadow-2xl shadow-emerald-950/18 md:hidden"
-          role="dialog"
-          aria-modal="true"
+          className="eg-mobile-header-menu fixed inset-x-0 z-[160] mx-auto flex max-h-[calc(100dvh-var(--eg-header-offset,0px)-0.75rem)] max-w-[560px] flex-col overflow-y-auto border-t border-stone-100 bg-white px-6 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-5 text-stone-950 shadow-2xl shadow-emerald-950/18 md:hidden"
+          style={{ top: "var(--eg-header-offset, 0px)" }}
+          role="navigation"
           aria-label="Мобільне меню"
         >
-          <nav className="grid gap-2 text-center text-xl font-semibold">
-            <button
-              type="button"
-              onClick={() => {
-                setView("home");
-                setIsMobileMenuOpen(false);
-              }}
-              className="eg-button min-h-14 rounded-2xl hover:bg-emerald-50"
-            >
-              Головна
-            </button>
+          <nav className="grid gap-2 text-left text-base font-semibold">
+            {navItems.map((item) => {
+              const Icon = item.Icon;
 
-            <button
-              type="button"
-              onClick={() => {
-                setView("how-it-works");
-                setIsMobileMenuOpen(false);
-              }}
-              className="eg-button min-h-14 rounded-2xl hover:bg-emerald-50"
-            >
-              Як це працює?
-            </button>
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    item.onClick?.();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`eg-button flex min-h-[3.25rem] items-center gap-3 rounded-2xl px-4 text-left font-black ${
+                    item.isActive
+                      ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/18"
+                      : "text-stone-800 hover:bg-emerald-50 hover:text-emerald-950"
+                  }`}
+                >
+                  <Icon
+                    className={`h-5 w-5 shrink-0 ${
+                      item.isActive ? "text-emerald-100" : "text-emerald-700"
+                    }`}
+                  />
+                  <span className="min-w-0 flex-1">{item.label}</span>
+                </button>
+              );
+            })}
 
-            <button
-              type="button"
-              onClick={() => {
-                onContactsClick?.();
-                setIsMobileMenuOpen(false);
-              }}
-              className="eg-button min-h-14 rounded-2xl hover:bg-emerald-50"
-            >
-              Контакти
-            </button>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  setView("admin");
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`eg-button flex min-h-[3.25rem] items-center gap-3 rounded-2xl px-4 text-left font-black ${
+                  view === "admin"
+                    ? "bg-stone-950 text-white shadow-lg shadow-stone-950/18"
+                    : "text-stone-800 hover:bg-stone-50 hover:text-stone-950"
+                }`}
+              >
+                <SettingsIcon className="h-5 w-5 shrink-0" />
+                <span className="min-w-0 flex-1">Адмін-панель</span>
+              </button>
+            )}
           </nav>
 
-          <div className="my-7 h-px bg-stone-200" />
+          <div className="my-5 h-px bg-stone-200" />
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <a
               href="tel:+380997592367"
               className="eg-button flex min-h-14 items-center gap-4 rounded-2xl text-left hover:bg-emerald-50"
@@ -523,7 +532,6 @@ export default function Header({
           </div>
         </div>
       )}
-
-    </header>
+    </>
   );
 }
