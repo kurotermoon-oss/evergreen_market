@@ -1539,6 +1539,64 @@ export default function CatalogView({
       </section>
 
       <section className="relative z-30 mb-6 space-y-2.5 md:hidden">
+        <div className="eg-glass eg-premium-card rounded-[1.45rem] border border-emerald-100/80 bg-white/92 p-2 shadow-lg shadow-emerald-950/8">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => selectFulfillmentTab("in_stock")}
+              aria-pressed={selectedFulfillmentType === "in_stock"}
+              className={`eg-button min-h-[74px] rounded-[1.15rem] border px-3 py-3 text-left transition ${
+                selectedFulfillmentType === "in_stock"
+                  ? "border-emerald-900 bg-emerald-900 text-white shadow-lg shadow-emerald-900/22"
+                  : "border-emerald-100 bg-emerald-50/70 text-stone-950 shadow-sm hover:border-emerald-200 hover:bg-emerald-50"
+              }`}
+            >
+              <span className="flex h-full flex-col justify-between gap-3">
+                <span className="text-[13px] font-black leading-tight">
+                  Є в наявності
+                </span>
+
+                <span
+                  className={`w-fit rounded-full px-2.5 py-1 text-xs font-black ${
+                    selectedFulfillmentType === "in_stock"
+                      ? "bg-white/18 text-white ring-1 ring-white/20"
+                      : "bg-white text-emerald-950 ring-1 ring-emerald-100"
+                  }`}
+                >
+                  {fulfillmentCounts.inStock}
+                </span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => selectFulfillmentTab("supplier_order")}
+              aria-pressed={selectedFulfillmentType === "supplier_order"}
+              className={`eg-button min-h-[74px] rounded-[1.15rem] border px-3 py-3 text-left transition ${
+                selectedFulfillmentType === "supplier_order"
+                  ? "border-emerald-900 bg-emerald-900 text-white shadow-lg shadow-emerald-900/22"
+                  : "border-emerald-100 bg-white text-stone-950 shadow-sm hover:border-emerald-200 hover:bg-emerald-50"
+              }`}
+            >
+              <span className="flex h-full flex-col justify-between gap-3">
+                <span className="text-[13px] font-black leading-tight">
+                  Під замовлення
+                </span>
+
+                <span
+                  className={`w-fit rounded-full px-2.5 py-1 text-xs font-black ${
+                    selectedFulfillmentType === "supplier_order"
+                      ? "bg-white/18 text-white ring-1 ring-white/20"
+                      : "bg-emerald-100 text-emerald-950"
+                  }`}
+                >
+                  {fulfillmentCounts.supplierOrder}
+                </span>
+              </span>
+            </button>
+          </div>
+        </div>
+
         <div ref={mobileSortMenuRef} className="relative">
           <button
             type="button"

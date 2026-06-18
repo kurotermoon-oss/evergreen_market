@@ -25,6 +25,15 @@ function getInitialMarkupPercent(product) {
   return formatMarkupPercent((price / costPrice - 1) * 100);
 }
 
+function calculateMarkupByPrice(costPrice, price) {
+  const costPriceNumber = parsePriceValue(costPrice);
+  const priceNumber = parsePriceValue(price);
+
+  if (!costPriceNumber || priceNumber === null) return "";
+
+  return formatMarkupPercent((priceNumber / costPriceNumber - 1) * 100);
+}
+
 function calculatePriceByMarkup(costPrice, markupPercent) {
   const costPriceNumber = parsePriceValue(costPrice);
   const markupPercentNumber = parsePriceValue(markupPercent);
@@ -60,6 +69,7 @@ export default function ProductPriceFields({
   const [markupPercent, setMarkupPercent] = useState(() =>
     getInitialMarkupPercent(product)
   );
+  const [priceSource, setPriceSource] = useState("price");
 
   const calculatedPrice = useMemo(
     () => calculatePriceByMarkup(product.costPrice, markupPercent),
@@ -68,12 +78,20 @@ export default function ProductPriceFields({
 
   useEffect(() => {
     setMarkupPercent(getInitialMarkupPercent(product));
+    setPriceSource("price");
   }, [product.id]);
+
+  useEffect(() => {
+    if (priceSource === "markup") return;
+
+    setMarkupPercent(calculateMarkupByPrice(product.costPrice, product.price));
+  }, [product.costPrice, product.price, priceSource]);
 
   useEffect(() => {
     if (product.price || product.costPrice) return;
 
     setMarkupPercent("");
+    setPriceSource("price");
   }, [product.price, product.costPrice]);
 
   function updatePriceFromMarkup(nextCostPrice, nextMarkupPercent) {
@@ -83,13 +101,34 @@ export default function ProductPriceFields({
   }
 
   function handleCostPriceChange(value) {
+    const nextPrice = calculatePriceByMarkup(value, markupPercent);
+
+    if (priceSource === "markup" && nextPrice !== null) {
+      updateFields({
+        costPrice: value,
+        price: String(nextPrice),
+      });
+
+      return;
+    }
+
+    setPriceSource("price");
+    setMarkupPercent(calculateMarkupByPrice(value, product.price));
+
     updateFields({
       costPrice: value,
-      ...updatePriceFromMarkup(value, markupPercent),
     });
   }
 
+  function handlePriceChange(value) {
+    setPriceSource("price");
+    setMarkupPercent(calculateMarkupByPrice(product.costPrice, value));
+
+    updateFields({ price: value });
+  }
+
   function handleMarkupPercentChange(value) {
+    setPriceSource("markup");
     setMarkupPercent(value);
 
     updateFields(updatePriceFromMarkup(product.costPrice, value));
@@ -105,7 +144,7 @@ export default function ProductPriceFields({
         <PriceFieldLabel title="Ціна продажу, грн">
           <input
             value={product.price || ""}
-            onChange={(event) => updateFields({ price: event.target.value })}
+            onChange={(event) => handlePriceChange(event.target.value)}
             placeholder="Ціна"
             type="number"
             min="0"
