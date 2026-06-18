@@ -512,6 +512,19 @@ export default function HowItWorksView({ setView }) {
       </section>
 
       <section
+        style={anchorOffset}
+        className="mx-auto max-w-[66rem] px-4 py-7 sm:px-6 lg:px-8 lg:py-10"
+      >
+        <div className="grid gap-6 lg:grid-cols-[0.5fr_1fr] lg:items-start">
+          <SectionIntro
+            eyebrow="коротко"
+            title="Питання, які знімають плутанину"
+          />
+          <FaqList />
+        </div>
+      </section>
+
+      <section
         id="how-order"
         style={anchorOffset}
         className="mx-auto max-w-[66rem] px-4 py-7 sm:px-6 lg:px-8 lg:py-10"
@@ -579,19 +592,6 @@ export default function HowItWorksView({ setView }) {
             title="Менше обіцянок. Більше ясності."
           />
           <TrustChecklist />
-        </div>
-      </section>
-
-      <section
-        style={anchorOffset}
-        className="mx-auto max-w-[66rem] px-4 py-7 sm:px-6 lg:px-8 lg:py-10"
-      >
-        <div className="grid gap-6 lg:grid-cols-[0.5fr_1fr] lg:items-start">
-          <SectionIntro
-            eyebrow="коротко"
-            title="Питання, які знімають плутанину"
-          />
-          <FaqList />
         </div>
       </section>
 
