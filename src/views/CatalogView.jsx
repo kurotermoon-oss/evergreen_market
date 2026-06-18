@@ -4,7 +4,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ListFilter,
   Menu,
   MoreHorizontal,
   Search,
@@ -191,7 +190,6 @@ export default function CatalogView({
   const mobileSearchInputRef = useRef(null);
   const [isCatalogMenuOpen, setIsCatalogMenuOpen] = useState(false);
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [isCatalogToolbarPinned, setIsCatalogToolbarPinned] = useState(false);
   const [catalogToolbarHeight, setCatalogToolbarHeight] = useState(0);
   const [hoveredCategoryId, setHoveredCategoryId] = useState(null);
@@ -1595,6 +1593,44 @@ export default function CatalogView({
               </span>
             </button>
           </div>
+
+          {selectedFulfillmentType === "supplier_order" &&
+            supplierFilters.length > 0 && (
+              <div className="mt-2 rounded-[1.15rem] border border-emerald-100 bg-emerald-50/55 p-2">
+                <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-wide text-emerald-900">
+                  Постачальник
+                </p>
+
+                <div className="modal-scrollbar flex gap-2 overflow-x-auto pb-1">
+                  <button
+                    type="button"
+                    onClick={() => selectSupplierFilter("")}
+                    className={`eg-button min-h-10 shrink-0 rounded-full px-3.5 text-[12px] font-black shadow-sm ${
+                      !selectedSupplierId
+                        ? "bg-emerald-900 text-white shadow-emerald-900/18"
+                        : "bg-white text-stone-800 ring-1 ring-emerald-100 hover:bg-emerald-50 hover:text-emerald-950"
+                    }`}
+                  >
+                    Усі постачальники
+                  </button>
+
+                  {supplierFilters.map((supplier) => (
+                    <button
+                      key={supplier.id}
+                      type="button"
+                      onClick={() => selectSupplierFilter(supplier.id)}
+                      className={`eg-button min-h-10 max-w-[190px] shrink-0 rounded-full px-3.5 text-left text-[12px] font-black shadow-sm ${
+                        selectedSupplierId === supplier.id
+                          ? "bg-emerald-900 text-white shadow-emerald-900/18"
+                          : "bg-white text-stone-800 ring-1 ring-emerald-100 hover:bg-emerald-50 hover:text-emerald-950"
+                      }`}
+                    >
+                      <span className="block truncate">{supplier.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
         </div>
 
         <div ref={mobileSortMenuRef} className="relative">
@@ -1602,7 +1638,6 @@ export default function CatalogView({
             type="button"
             onClick={() => {
               setIsSortMenuOpen((current) => !current);
-              setIsMobileFilterOpen(false);
             }}
             aria-haspopup="listbox"
             aria-expanded={isSortMenuOpen}
@@ -1656,125 +1691,6 @@ export default function CatalogView({
           )}
         </div>
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => {
-              setIsMobileFilterOpen((current) => !current);
-              setIsSortMenuOpen(false);
-            }}
-            aria-expanded={isMobileFilterOpen}
-            className="eg-button flex min-h-[56px] w-full items-center justify-between gap-3 rounded-[1.2rem] bg-emerald-900 px-4 text-left text-[15px] font-extrabold text-white shadow-lg shadow-emerald-900/18 hover:bg-emerald-800"
-          >
-            <span className="flex min-w-0 items-center gap-3">
-              <ListFilter size={19} className="shrink-0 text-emerald-100" />
-              <span className="truncate">Фільтр</span>
-            </span>
-
-            <ChevronDown
-              size={18}
-              className={`shrink-0 text-emerald-100 transition-transform duration-200 ${
-                isMobileFilterOpen ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-
-          {isMobileFilterOpen && (
-            <div className="eg-mobile-filter-panel mt-2 rounded-[1.2rem] border border-emerald-100 bg-white/96 p-2 shadow-xl shadow-emerald-950/10 ring-1 ring-white/80 backdrop-blur">
-              <div className="grid gap-2">
-                <button
-                  type="button"
-                  onClick={() => selectFulfillmentTab("in_stock")}
-                  className={`eg-button flex min-h-11 items-center justify-between rounded-[1rem] px-3.5 text-left text-[13px] font-bold ${
-                    selectedFulfillmentType === "in_stock"
-                      ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/18"
-                      : "bg-emerald-50/70 text-stone-900 hover:bg-emerald-50"
-                  }`}
-                >
-                  <span>Є в наявності</span>
-                  <span
-                    className={`grid min-h-6 min-w-6 place-items-center rounded-full px-2 text-[11px] font-extrabold ${
-                      selectedFulfillmentType === "in_stock"
-                        ? "bg-white/18 text-white"
-                        : "bg-white text-emerald-950"
-                    }`}
-                  >
-                    {fulfillmentCounts.inStock}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => selectFulfillmentTab("supplier_order")}
-                  className={`eg-button flex min-h-11 items-center justify-between rounded-[1rem] px-3.5 text-left text-[13px] font-bold ${
-                    selectedFulfillmentType === "supplier_order"
-                      ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/18"
-                      : "bg-stone-50 text-stone-900 hover:bg-emerald-50"
-                  }`}
-                >
-                  <span>Під замовлення</span>
-                  <span
-                    className={`grid min-h-6 min-w-6 place-items-center rounded-full px-2 text-[11px] font-extrabold ${
-                      selectedFulfillmentType === "supplier_order"
-                        ? "bg-white/18 text-white"
-                        : "bg-emerald-100 text-emerald-950"
-                    }`}
-                  >
-                    {fulfillmentCounts.supplierOrder}
-                  </span>
-                </button>
-              </div>
-
-              {selectedFulfillmentType === "supplier_order" &&
-                supplierFilters.length > 0 && (
-                  <div className="modal-scrollbar mt-2 flex gap-2 overflow-x-auto pb-1">
-                    <button
-                      type="button"
-                      onClick={() => selectSupplierFilter("")}
-                      className={`eg-button min-h-9 shrink-0 rounded-full px-3.5 text-[11px] font-bold ${
-                        !selectedSupplierId
-                          ? "bg-emerald-900 text-white"
-                          : "bg-stone-50 text-stone-800 ring-1 ring-stone-100"
-                      }`}
-                    >
-                      Усі постачальники
-                    </button>
-
-                    {supplierFilters.map((supplier) => (
-                      <button
-                        key={supplier.id}
-                        type="button"
-                        onClick={() => selectSupplierFilter(supplier.id)}
-                        className={`eg-button min-h-9 max-w-[180px] shrink-0 rounded-full px-3.5 text-left text-[11px] font-bold ${
-                          selectedSupplierId === supplier.id
-                            ? "bg-emerald-900 text-white"
-                            : "bg-stone-50 text-stone-800 ring-1 ring-stone-100"
-                        }`}
-                      >
-                        <span className="block truncate">{supplier.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-              {(selectedCategory !== "all" ||
-                selectedSubcategory !== "all" ||
-                selectedFulfillmentType !== "in_stock" ||
-                selectedSupplierId) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    resetAllFilters();
-                    setIsMobileFilterOpen(false);
-                  }}
-                  className="eg-button mt-2 min-h-9 w-full rounded-[0.95rem] bg-emerald-50 px-3.5 text-[13px] font-bold text-emerald-900 hover:bg-emerald-100"
-                >
-                  Скинути фільтри
-                </button>
-              )}
-            </div>
-          )}
-        </div>
       </section>
 
       <section className="min-w-0">
