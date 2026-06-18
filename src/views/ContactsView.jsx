@@ -64,7 +64,7 @@ export default function ContactsView({ setView }) {
         </div>
       </section>
 
-      <Footer />
+      <Footer setView={setView} />
     </main>
   );
 }

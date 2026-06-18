@@ -1,4 +1,4 @@
-import { Menu, MapPin, Phone, Send, X } from "lucide-react";
+import { CircleHelp, Menu, MapPin, Phone, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import BrandLogo from "./BrandLogo.jsx";
 
@@ -276,6 +276,13 @@ export default function Header({
       onClick: () => setView("catalog"),
     },
     {
+      id: "how-it-works",
+      label: "Як це працює?",
+      Icon: CircleHelp,
+      isActive: view === "how-it-works",
+      onClick: () => setView("how-it-works"),
+    },
+    {
       id: "contacts",
       label: "Контакти",
       Icon: ContactIcon,
@@ -422,6 +429,17 @@ export default function Header({
               className="eg-button min-h-14 rounded-2xl hover:bg-emerald-50"
             >
               Головна
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setView("how-it-works");
+                setIsMobileMenuOpen(false);
+              }}
+              className="eg-button min-h-14 rounded-2xl hover:bg-emerald-50"
+            >
+              Як це працює?
             </button>
 
             <button

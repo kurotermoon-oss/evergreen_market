@@ -18,19 +18,47 @@ import logoEvergreen from "../img/logo_evergreen.webp";
 import { formatUAH } from "../utils/formatUAH.js";
 
 function getPaginationItems(currentPage, totalPages) {
-  if (totalPages <= 5) {
+  if (totalPages <= 7) {
     return Array.from({ length: totalPages }, (_, index) => index + 1);
   }
 
-  if (currentPage <= 3) {
-    return [1, 2, 3, "end-ellipsis", totalPages];
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, "end-ellipsis", totalPages];
   }
 
-  if (currentPage >= totalPages - 2) {
-    return [1, "start-ellipsis", totalPages - 2, totalPages - 1, totalPages];
+  if (currentPage >= totalPages - 3) {
+    return [
+      1,
+      "start-ellipsis",
+      totalPages - 4,
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
   }
 
-  return [1, "start-ellipsis", currentPage, "end-ellipsis", totalPages];
+  return [
+    1,
+    "start-ellipsis",
+    currentPage - 2,
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    currentPage + 2,
+    "end-ellipsis",
+    totalPages,
+  ];
+}
+
+function getPaginationJumpTarget(item, currentPage, totalPages) {
+  const pageStep = 5;
+
+  if (item === "start-ellipsis") {
+    return Math.max(1, currentPage - pageStep);
+  }
+
+  return Math.min(totalPages, currentPage + pageStep);
 }
 
 function getProductWord(count) {
@@ -155,6 +183,7 @@ export default function CatalogView({
   removeFromCart,
   openProduct,
 }) {
+  const catalogRootRef = useRef(null);
   const catalogToolbarShellRef = useRef(null);
   const catalogToolbarRef = useRef(null);
   const desktopSortMenuRef = useRef(null);
@@ -716,8 +745,43 @@ export default function CatalogView({
     setIsSortMenuOpen(false);
   }
 
+  function scrollCatalogToTop() {
+    const catalogRoot = catalogRootRef.current;
+
+    if (!catalogRoot) return;
+
+    const headerOffsetValue = window
+      .getComputedStyle(document.documentElement)
+      .getPropertyValue("--eg-header-offset");
+    const currentHeaderOffset = Number.parseFloat(headerOffsetValue) || 0;
+    const headerHeight =
+      document
+        .querySelector(".eg-site-header")
+        ?.getBoundingClientRect().height || 0;
+    const topOffset = Math.max(currentHeaderOffset, headerHeight) + 12;
+    const catalogTop = catalogRoot.getBoundingClientRect().top + window.scrollY;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    window.scrollTo({
+      top: Math.max(0, catalogTop - topOffset),
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+  }
+
+  function changeProductPage(nextPage) {
+    const normalizedPage = Math.min(totalProductPages, Math.max(1, nextPage));
+
+    if (normalizedPage === currentPage) return;
+
+    setCurrentPage(normalizedPage);
+    window.requestAnimationFrame(scrollCatalogToTop);
+  }
+
   return (
     <main
+      ref={catalogRootRef}
       id="catalog"
       className="scroll-mt-24 mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-10 lg:px-8"
     >
@@ -1711,37 +1775,53 @@ export default function CatalogView({
                 Сторінка {currentPage} з {totalProductPages}
               </p>
 
-              <div className="flex max-w-full items-center justify-center gap-1.5 rounded-[22px] bg-white/85 p-1.5 shadow-sm ring-1 ring-stone-200/70">
+              <div className="flex max-w-full items-center justify-center gap-1 rounded-[22px] bg-white/85 p-1 shadow-sm ring-1 ring-stone-200/70 sm:gap-1.5 sm:p-1.5">
                 <button
                   type="button"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  onClick={() => changeProductPage(currentPage - 1)}
                   disabled={currentPage === 1}
                   aria-label="Попередня сторінка"
-                  className="eg-button grid h-10 w-10 place-items-center rounded-2xl text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-35"
+                  className="eg-button grid h-8 w-8 place-items-center rounded-xl text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-35 sm:h-10 sm:w-10 sm:rounded-2xl"
                 >
                   <ChevronLeft size={18} />
                 </button>
 
                 {paginationItems.map((item) => {
                   if (typeof item === "string") {
+                    const jumpTarget = getPaginationJumpTarget(
+                      item,
+                      currentPage,
+                      totalProductPages
+                    );
+
                     return (
-                      <span
+                      <button
                         key={item}
-                        className="grid h-10 w-8 place-items-center text-stone-400"
-                        aria-hidden="true"
+                        type="button"
+                        onClick={() => changeProductPage(jumpTarget)}
+                        className="eg-button grid h-8 w-5 place-items-center rounded-xl text-stone-400 hover:bg-stone-100 hover:text-emerald-900 sm:h-10 sm:w-8 sm:rounded-2xl"
+                        aria-label={`Перейти до сторінки ${jumpTarget}`}
+                        title={`Сторінка ${jumpTarget}`}
                       >
                         <MoreHorizontal size={18} />
-                      </span>
+                      </button>
                     );
                   }
+
+                  const isDistantMobilePage =
+                    item !== 1 &&
+                    item !== totalProductPages &&
+                    Math.abs(item - currentPage) > 1;
 
                   return (
                     <button
                       key={item}
                       type="button"
-                      onClick={() => setCurrentPage(item)}
+                      onClick={() => changeProductPage(item)}
                       aria-current={currentPage === item ? "page" : undefined}
-                      className={`eg-button h-10 min-w-10 rounded-2xl px-3 text-sm font-black ${
+                      className={`eg-button h-8 min-w-8 place-items-center rounded-xl px-2 text-xs font-black sm:h-10 sm:min-w-10 sm:rounded-2xl sm:px-3 sm:text-sm ${
+                        isDistantMobilePage ? "hidden sm:grid" : "grid"
+                      } ${
                         currentPage === item
                           ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
                           : "text-stone-700 hover:bg-stone-100"
@@ -1754,12 +1834,10 @@ export default function CatalogView({
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setCurrentPage(Math.min(totalProductPages, currentPage + 1))
-                  }
+                  onClick={() => changeProductPage(currentPage + 1)}
                   disabled={currentPage === totalProductPages}
                   aria-label="Наступна сторінка"
-                  className="eg-button grid h-10 w-10 place-items-center rounded-2xl text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-35"
+                  className="eg-button grid h-8 w-8 place-items-center rounded-xl text-stone-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-35 sm:h-10 sm:w-10 sm:rounded-2xl"
                 >
                   <ChevronRight size={18} />
                 </button>

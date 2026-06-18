@@ -13,6 +13,12 @@ const PAGE_META = {
       "Обирайте каву, напої та товари для дому в онлайн-каталозі Evergreen coffee. Доступні товари в наявності та позиції під замовлення.",
     robots: "index, follow",
   },
+  "how-it-works": {
+    title: "Як працює Evergreen Market — замовлення товарів через кавʼярню",
+    description:
+      "Пояснюємо, як Evergreen Market працює з постачальниками, чому товари можуть бути вигіднішими, як оформити замовлення та забрати його в кавʼярні.",
+    robots: "index, follow",
+  },
   contacts: {
     title: "Контакти та адреса | Evergreen coffee",
     description:

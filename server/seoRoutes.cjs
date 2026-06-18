@@ -1,6 +1,7 @@
 const PUBLIC_SITEMAP_ROUTES = [
   { path: "/", priority: "1.0", changefreq: "daily" },
   { path: "/catalog", priority: "0.9", changefreq: "daily" },
+  { path: "/how-it-works", priority: "0.8", changefreq: "monthly" },
   { path: "/contacts", priority: "0.7", changefreq: "monthly" },
   { path: "/cart", priority: "0.5", changefreq: "weekly" },
   { path: "/checkout", priority: "0.5", changefreq: "weekly" },

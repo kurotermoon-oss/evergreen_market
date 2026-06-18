@@ -1,5 +1,6 @@
 import ProductImageCropUploader from "./ProductImageCropUploader.jsx";
 import ProductBenefitsEditor from "./ProductBenefitsEditor.jsx";
+import ProductPriceFields from "./ProductPriceFields.jsx";
 
 function FormSection({ title, description, children }) {
   return (
@@ -83,11 +84,15 @@ export default function AdminProductForm({
   setDraftProduct,
   addDraftProduct,
 }) {
+  function updateFields(nextFields) {
+    setDraftProduct((current) => ({
+      ...current,
+      ...nextFields,
+    }));
+  }
+
   function updateField(field, value) {
-    setDraftProduct({
-      ...draftProduct,
-      [field]: value,
-    });
+    updateFields({ [field]: value });
   }
 
   const selectedCategory = categories.find(
@@ -254,32 +259,11 @@ export default function AdminProductForm({
             title="Ціна"
             description="Стара ціна використовується для автоматичного бейджа знижки."
           >
-            <div className="grid gap-3 sm:grid-cols-3">
-              <TextInput
-                value={draftProduct.price}
-                onChange={(event) => updateField("price", event.target.value)}
-                placeholder="Ціна, грн"
-                type="number"
-              />
-
-              <TextInput
-                value={draftProduct.costPrice || ""}
-                onChange={(event) =>
-                  updateField("costPrice", event.target.value)
-                }
-                placeholder="Собівартість, грн"
-                type="number"
-              />
-
-              <TextInput
-                value={draftProduct.oldPrice || ""}
-                onChange={(event) =>
-                  updateField("oldPrice", event.target.value)
-                }
-                placeholder="Стара ціна, якщо є"
-                type="number"
-              />
-            </div>
+            <ProductPriceFields
+              product={draftProduct}
+              updateFields={updateFields}
+              getFieldClass={getFieldClass}
+            />
           </FormSection>
 
           <FormSection

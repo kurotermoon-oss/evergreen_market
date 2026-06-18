@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 
 import ProductBenefitsEditor from "./ProductBenefitsEditor.jsx";
 import ProductImageCropUploader from "./ProductImageCropUploader.jsx";
+import ProductPriceFields from "./ProductPriceFields.jsx";
 
 function FormSection({ title, description, children, className = "" }) {
   return (
@@ -235,38 +236,12 @@ export default function AdminProductEditModal({
               title="Ціна"
               description="Стара ціна використовується для бейджа знижки."
             >
-              <div className="grid gap-2 sm:grid-cols-3">
-                <TextInput
-                  value={editingProduct.price}
-                  onChange={(event) => updateField("price", event.target.value)}
-                  placeholder="Ціна, грн"
-                  type="number"
-                  min="0"
-                  max="999999"
-                />
-
-                <TextInput
-                  value={editingProduct.costPrice || ""}
-                  onChange={(event) =>
-                    updateField("costPrice", event.target.value)
-                  }
-                  placeholder="Собівартість"
-                  type="number"
-                  min="0"
-                  max="999999"
-                />
-
-                <TextInput
-                  value={editingProduct.oldPrice || ""}
-                  onChange={(event) =>
-                    updateField("oldPrice", event.target.value)
-                  }
-                  placeholder="Стара ціна"
-                  type="number"
-                  min="0"
-                  max="999999"
-                />
-              </div>
+              <ProductPriceFields
+                product={editingProduct}
+                updateFields={updateFields}
+                getFieldClass={getFieldClass}
+                compact
+              />
             </FormSection>
 
             <FormSection

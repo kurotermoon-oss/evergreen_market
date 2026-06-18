@@ -1,6 +1,7 @@
 export const ROUTE_PATHS = {
   home: "/",
   catalog: "/catalog",
+  howItWorks: "/how-it-works",
   contacts: "/contacts",
   cart: "/cart",
   checkout: "/checkout",
@@ -13,6 +14,7 @@ export const ROUTE_PATHS = {
 const STATIC_VIEW_BY_PATH = new Map([
   [ROUTE_PATHS.home, "home"],
   [ROUTE_PATHS.catalog, "catalog"],
+  [ROUTE_PATHS.howItWorks, "how-it-works"],
   [ROUTE_PATHS.contacts, "contacts"],
   [ROUTE_PATHS.cart, "cart"],
   [ROUTE_PATHS.checkout, "checkout"],
@@ -86,6 +88,7 @@ export function getPathForView(view, options = {}) {
     {
       home: ROUTE_PATHS.home,
       catalog: ROUTE_PATHS.catalog,
+      "how-it-works": ROUTE_PATHS.howItWorks,
       contacts: ROUTE_PATHS.contacts,
       cart: ROUTE_PATHS.cart,
       checkout: ROUTE_PATHS.checkout,

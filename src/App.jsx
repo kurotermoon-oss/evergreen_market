@@ -34,6 +34,7 @@ import FeedbackButton from "./components/FeedbackButton.jsx";
 
 import HomeView from "./views/HomeView.jsx";
 import CatalogView from "./views/CatalogView.jsx";
+import HowItWorksView from "./views/HowItWorksView.jsx";
 import CartView from "./views/CartView.jsx";
 import ContactsView from "./views/ContactsView.jsx";
 import SuccessView from "./views/SuccessView.jsx";
@@ -609,6 +610,10 @@ return (
           openProduct={openProduct}
         />
       )}
+
+      {view === "how-it-works" && (
+        <HowItWorksView setView={setView} />
+      )}
      
       {view === "product" && (
         <ProductDetailsView
@@ -732,8 +737,9 @@ return (
         />
       )}
 
-      {view !== "contacts" && (view === "home" || isDesktopViewport) && (
-        <Footer />
+      {view !== "contacts" &&
+        (view === "home" || view === "how-it-works" || isDesktopViewport) && (
+        <Footer setView={setView} />
       )}
 
       <FloatingCartButton

@@ -1,5 +1,6 @@
 import Icon from "./Icon.jsx";
 import BrandLogo from "./BrandLogo.jsx";
+import { ROUTE_PATHS } from "../utils/routes.js";
 
 function TelegramIcon({ size = 18 }) {
   return (
@@ -62,8 +63,15 @@ function ContactCard({ href, target, rel, icon, title, children }) {
   );
 }
 
-export default function Footer() {
+export default function Footer({ setView } = {}) {
   const currentYear = new Date().getFullYear();
+
+  function openHowItWorks(event) {
+    if (!setView) return;
+
+    event.preventDefault();
+    setView("how-it-works");
+  }
 
   return (
     <footer
@@ -197,6 +205,14 @@ export default function Footer() {
 
         <div className="mt-12 border-t border-white/60 pt-6">
           <div className="flex flex-col gap-3 text-center text-xs text-stone-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+            <a
+              href={ROUTE_PATHS.howItWorks}
+              onClick={openHowItWorks}
+              className="font-black text-emerald-800 underline-offset-4 hover:text-emerald-950 hover:underline"
+            >
+              Як це працює?
+            </a>
+
             <p className="font-medium">
               © {currentYear} Evergreen coffee. Усі права захищені.
             </p>
