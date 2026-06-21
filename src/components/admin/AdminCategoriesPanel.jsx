@@ -38,10 +38,28 @@ function getInputClass(extra = "") {
   return `eg-field w-full rounded-xl border border-stone-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-emerald-700 ${extra}`;
 }
 
+function parseMarkupPercent(value) {
+  const normalizedValue = String(value ?? "").trim().replace(",", ".");
+
+  if (!normalizedValue) return null;
+
+  const number = Number(normalizedValue);
+
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function formatMarkupPercent(value) {
+  if (!Number.isFinite(value)) return "";
+
+  return value.toFixed(2).replace(/\.?0+$/, "");
+}
+
 export default function AdminCategoriesPanel({
   categories,
+  products = [],
   createCategory,
   updateCategory,
+  applyCategoryMarkup,
   deleteCategory,
   createSubcategory,
   updateSubcategory,
@@ -51,6 +69,7 @@ export default function AdminCategoriesPanel({
   const [subcategoryDrafts, setSubcategoryDrafts] = useState({});
   const [categoryNameDrafts, setCategoryNameDrafts] = useState({});
   const [subcategoryNameDrafts, setSubcategoryNameDrafts] = useState({});
+  const [categoryMarkupDrafts, setCategoryMarkupDrafts] = useState({});
   const [modal, setModal] = useState(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -96,6 +115,34 @@ export default function AdminCategoriesPanel({
       .filter(Boolean);
   }, [categoryList, searchQuery]);
 
+  const productStatsByCategory = useMemo(() => {
+    const stats = {};
+
+    (Array.isArray(products) ? products : []).forEach((product) => {
+      const categoryId = product.category;
+
+      if (!categoryId) return;
+
+      if (!stats[categoryId]) {
+        stats[categoryId] = {
+          total: 0,
+          withCostPrice: 0,
+          withoutCostPrice: 0,
+        };
+      }
+
+      stats[categoryId].total += 1;
+
+      if (Number(product.costPrice || 0) > 0) {
+        stats[categoryId].withCostPrice += 1;
+      } else {
+        stats[categoryId].withoutCostPrice += 1;
+      }
+    });
+
+    return stats;
+  }, [products]);
+
   const hiddenCategoriesCount = categoryList.filter((category) => {
     return category.active === false;
   }).length;
@@ -128,12 +175,35 @@ export default function AdminCategoriesPanel({
     setSubcategoryNameDrafts(nextSubcategoryDrafts);
   }, [categoryList]);
 
+  useEffect(() => {
+    setCategoryMarkupDrafts((current) => {
+      const nextDrafts = {};
+
+      categoryList.forEach((category) => {
+        nextDrafts[category.id] = current[category.id] || "";
+      });
+
+      return nextDrafts;
+    });
+  }, [categoryList]);
+
   function showError(title, message) {
     setModal({
       type: "error",
       title,
       message,
       confirmLabel: "Зрозуміло",
+      showCancel: false,
+      onConfirm: () => setModal(null),
+    });
+  }
+
+  function showSuccess(title, message) {
+    setModal({
+      type: "success",
+      title,
+      message,
+      confirmLabel: "Готово",
       showCancel: false,
       onConfirm: () => setModal(null),
     });
@@ -199,6 +269,101 @@ export default function AdminCategoriesPanel({
         error?.message || "Спробуйте ще раз."
       );
     }
+  }
+
+  function askApplyCategoryMarkup(category) {
+    const markupPercent = parseMarkupPercent(
+      categoryMarkupDrafts[category.id]
+    );
+    const stats = productStatsByCategory[category.id] || {
+      total: 0,
+      withCostPrice: 0,
+      withoutCostPrice: 0,
+    };
+
+    if (!applyCategoryMarkup) {
+      showError(
+        "Дія недоступна",
+        "Не вдалося підготувати масове оновлення цін для категорії."
+      );
+      return;
+    }
+
+    if (markupPercent === null) {
+      showError(
+        "Некоректна націнка",
+        "Вкажіть відсоток націнки числом, наприклад 30 або 45.5."
+      );
+      return;
+    }
+
+    if (stats.total === 0) {
+      showError(
+        "У категорії немає товарів",
+        "Спочатку додайте товари до цієї категорії."
+      );
+      return;
+    }
+
+    if (stats.withCostPrice === 0) {
+      showError(
+        "Немає товарів із собівартістю",
+        "Націнку можна застосувати тільки до товарів, де заповнена собівартість."
+      );
+      return;
+    }
+
+    const percentLabel = formatMarkupPercent(markupPercent);
+    const skippedText = stats.withoutCostPrice
+      ? `\nБез собівартості буде пропущено: ${stats.withoutCostPrice}.`
+      : "";
+
+    setModal({
+      type: "warning",
+      title: "Застосувати націнку до категорії?",
+      message:
+        `Категорія: ${category.name}\n` +
+        `Ціна продажу буде перерахована як собівартість + ${percentLabel}%.\n` +
+        `Буде оновлено товарів: ${stats.withCostPrice}.${skippedText}\n\n` +
+        "Поточні ціни продажу цих товарів буде перезаписано.",
+      confirmLabel: "Застосувати",
+      cancelLabel: "Скасувати",
+      showCancel: true,
+      onConfirm: async () => {
+        try {
+          setIsModalLoading(true);
+
+          const result = await applyCategoryMarkup(
+            category.id,
+            markupPercent
+          );
+
+          setCategoryMarkupDrafts((current) => ({
+            ...current,
+            [category.id]: "",
+          }));
+
+          showSuccess(
+            "Націнку застосовано",
+            `Оновлено товарів: ${result.updated || 0}.\n` +
+              `Пропущено без собівартості: ${
+                result.skippedWithoutCostPrice || 0
+              }.`
+          );
+        } catch (error) {
+          setModal({
+            type: "error",
+            title: "Не вдалося застосувати націнку",
+            message: error?.message || "Спробуйте ще раз.",
+            confirmLabel: "Зрозуміло",
+            showCancel: false,
+            onConfirm: () => setModal(null),
+          });
+        } finally {
+          setIsModalLoading(false);
+        }
+      },
+    });
   }
 
   async function handleCreateSubcategory(categoryId) {
@@ -448,6 +613,17 @@ export default function AdminCategoriesPanel({
         {filteredCategories.map((category) => {
           const isCategoryHidden = category.active === false;
           const subcategories = category.subcategories || [];
+          const productStats = productStatsByCategory[category.id] || {
+            total: 0,
+            withCostPrice: 0,
+            withoutCostPrice: 0,
+          };
+          const markupDraft = categoryMarkupDrafts[category.id] || "";
+          const markupPercent = parseMarkupPercent(markupDraft);
+          const canApplyMarkup =
+            Boolean(applyCategoryMarkup) &&
+            markupPercent !== null &&
+            productStats.withCostPrice > 0;
 
           return (
             <div
@@ -517,6 +693,72 @@ export default function AdminCategoriesPanel({
                   >
                     Видалити
                   </ActionButton>
+                </div>
+              </div>
+
+              <div className="mt-3 rounded-[1.25rem] border border-emerald-100 bg-emerald-50/70 p-3">
+                <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wide text-emerald-800">
+                      Націнка на товари категорії
+                    </p>
+
+                    <p className="mt-1 text-xs leading-5 text-emerald-950/75">
+                      Перерахує ціну продажу за формулою: собівартість +
+                      відсоток. Товари без собівартості не змінюються.
+                    </p>
+
+                    <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-black">
+                      <span className="rounded-full bg-white/80 px-2 py-1 text-emerald-900 ring-1 ring-emerald-100">
+                        товарів: {productStats.total}
+                      </span>
+
+                      <span className="rounded-full bg-white/80 px-2 py-1 text-emerald-900 ring-1 ring-emerald-100">
+                        з собівартістю: {productStats.withCostPrice}
+                      </span>
+
+                      {productStats.withoutCostPrice > 0 && (
+                        <span className="rounded-full bg-amber-50 px-2 py-1 text-amber-900 ring-1 ring-amber-100">
+                          без собівартості: {productStats.withoutCostPrice}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2 sm:grid-cols-[minmax(8rem,11rem)_auto]">
+                    <label className="grid gap-1.5 text-xs font-black text-emerald-900">
+                      <span>Націнка, %</span>
+
+                      <input
+                        value={markupDraft}
+                        onChange={(event) =>
+                          setCategoryMarkupDrafts((current) => ({
+                            ...current,
+                            [category.id]: event.target.value,
+                          }))
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            askApplyCategoryMarkup(category);
+                          }
+                        }}
+                        placeholder="30"
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        className={getInputClass("bg-white/95")}
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => askApplyCategoryMarkup(category)}
+                      disabled={!canApplyMarkup}
+                      className="eg-button rounded-xl bg-emerald-900 px-4 py-2.5 text-sm font-black text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600"
+                    >
+                      Застосувати
+                    </button>
+                  </div>
                 </div>
               </div>
 

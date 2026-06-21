@@ -221,6 +221,7 @@ export default function AdminCatalogPanel({
 
   createCategory,
   updateCategory,
+  applyCategoryMarkup,
   deleteCategory,
   createSubcategory,
   updateSubcategory,
@@ -666,8 +667,10 @@ export default function AdminCatalogPanel({
         <div className="modal-scrollbar min-h-0 flex-1 overflow-y-auto bg-stone-50/60 px-4 py-4 sm:px-5">
           <AdminCategoriesPanel
             categories={categories}
+            products={products}
             createCategory={createCategory}
             updateCategory={updateCategory}
+            applyCategoryMarkup={applyCategoryMarkup}
             deleteCategory={deleteCategory}
             createSubcategory={createSubcategory}
             updateSubcategory={updateSubcategory}

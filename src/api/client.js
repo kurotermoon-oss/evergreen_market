@@ -212,6 +212,13 @@ updateAdminCategory(id, payload) {
   });
 },
 
+applyAdminCategoryMarkup(id, payload) {
+  return request(`/api/admin/categories/${id}/apply-markup`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+},
+
 deleteAdminCategory(id) {
   return request(`/api/admin/categories/${id}`, {
     method: "DELETE",

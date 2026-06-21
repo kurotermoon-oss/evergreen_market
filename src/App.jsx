@@ -283,6 +283,7 @@ const {
 
   createCategory,
   updateCategory,
+  applyCategoryMarkup,
   deleteCategory,
   createSubcategory,
   updateSubcategory,
@@ -719,6 +720,7 @@ return (
         updateAnalyticsFilters={updateAnalyticsFilters}
         createCategory={createCategory}
         updateCategory={updateCategory}
+        applyCategoryMarkup={applyCategoryMarkup}
         deleteCategory={deleteCategory}
         createSubcategory={createSubcategory}
         updateSubcategory={updateSubcategory}

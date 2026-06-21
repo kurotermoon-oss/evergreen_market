@@ -1277,10 +1277,91 @@ function createCategoryId(name) {
   return `category-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 }
 
+const MAX_CATEGORY_MARKUP_PERCENT = 10000;
+const MAX_CATEGORY_MARKUP_PRICE = 2_147_483_647;
+
 function getCategoryProductCount(db, categoryId) {
   return (db.products || []).filter((product) => {
     return String(product.category) === String(categoryId);
   }).length;
+}
+
+function normalizeCategoryMarkupPercent(value) {
+  const number = Number(String(value ?? "").trim().replace(",", "."));
+
+  if (!Number.isFinite(number)) {
+    throw createLocalValidationError("Вкажіть коректний відсоток націнки.");
+  }
+
+  if (number < 0) {
+    throw createLocalValidationError("Націнка не може бути відʼємною.");
+  }
+
+  if (number > MAX_CATEGORY_MARKUP_PERCENT) {
+    throw createLocalValidationError(
+      `Націнка не може бути більшою за ${MAX_CATEGORY_MARKUP_PERCENT}%.`
+    );
+  }
+
+  return number;
+}
+
+function calculateLocalPriceByMarkup(costPrice, markupPercent) {
+  const calculatedPrice = Number(costPrice || 0) * (1 + markupPercent / 100);
+
+  if (!Number.isFinite(calculatedPrice)) {
+    throw createLocalValidationError("Не вдалося розрахувати ціну продажу.");
+  }
+
+  if (calculatedPrice > MAX_CATEGORY_MARKUP_PRICE) {
+    throw createLocalValidationError(
+      `Розрахована ціна більша за допустимий максимум ${MAX_CATEGORY_MARKUP_PRICE}.`
+    );
+  }
+
+  return Math.max(0, Math.round(calculatedPrice));
+}
+
+function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
+  ensureCategoriesStore(db);
+
+  const category = findCategory(db, categoryId);
+
+  if (!category) {
+    throw createLocalValidationError("Category not found", 404);
+  }
+
+  db.products = Array.isArray(db.products) ? db.products : [];
+
+  const categoryProducts = db.products.filter((product) => {
+    return String(product.category) === String(categoryId);
+  });
+
+  let updated = 0;
+  let skippedWithoutCostPrice = 0;
+
+  categoryProducts.forEach((product) => {
+    const costPrice = toNumber(product.costPrice);
+
+    if (costPrice <= 0) {
+      skippedWithoutCostPrice += 1;
+      return;
+    }
+
+    product.price = calculateLocalPriceByMarkup(costPrice, markupPercent);
+    product.updatedAt = new Date().toISOString();
+    updated += 1;
+  });
+
+  return {
+    ok: true,
+    categoryId: String(category.id),
+    categoryName: category.name,
+    markupPercent,
+    totalProducts: categoryProducts.length,
+    updated,
+    skippedWithoutCostPrice,
+  };
 }
 
 function categoryNameExists(db, name, exceptId = "") {
@@ -1440,6 +1521,47 @@ app.patch("/api/admin/categories/:categoryId", requireAdmin, async (req, res) =>
     });
   }
 });
+
+app.post(
+  "/api/admin/categories/:categoryId/apply-markup",
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const markupPercent = normalizeCategoryMarkupPercent(
+        req.body?.markupPercent
+      );
+
+      if (USE_POSTGRES) {
+        const result = await categoriesRepository.applyAdminCategoryMarkup(
+          req.params.categoryId,
+          {
+            markupPercent,
+          }
+        );
+
+        return res.json(result);
+      }
+
+      const db = readDatabase();
+      const result = applyLocalCategoryMarkup(
+        db,
+        req.params.categoryId,
+        markupPercent
+      );
+
+      writeDatabase(db);
+
+      return res.json(result);
+    } catch (error) {
+      console.error("Apply category markup error:", error);
+
+      return res.status(error.status || 500).json({
+        error: "CATEGORY_MARKUP_FAILED",
+        message: error.message || "Не вдалося застосувати націнку до категорії.",
+      });
+    }
+  }
+);
 
 
 app.delete("/api/admin/categories/:categoryId", requireAdmin, async (req, res) => {

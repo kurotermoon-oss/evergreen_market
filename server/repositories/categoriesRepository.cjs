@@ -2,6 +2,9 @@ const crypto = require("crypto");
 
 const prisma = require("../database/prisma.cjs");
 
+const MAX_DB_INT = 2_147_483_647;
+const MAX_MARKUP_PERCENT = 10000;
+
 function toCleanString(value) {
   return String(value || "").trim();
 }
@@ -13,6 +16,48 @@ function toBoolean(value, fallback = true) {
 
 function createEntityId(prefix) {
   return `${prefix}_${crypto.randomUUID()}`;
+}
+
+function createValidationError(message) {
+  const error = new Error(message);
+  error.status = 400;
+  return error;
+}
+
+function normalizeMarkupPercent(value) {
+  const number = Number(String(value ?? "").trim().replace(",", "."));
+
+  if (!Number.isFinite(number)) {
+    throw createValidationError("Вкажіть коректний відсоток націнки.");
+  }
+
+  if (number < 0) {
+    throw createValidationError("Націнка не може бути відʼємною.");
+  }
+
+  if (number > MAX_MARKUP_PERCENT) {
+    throw createValidationError(
+      `Націнка не може бути більшою за ${MAX_MARKUP_PERCENT}%.`
+    );
+  }
+
+  return number;
+}
+
+function calculatePriceByMarkup(costPrice, markupPercent) {
+  const calculatedPrice = Number(costPrice || 0) * (1 + markupPercent / 100);
+
+  if (!Number.isFinite(calculatedPrice)) {
+    throw createValidationError("Не вдалося розрахувати ціну продажу.");
+  }
+
+  if (calculatedPrice > MAX_DB_INT) {
+    throw createValidationError(
+      `Розрахована ціна більша за допустимий максимум ${MAX_DB_INT}.`
+    );
+  }
+
+  return Math.max(0, Math.round(calculatedPrice));
 }
 
 function slugify(value, fallback = "item") {
@@ -355,6 +400,69 @@ async function deleteAdminCategory(id) {
   };
 }
 
+async function applyAdminCategoryMarkup(id, payload = {}) {
+  const categoryId = String(id);
+  const markupPercent = normalizeMarkupPercent(payload.markupPercent);
+
+  return prisma.$transaction(async (tx) => {
+    const category = await tx.category.findUnique({
+      where: {
+        id: categoryId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    if (!category) {
+      const error = new Error("Категорію не знайдено.");
+      error.status = 404;
+      throw error;
+    }
+
+    const products = await tx.product.findMany({
+      where: {
+        categoryId,
+      },
+      select: {
+        id: true,
+        costPrice: true,
+      },
+    });
+
+    const updates = products
+      .filter((product) => Number(product.costPrice || 0) > 0)
+      .map((product) => {
+        return {
+          id: product.id,
+          price: calculatePriceByMarkup(product.costPrice, markupPercent),
+        };
+      });
+
+    for (const update of updates) {
+      await tx.product.update({
+        where: {
+          id: update.id,
+        },
+        data: {
+          price: update.price,
+        },
+      });
+    }
+
+    return {
+      ok: true,
+      categoryId: category.id,
+      categoryName: category.name,
+      markupPercent,
+      totalProducts: products.length,
+      updated: updates.length,
+      skippedWithoutCostPrice: products.length - updates.length,
+    };
+  });
+}
+
 async function createAdminSubcategory(categoryId, payload) {
   const parentCategoryId = String(categoryId);
   const name = toCleanString(payload.name);
@@ -510,6 +618,7 @@ module.exports = {
   createAdminCategory,
   updateAdminCategory,
   deleteAdminCategory,
+  applyAdminCategoryMarkup,
 
   createAdminSubcategory,
   updateAdminSubcategory,

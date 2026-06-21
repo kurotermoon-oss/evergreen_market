@@ -40,6 +40,7 @@ export default function AdminView({
 
   createCategory,
   updateCategory,
+  applyCategoryMarkup,
   deleteCategory,
   createSubcategory,
   updateSubcategory,
@@ -229,6 +230,7 @@ export default function AdminView({
           deleteProduct={deleteProduct}
           createCategory={createCategory}
           updateCategory={updateCategory}
+          applyCategoryMarkup={applyCategoryMarkup}
           deleteCategory={deleteCategory}
           createSubcategory={createSubcategory}
           updateSubcategory={updateSubcategory}

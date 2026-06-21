@@ -301,6 +301,17 @@ async function updateCategory(id, payload) {
   await loadAdminData();
 }
 
+async function applyCategoryMarkup(categoryId, markupPercent) {
+  const result = await api.applyAdminCategoryMarkup(categoryId, {
+    markupPercent,
+  });
+
+  await loadPublicData();
+  await loadAdminData();
+
+  return result;
+}
+
 async function deleteCategory(id) {
   await api.deleteAdminCategory(id);
 
@@ -376,6 +387,7 @@ return {
   
   createCategory,
   updateCategory,
+  applyCategoryMarkup,
   deleteCategory,
   createSubcategory,
   updateSubcategory,
