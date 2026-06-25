@@ -39,6 +39,7 @@ function getProductPayload(product) {
     price: Number(product.price),
     costPrice: Number(product.costPrice || 0),
     oldPrice: product.oldPrice ? Number(product.oldPrice) : null,
+    priceMode: product.priceMode === "manual" ? "manual" : "auto",
   };
 }
 
@@ -204,6 +205,7 @@ async function addDraftProduct() {
           : String(product.stockQuantity),
       supplierId: product.supplierId || "",
       fulfillmentType: product.fulfillmentType || "in_stock",
+      priceMode: product.priceMode === "manual" ? "manual" : "auto",
     });
   }
 
@@ -296,9 +298,11 @@ async function updateCategory(id, payload) {
     return;
   }
 
-  await api.updateAdminCategory(id, payload);
+  const result = await api.updateAdminCategory(id, payload);
   await loadPublicData();
   await loadAdminData();
+
+  return result;
 }
 
 async function applyCategoryMarkup(categoryId, markupPercent) {
@@ -333,9 +337,15 @@ async function updateSubcategory(categoryId, subcategoryId, payload) {
     return;
   }
 
-  await api.updateAdminSubcategory(categoryId, subcategoryId, payload);
+  const result = await api.updateAdminSubcategory(
+    categoryId,
+    subcategoryId,
+    payload
+  );
   await loadPublicData();
   await loadAdminData();
+
+  return result;
 }
 
 async function deleteSubcategory(categoryId, subcategoryId) {

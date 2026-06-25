@@ -11,9 +11,11 @@ function parsePriceValue(value) {
 }
 
 function formatMarkupPercent(value) {
-  if (!Number.isFinite(value)) return "";
+  const number = Number(value);
 
-  return value.toFixed(2).replace(/\.?0+$/, "");
+  if (!Number.isFinite(number)) return "";
+
+  return number.toFixed(2).replace(/\.?0+$/, "");
 }
 
 function getInitialMarkupPercent(product) {
@@ -69,7 +71,9 @@ export default function ProductPriceFields({
   const [markupPercent, setMarkupPercent] = useState(() =>
     getInitialMarkupPercent(product)
   );
-  const [priceSource, setPriceSource] = useState("price");
+  const [priceSource, setPriceSource] = useState(() =>
+    product?.priceMode === "auto" ? "markup" : "price"
+  );
 
   const calculatedPrice = useMemo(
     () => calculatePriceByMarkup(product.costPrice, markupPercent),
@@ -78,7 +82,7 @@ export default function ProductPriceFields({
 
   useEffect(() => {
     setMarkupPercent(getInitialMarkupPercent(product));
-    setPriceSource("price");
+    setPriceSource(product?.priceMode === "auto" ? "markup" : "price");
   }, [product.id]);
 
   useEffect(() => {
@@ -107,6 +111,7 @@ export default function ProductPriceFields({
       updateFields({
         costPrice: value,
         price: String(nextPrice),
+        priceMode: "auto",
       });
 
       return;
@@ -124,14 +129,17 @@ export default function ProductPriceFields({
     setPriceSource("price");
     setMarkupPercent(calculateMarkupByPrice(product.costPrice, value));
 
-    updateFields({ price: value });
+    updateFields({ price: value, priceMode: "manual" });
   }
 
   function handleMarkupPercentChange(value) {
     setPriceSource("markup");
     setMarkupPercent(value);
 
-    updateFields(updatePriceFromMarkup(product.costPrice, value));
+    updateFields({
+      ...updatePriceFromMarkup(product.costPrice, value),
+      priceMode: "auto",
+    });
   }
 
   const gridClass = compact

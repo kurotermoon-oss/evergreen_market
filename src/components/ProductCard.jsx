@@ -1,4 +1,5 @@
 import Icon from "./Icon.jsx";
+import QuantityControl from "./QuantityControl.jsx";
 import logoEvergreen from "../img/logo_evergreen.webp";
 import { formatUAH } from "../utils/formatUAH.js";
 import {
@@ -81,30 +82,22 @@ export default function ProductCard({
     addToCart?.(product);
   }
 
-  function handleIncrease(event) {
-    event.stopPropagation();
+  function handleQuantityChange(nextQuantity) {
     if (!available) return;
-    addToCart?.(product);
+    changeQuantity?.(product.id, nextQuantity);
   }
 
-  function handleDecrease(event) {
-    event.stopPropagation();
-
-    if (!cartQty) return;
-
-    const nextQuantity = cartQty - 1;
-
-    if (nextQuantity <= 0) {
-      if (removeFromCart) {
-        removeFromCart(product.id);
-      } else {
-        changeQuantity?.(product.id, 0);
-      }
-
+  function handleQuantityRemove() {
+    if (removeFromCart) {
+      removeFromCart(product.id);
       return;
     }
 
-    changeQuantity?.(product.id, nextQuantity);
+    changeQuantity?.(product.id, 0);
+  }
+
+  function handleQuantityClick(event) {
+    event.stopPropagation();
   }
 
   function handleImageError(event) {
@@ -208,30 +201,18 @@ export default function ProductCard({
             </button>
 
             {cartQty > 0 ? (
-              <div className="eg-quantity-stepper grid h-10 w-full min-w-0 grid-cols-3 items-stretch overflow-hidden rounded-xl bg-emerald-900 text-white shadow-sm sm:h-11 sm:min-w-[132px] sm:rounded-2xl">
-                <button
-                  type="button"
-                  onClick={handleDecrease}
-                  className="eg-counter-button flex h-full min-w-0 items-center justify-center text-sm font-black hover:bg-emerald-800"
-                  aria-label="Зменшити кількість"
-                >
-                  <Icon name="minus" size={12} />
-                </button>
-
-                <span className="flex h-full min-w-0 items-center justify-center px-1 text-center text-xs font-black sm:text-sm">
-                  {cartQty}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={handleIncrease}
-                  disabled={!available}
-                  className="eg-counter-button flex h-full min-w-0 items-center justify-center text-sm font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-                  aria-label="Збільшити кількість"
-                >
-                  <Icon name="plus" size={12} />
-                </button>
-              </div>
+              <QuantityControl
+                value={cartQty}
+                onChange={handleQuantityChange}
+                disabled={!available}
+                min={1}
+                size="compact"
+                tone="dark"
+                className="w-full"
+                ariaLabel="Кількість товару в кошику"
+                onClick={handleQuantityClick}
+                onRemove={handleQuantityRemove}
+              />
             ) : (
               <button
                 type="button"

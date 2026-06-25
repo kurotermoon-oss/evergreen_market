@@ -51,6 +51,16 @@ function normalizeMarkupPercent(value) {
   return number;
 }
 
+function normalizeOptionalMarkupPercent(value) {
+  if (value === undefined) return undefined;
+
+  if (value === null || String(value).trim() === "") {
+    return null;
+  }
+
+  return normalizeMarkupPercent(value);
+}
+
 function calculatePriceByMarkup(costPrice, markupPercent) {
   const calculatedPrice = Number(costPrice || 0) * (1 + markupPercent / 100);
 
@@ -68,6 +78,15 @@ function calculatePriceByMarkup(costPrice, markupPercent) {
   return Math.max(0, Math.round(calculatedPrice));
 }
 
+function hasMarkupPercent(value) {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    return false;
+  }
+
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0;
+}
+
 function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
   ensureCategoriesStore(db);
 
@@ -78,6 +97,7 @@ function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
   }
 
   db.products = Array.isArray(db.products) ? db.products : [];
+  category.markupPercent = markupPercent;
 
   const categoryProducts = db.products.filter((product) => {
     return String(product.category) === String(categoryId);
@@ -85,8 +105,14 @@ function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
 
   let updated = 0;
   let skippedWithoutCostPrice = 0;
+  let skippedManualPrice = 0;
 
   categoryProducts.forEach((product) => {
+    if (String(product.priceMode || "auto") === "manual") {
+      skippedManualPrice += 1;
+      return;
+    }
+
     const costPrice = Number(product.costPrice || 0);
 
     if (!Number.isFinite(costPrice) || costPrice <= 0) {
@@ -94,7 +120,15 @@ function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
       return;
     }
 
-    product.price = calculatePriceByMarkup(costPrice, markupPercent);
+    const subcategory = (category.subcategories || []).find((item) => {
+      return String(item.id) === String(product.subcategory || "");
+    });
+    const effectiveMarkupPercent = hasMarkupPercent(subcategory?.markupPercent)
+      ? Number(subcategory.markupPercent)
+      : markupPercent;
+
+    product.price = calculatePriceByMarkup(costPrice, effectiveMarkupPercent);
+    product.priceMode = "auto";
     product.updatedAt = new Date().toISOString();
     updated += 1;
   });
@@ -106,7 +140,68 @@ function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
     markupPercent,
     totalProducts: categoryProducts.length,
     updated,
+    skippedManualPrice,
     skippedWithoutCostPrice,
+  };
+}
+
+function applyLocalSubcategoryEffectiveMarkup(db, category, subcategory) {
+  db.products = Array.isArray(db.products) ? db.products : [];
+
+  const effectiveMarkupPercent = hasMarkupPercent(subcategory.markupPercent)
+    ? Number(subcategory.markupPercent)
+    : hasMarkupPercent(category.markupPercent)
+      ? Number(category.markupPercent)
+      : null;
+
+  const subcategoryProducts = db.products.filter((product) => {
+    return (
+      String(product.category) === String(category.id) &&
+      String(product.subcategory || "") === String(subcategory.id)
+    );
+  });
+
+  if (effectiveMarkupPercent === null) {
+    return {
+      totalProducts: subcategoryProducts.length,
+      updated: 0,
+      skippedManualPrice: 0,
+      skippedWithoutCostPrice: 0,
+      skippedWithoutMarkup: subcategoryProducts.length,
+      effectiveMarkupPercent: null,
+    };
+  }
+
+  let updated = 0;
+  let skippedManualPrice = 0;
+  let skippedWithoutCostPrice = 0;
+
+  subcategoryProducts.forEach((product) => {
+    if (String(product.priceMode || "auto") === "manual") {
+      skippedManualPrice += 1;
+      return;
+    }
+
+    const costPrice = Number(product.costPrice || 0);
+
+    if (!Number.isFinite(costPrice) || costPrice <= 0) {
+      skippedWithoutCostPrice += 1;
+      return;
+    }
+
+    product.price = calculatePriceByMarkup(costPrice, effectiveMarkupPercent);
+    product.priceMode = "auto";
+    product.updatedAt = new Date().toISOString();
+    updated += 1;
+  });
+
+  return {
+    totalProducts: subcategoryProducts.length,
+    updated,
+    skippedManualPrice,
+    skippedWithoutCostPrice,
+    skippedWithoutMarkup: 0,
+    effectiveMarkupPercent,
   };
 }
 
@@ -170,6 +265,12 @@ router.patch("/:categoryId", (req, res) => {
 
     if (req.body.active !== undefined) {
       category.active = Boolean(req.body.active);
+    }
+
+    if (req.body.markupPercent !== undefined) {
+      category.markupPercent = normalizeOptionalMarkupPercent(
+        req.body.markupPercent
+      );
     }
 
     writeDatabase(db);
@@ -267,6 +368,12 @@ router.post("/:categoryId/subcategories", (req, res) => {
       req.body.name
     );
 
+    if (req.body.markupPercent !== undefined) {
+      subcategory.markupPercent = normalizeOptionalMarkupPercent(
+        req.body.markupPercent
+      );
+    }
+
     writeDatabase(db);
 
     res.json({
@@ -323,11 +430,27 @@ router.patch("/:categoryId/subcategories/:subcategoryId", (req, res) => {
       subcategory.active = Boolean(req.body.active);
     }
 
+    let markupResult = null;
+
+    if (req.body.markupPercent !== undefined) {
+      subcategory.markupPercent = normalizeOptionalMarkupPercent(
+        req.body.markupPercent
+      );
+      markupResult = applyLocalSubcategoryEffectiveMarkup(
+        db,
+        category,
+        subcategory
+      );
+    }
+
     writeDatabase(db);
 
     res.json({
       ok: true,
-      subcategory,
+      subcategory: {
+        ...subcategory,
+        markupResult,
+      },
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({

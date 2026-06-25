@@ -38,9 +38,17 @@ function ensureCategoriesStore(db) {
       category.active = true;
     }
 
+    if (category.markupPercent === undefined) {
+      category.markupPercent = null;
+    }
+
     category.subcategories.forEach((subcategory) => {
       if (subcategory.active === undefined) {
         subcategory.active = true;
+      }
+
+      if (subcategory.markupPercent === undefined) {
+        subcategory.markupPercent = null;
       }
     });
   });
@@ -148,6 +156,7 @@ function createCategory(db, name) {
     id: makeUniqueId(db.categories, categoryName),
     name: categoryName,
     active: true,
+    markupPercent: null,
     subcategories: [],
   };
 
@@ -179,6 +188,7 @@ function createSubcategory(db, categoryId, name) {
     id: makeUniqueId(category.subcategories, subcategoryName),
     name: subcategoryName,
     active: true,
+    markupPercent: null,
   };
 
   category.subcategories.push(subcategory);

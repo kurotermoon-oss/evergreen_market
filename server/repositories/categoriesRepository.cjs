@@ -44,6 +44,25 @@ function normalizeMarkupPercent(value) {
   return number;
 }
 
+function normalizeOptionalMarkupPercent(value) {
+  if (value === undefined) return undefined;
+
+  if (value === null || String(value).trim() === "") {
+    return null;
+  }
+
+  return normalizeMarkupPercent(value);
+}
+
+function hasMarkupPercent(value) {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    return false;
+  }
+
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0;
+}
+
 function calculatePriceByMarkup(costPrice, markupPercent) {
   const calculatedPrice = Number(costPrice || 0) * (1 + markupPercent / 100);
 
@@ -71,24 +90,43 @@ function slugify(value, fallback = "item") {
   return base || fallback;
 }
 
-function mapSubcategory(subcategory) {
+function mapSubcategory(subcategory, options = {}) {
   return {
     id: subcategory.id,
     name: subcategory.name,
     slug: subcategory.slug,
     active: subcategory.active,
     sortOrder: subcategory.sortOrder,
+    ...(options.includeAdminFields
+      ? {
+          markupPercent:
+            subcategory.markupPercent === null ||
+            subcategory.markupPercent === undefined
+              ? null
+              : Number(subcategory.markupPercent),
+        }
+      : {}),
   };
 }
 
-function mapCategory(category) {
+function mapCategory(category, options = {}) {
   return {
     id: category.id,
     name: category.name,
     slug: category.slug,
     active: category.active,
     sortOrder: category.sortOrder,
-    subcategories: (category.subcategories || []).map(mapSubcategory),
+    ...(options.includeAdminFields
+      ? {
+          markupPercent:
+            category.markupPercent === null || category.markupPercent === undefined
+              ? null
+              : Number(category.markupPercent),
+        }
+      : {}),
+    subcategories: (category.subcategories || []).map((subcategory) =>
+      mapSubcategory(subcategory, options)
+    ),
   };
 }
 
@@ -122,7 +160,7 @@ async function getPublicCategories() {
     },
   });
 
-  return categories.map(mapCategory);
+  return categories.map((category) => mapCategory(category));
 }
 
 async function getAdminCategories() {
@@ -149,7 +187,9 @@ async function getAdminCategories() {
     },
   });
 
-  return categories.map(mapCategory);
+  return categories.map((category) =>
+    mapCategory(category, { includeAdminFields: true })
+  );
 }
 
 async function ensureUniqueCategorySlug(name, exceptId = "") {
@@ -274,13 +314,14 @@ async function createAdminCategory(payload) {
       slug: await ensureUniqueCategorySlug(name),
       active: payload.active !== false,
       sortOrder: Number(payload.sortOrder || 0),
+      markupPercent: normalizeOptionalMarkupPercent(payload.markupPercent),
     },
     include: {
       subcategories: true,
     },
   });
 
-  return mapCategory(category);
+  return mapCategory(category, { includeAdminFields: true });
 }
 
 async function updateAdminCategory(id, payload) {
@@ -331,6 +372,10 @@ async function updateAdminCategory(id, payload) {
         payload.sortOrder === undefined
           ? current.sortOrder
           : Number(payload.sortOrder || 0),
+      markupPercent:
+        payload.markupPercent === undefined
+          ? current.markupPercent
+          : normalizeOptionalMarkupPercent(payload.markupPercent),
     },
     include: {
       subcategories: {
@@ -346,7 +391,7 @@ async function updateAdminCategory(id, payload) {
     },
   });
 
-  return mapCategory(category);
+  return mapCategory(category, { includeAdminFields: true });
 }
 
 async function deleteAdminCategory(id) {
@@ -405,21 +450,29 @@ async function applyAdminCategoryMarkup(id, payload = {}) {
   const markupPercent = normalizeMarkupPercent(payload.markupPercent);
 
   return prisma.$transaction(async (tx) => {
-    const category = await tx.category.findUnique({
+    const currentCategory = await tx.category.findUnique({
       where: {
         id: categoryId,
       },
-      select: {
-        id: true,
-        name: true,
-      },
     });
 
-    if (!category) {
+    if (!currentCategory) {
       const error = new Error("Категорію не знайдено.");
       error.status = 404;
       throw error;
     }
+
+    const category = await tx.category.update({
+      where: {
+        id: categoryId,
+      },
+      data: {
+        markupPercent,
+      },
+      include: {
+        subcategories: true,
+      },
+    });
 
     const products = await tx.product.findMany({
       where: {
@@ -428,15 +481,32 @@ async function applyAdminCategoryMarkup(id, payload = {}) {
       select: {
         id: true,
         costPrice: true,
+        priceMode: true,
+        subcategoryId: true,
       },
     });
 
+    const subcategoryMarkupById = new Map(
+      (category.subcategories || []).map((subcategory) => [
+        String(subcategory.id),
+        subcategory.markupPercent,
+      ])
+    );
+
     const updates = products
+      .filter((product) => String(product.priceMode || "auto") !== "manual")
       .filter((product) => Number(product.costPrice || 0) > 0)
       .map((product) => {
+        const subcategoryMarkup = subcategoryMarkupById.get(
+          String(product.subcategoryId || "")
+        );
+        const effectiveMarkupPercent = hasMarkupPercent(subcategoryMarkup)
+          ? Number(subcategoryMarkup)
+          : markupPercent;
+
         return {
           id: product.id,
-          price: calculatePriceByMarkup(product.costPrice, markupPercent),
+          price: calculatePriceByMarkup(product.costPrice, effectiveMarkupPercent),
         };
       });
 
@@ -447,6 +517,7 @@ async function applyAdminCategoryMarkup(id, payload = {}) {
         },
         data: {
           price: update.price,
+          priceMode: "auto",
         },
       });
     }
@@ -458,9 +529,87 @@ async function applyAdminCategoryMarkup(id, payload = {}) {
       markupPercent,
       totalProducts: products.length,
       updated: updates.length,
-      skippedWithoutCostPrice: products.length - updates.length,
+      skippedManualPrice: products.filter(
+        (product) => String(product.priceMode || "auto") === "manual"
+      ).length,
+      skippedWithoutCostPrice: products.filter((product) => {
+        return (
+          String(product.priceMode || "auto") !== "manual" &&
+          Number(product.costPrice || 0) <= 0
+        );
+      }).length,
     };
   });
+}
+
+async function applySubcategoryEffectiveMarkup(tx, subcategory) {
+  const categoryMarkupPercent = subcategory.category?.markupPercent;
+  const effectiveMarkupPercent = hasMarkupPercent(subcategory.markupPercent)
+    ? Number(subcategory.markupPercent)
+    : hasMarkupPercent(categoryMarkupPercent)
+      ? Number(categoryMarkupPercent)
+      : null;
+
+  const products = await tx.product.findMany({
+    where: {
+      categoryId: subcategory.categoryId,
+      subcategoryId: subcategory.id,
+    },
+    select: {
+      id: true,
+      costPrice: true,
+      priceMode: true,
+    },
+  });
+
+  if (effectiveMarkupPercent === null) {
+    return {
+      totalProducts: products.length,
+      updated: 0,
+      skippedManualPrice: 0,
+      skippedWithoutCostPrice: 0,
+      skippedWithoutMarkup: products.length,
+      effectiveMarkupPercent: null,
+    };
+  }
+
+  const updates = products
+    .filter((product) => String(product.priceMode || "auto") !== "manual")
+    .filter((product) => Number(product.costPrice || 0) > 0)
+    .map((product) => {
+      return {
+        id: product.id,
+        price: calculatePriceByMarkup(product.costPrice, effectiveMarkupPercent),
+      };
+    });
+
+  for (const update of updates) {
+    await tx.product.update({
+      where: {
+        id: update.id,
+      },
+      data: {
+        price: update.price,
+        priceMode: "auto",
+      },
+    });
+  }
+
+  return {
+    totalProducts: products.length,
+    updated: updates.length,
+    skippedManualPrice: products.filter(
+      (product) => String(product.priceMode || "auto") === "manual"
+    ).length,
+    skippedWithoutCostPrice: products.filter((product) => {
+      return (
+        String(product.priceMode || "auto") !== "manual" &&
+        Number(product.costPrice || 0) <= 0
+      );
+    }).length,
+    skippedWithoutMarkup: 0,
+    effectiveMarkupPercent,
+  };
 }
 
 async function createAdminSubcategory(categoryId, payload) {
@@ -502,10 +651,11 @@ async function createAdminSubcategory(categoryId, payload) {
       slug: await ensureUniqueSubcategorySlug(parentCategoryId, name),
       active: payload.active !== false,
       sortOrder: Number(payload.sortOrder || 0),
+      markupPercent: normalizeOptionalMarkupPercent(payload.markupPercent),
     },
   });
 
-  return mapSubcategory(subcategory);
+  return mapSubcategory(subcategory, { includeAdminFields: true });
 }
 
 async function updateAdminSubcategory(categoryId, subcategoryId, payload) {
@@ -543,29 +693,51 @@ async function updateAdminSubcategory(categoryId, subcategoryId, payload) {
     throw error;
   }
 
-  const subcategory = await prisma.subcategory.update({
-    where: {
-      id: currentSubcategoryId,
-    },
-    data: {
-      name: nextName,
-      slug:
-        nextName !== current.name
-          ? await ensureUniqueSubcategorySlug(
-              parentCategoryId,
-              nextName,
-              currentSubcategoryId
-            )
-          : current.slug,
-      active: toBoolean(payload.active, current.active),
-      sortOrder:
-        payload.sortOrder === undefined
-          ? current.sortOrder
-          : Number(payload.sortOrder || 0),
-    },
-  });
+  const nextMarkupPercent = normalizeOptionalMarkupPercent(
+    payload.markupPercent
+  );
+  const shouldRecalculateMarkup = payload.markupPercent !== undefined;
 
-  return mapSubcategory(subcategory);
+  return prisma.$transaction(async (tx) => {
+    const subcategory = await tx.subcategory.update({
+      where: {
+        id: currentSubcategoryId,
+      },
+      data: {
+        name: nextName,
+        slug:
+          nextName !== current.name
+            ? await ensureUniqueSubcategorySlug(
+                parentCategoryId,
+                nextName,
+                currentSubcategoryId
+              )
+            : current.slug,
+        active: toBoolean(payload.active, current.active),
+        sortOrder:
+          payload.sortOrder === undefined
+            ? current.sortOrder
+            : Number(payload.sortOrder || 0),
+        ...(nextMarkupPercent === undefined
+          ? {}
+          : {
+              markupPercent: nextMarkupPercent,
+            }),
+      },
+      include: {
+        category: true,
+      },
+    });
+
+    const markupResult = shouldRecalculateMarkup
+      ? await applySubcategoryEffectiveMarkup(tx, subcategory)
+      : null;
+
+    return {
+      ...mapSubcategory(subcategory, { includeAdminFields: true }),
+      markupResult,
+    };
+  });
 }
 
 async function deleteAdminSubcategory(categoryId, subcategoryId) {

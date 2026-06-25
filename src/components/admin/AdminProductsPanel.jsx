@@ -31,6 +31,12 @@ function getCategoryLabel(categories, product) {
     .join(" / ");
 }
 
+function getVisibilitySearchText(product) {
+  return product.active === false
+    ? "приховано сховано не відображається на сайті прихований"
+    : "активний видимий відображається на сайті";
+}
+
 function ProductThumbnail({ product }) {
   const [hasImageError, setHasImageError] = useState(false);
   const hasImage = Boolean(product.image) && !hasImageError;
@@ -97,6 +103,7 @@ export default function AdminProductsPanel({
 
       const searchableText = [
         product.name,
+        product.brand,
         product.description,
         product.details,
         product.unit,
@@ -107,6 +114,8 @@ export default function AdminProductsPanel({
         product.price,
         product.costPrice,
         categoryName,
+        getCategoryLabel(categories, product),
+        getVisibilitySearchText(product),
       ]
         .filter(Boolean)
         .join(" ")
@@ -150,89 +159,93 @@ export default function AdminProductsPanel({
       )}
 
       <div className="eg-stagger mt-6 space-y-2.5">
-        {filteredAdminProducts.map((product) => (
-          <div
-            key={product.id}
-            className="eg-card eg-premium-card grid grid-cols-[64px_minmax(0,1fr)] gap-4 rounded-[1.5rem] border border-stone-200 bg-white/88 p-3.5 backdrop-blur transition hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10 sm:grid-cols-[72px_minmax(0,1fr)] lg:grid-cols-[72px_minmax(0,1fr)_auto] lg:items-center"
-          >
-            <ProductThumbnail product={product} />
+        {filteredAdminProducts.map((product) => {
+          const isHidden = product.active === false;
 
-            <div className="min-w-0">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <p className="line-clamp-2 text-base font-black leading-6 text-stone-950 lg:line-clamp-1">
-                    {product.name}
-                  </p>
+          return (
+            <div
+              key={product.id}
+              className={`eg-card eg-premium-card grid grid-cols-[64px_minmax(0,1fr)] gap-4 rounded-[1.5rem] border p-3.5 backdrop-blur transition hover:shadow-lg hover:shadow-emerald-900/10 sm:grid-cols-[72px_minmax(0,1fr)] lg:grid-cols-[72px_minmax(0,1fr)_auto] lg:items-center ${
+                isHidden
+                  ? "border-amber-200 bg-amber-50/72 hover:border-amber-300"
+                  : "border-stone-200 bg-white/88 hover:border-emerald-100"
+              }`}
+            >
+              <ProductThumbnail product={product} />
 
-                  <p className="mt-1 truncate text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                    {getCategoryLabel(categories, product)}
-                  </p>
+              <div className="min-w-0">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="line-clamp-2 text-base font-black leading-6 text-stone-950 lg:line-clamp-1">
+                      {product.name}
+                    </p>
+
+                    <p className="mt-1 truncate text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                      {getCategoryLabel(categories, product)}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`w-fit shrink-0 rounded-full px-3 py-1 text-xs font-black ring-1 ${
+                      !isHidden
+                        ? "bg-emerald-50 text-emerald-900 ring-emerald-200"
+                        : "bg-amber-100 text-amber-950 ring-amber-200"
+                    }`}
+                  >
+                    {!isHidden ? "Видимий на сайті" : "Приховано · не на сайті"}
+                  </span>
                 </div>
 
-                <span
-                  className={`w-fit shrink-0 rounded-full px-3 py-1 text-xs font-black ring-1 ${
-                    product.active !== false
-                      ? "bg-emerald-50 text-emerald-900 ring-emerald-200"
-                      : "bg-stone-100 text-stone-600 ring-stone-200"
-                  }`}
+                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-600">
+                  <span className="font-black text-stone-950">
+                    {formatUAH(product.price)}
+                  </span>
+
+                  <span>Собівартість: {formatUAH(product.costPrice || 0)}</span>
+
+                  <span>{getStockLabel(product)}</span>
+
+                  <span>
+                    {product.fulfillmentType === "supplier_order"
+                      ? `Під замовлення: ${
+                          product.supplier?.name || "постачальник не вказаний"
+                        }`
+                      : "Є в наявності"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="col-span-2 grid grid-cols-3 gap-2 justify-self-start lg:col-span-1 lg:justify-self-end">
+                <ProductActionButton
+                  onClick={() => startEditProduct(product)}
+                  label="Редагувати товар"
                 >
-                  {product.active !== false ? "Активний" : "Схований"}
-                </span>
-              </div>
+                  <Icon name="edit" size={18} />
+                </ProductActionButton>
 
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-600">
-                <span className="font-black text-stone-950">
-                  {formatUAH(product.price)}
-                </span>
+                <ProductActionButton
+                  onClick={() => toggleProductActive(product.id)}
+                  label={!isHidden ? "Сховати товар" : "Повернути на сайт"}
+                  tone="green"
+                >
+                  {!isHidden ? (
+                    <Icon name="eyeOff" size={18} />
+                  ) : (
+                    <Icon name="eye" size={18} />
+                  )}
+                </ProductActionButton>
 
-                <span>
-                  Собівартість: {formatUAH(product.costPrice || 0)}
-                </span>
-
-                <span>{getStockLabel(product)}</span>
-
-                <span>
-                  {product.fulfillmentType === "supplier_order"
-                    ? `Під замовлення: ${
-                        product.supplier?.name || "постачальник не вказаний"
-                      }`
-                    : "Є в наявності"}
-                </span>
+                <ProductActionButton
+                  onClick={() => deleteProduct(product.id)}
+                  label="Видалити товар"
+                  tone="red"
+                >
+                  <Icon name="trash" size={18} />
+                </ProductActionButton>
               </div>
             </div>
-
-            <div className="col-span-2 grid grid-cols-3 gap-2 justify-self-start lg:col-span-1 lg:justify-self-end">
-              <ProductActionButton
-                onClick={() => startEditProduct(product)}
-                label="Редагувати товар"
-              >
-                <Icon name="edit" size={18} />
-              </ProductActionButton>
-
-              <ProductActionButton
-                onClick={() => toggleProductActive(product.id)}
-                label={
-                  product.active !== false ? "Сховати товар" : "Показати товар"
-                }
-                tone="green"
-              >
-                {product.active !== false ? (
-                  <Icon name="eyeOff" size={18} />
-                ) : (
-                  <Icon name="eye" size={18} />
-                )}
-              </ProductActionButton>
-
-              <ProductActionButton
-                onClick={() => deleteProduct(product.id)}
-                label="Видалити товар"
-                tone="red"
-              >
-                <Icon name="trash" size={18} />
-              </ProductActionButton>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

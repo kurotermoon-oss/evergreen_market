@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ShoppingBasket } from "lucide-react";
 import Icon from "../components/Icon.jsx";
+import QuantityControl from "../components/QuantityControl.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import { formatUAH } from "../utils/formatUAH.js";
 import {
@@ -67,6 +68,11 @@ export default function ProductDetailsView({
   const inlineActionsRef = useRef(null);
   const [activeSimilarIndex, setActiveSimilarIndex] = useState(0);
   const [showFloatingActions, setShowFloatingActions] = useState(true);
+  const [pendingQuantity, setPendingQuantity] = useState(1);
+
+  useEffect(() => {
+    setPendingQuantity(1);
+  }, [product?.id]);
 
   useEffect(() => {
     const node = inlineActionsRef.current;
@@ -175,31 +181,35 @@ export default function ProductDetailsView({
   function handleAdd() {
     if (!available) return;
 
-    addToCart?.(product);
+    const desiredQuantity = Math.max(1, Number(pendingQuantity) || 1);
+    const addResult = addToCart?.(product);
+
+    if (addResult === false) return;
+
+    if (desiredQuantity > 1) {
+      changeQuantity?.(product.id, desiredQuantity);
+    }
   }
 
-  function handleIncrease() {
-    if (!available) return;
+  function handleQuantityChange(nextQuantity) {
+    if (cartQty > 0) {
+      changeQuantity?.(product.id, nextQuantity);
+      return;
+    }
 
-    addToCart?.(product);
+    setPendingQuantity(nextQuantity);
   }
 
-  function handleDecrease() {
-    if (!cartQty) return;
-
-    const nextQuantity = cartQty - 1;
-
-    if (nextQuantity <= 0) {
+  function handleQuantityRemove() {
+    if (cartQty > 0) {
       if (removeFromCart) {
         removeFromCart(product.id);
       } else {
         changeQuantity?.(product.id, 0);
       }
-
-      return;
     }
 
-    changeQuantity?.(product.id, nextQuantity);
+    setPendingQuantity(1);
   }
 
   function handleAdminEdit() {
@@ -216,88 +226,68 @@ export default function ProductDetailsView({
   }
 
   function renderPurchaseActions(isFloating = false) {
-    if (cartQty > 0) {
-      return (
-        <div
-          className={`grid gap-3 ${
+    const actionQuantity = cartQty > 0 ? cartQty : pendingQuantity;
+    const quantityWidthClass = isFloating ? "max-w-[7.25rem]" : "max-w-36";
+    const buttonClassName =
+      cartQty > 0
+        ? `eg-button flex h-14 min-w-0 items-center justify-center gap-2 rounded-2xl border border-emerald-900 bg-white font-black text-emerald-950 hover:bg-emerald-50 ${
             isFloating
-              ? "grid-cols-[7.25rem_minmax(0,1fr)] gap-2"
-              : "grid-cols-[8.25rem_minmax(0,1fr)] gap-2 sm:grid-cols-[auto_1fr] sm:gap-3"
-          }`}
-        >
-          <div
-            className={`flex h-14 w-full items-center overflow-hidden rounded-2xl bg-emerald-900 text-white shadow-lg shadow-emerald-900/20 ${
-              isFloating ? "max-w-[7.25rem]" : "max-w-[8.25rem]"
-            }`}
-          >
-            <button
-              type="button"
-              onClick={handleDecrease}
-              className="eg-counter-button flex h-full w-10 shrink-0 items-center justify-center text-lg font-black hover:bg-emerald-800 sm:w-12"
-              aria-label="Зменшити кількість"
-            >
-              <Icon name="minus" size={15} />
-            </button>
-
-            <span
-              className={`flex h-full min-w-0 flex-1 items-center justify-center px-1 text-center font-black ${
-                isFloating ? "text-sm" : "text-base"
-              }`}
-            >
-              {cartQty}
-            </span>
-
-            <button
-              type="button"
-              onClick={handleIncrease}
-              disabled={!available}
-              className="eg-counter-button flex h-full w-10 shrink-0 items-center justify-center text-lg font-black hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-stone-400 sm:w-12"
-              aria-label="Збільшити кількість"
-            >
-              <Icon name="plus" size={15} />
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleOpenCart}
-            className={`eg-button flex h-14 min-w-0 items-center justify-center gap-2 rounded-2xl border border-emerald-900 bg-white font-black text-emerald-950 hover:bg-emerald-50 ${
-              isFloating ? "px-3 text-sm" : "px-3 text-sm sm:px-7 sm:text-base"
-            }`}
-          >
-            <ShoppingBasket size={isFloating ? 17 : 19} strokeWidth={2.05} />
-            <span className="truncate sm:hidden">У кошик</span>
-            <span className="hidden truncate sm:inline">У кошику · перейти</span>
-          </button>
-        </div>
-      );
-    }
+              ? "px-3 text-sm"
+              : "px-3 text-sm sm:px-7 sm:text-base"
+          }`
+        : `eg-button eg-sweep flex h-14 min-w-0 items-center justify-center rounded-2xl font-black text-white ${
+            isFloating ? "px-4 text-sm" : "px-3 text-sm sm:px-7 sm:text-base"
+          } ${
+            available
+              ? "bg-emerald-900 hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
+              : "cursor-not-allowed bg-stone-400"
+          }`;
 
     return (
-      <button
-        type="button"
-        onClick={handleAdd}
-        disabled={!available}
-        className={`eg-button eg-sweep w-full rounded-2xl font-black text-white ${
-          isFloating ? "px-5 py-3.5 text-sm" : "px-7 py-4 text-base"
-        } ${
-          available
-            ? "bg-emerald-900 hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20"
-            : "cursor-not-allowed bg-stone-400"
+      <div
+        className={`grid min-w-0 gap-2 ${
+          isFloating
+            ? "grid-cols-[7.25rem_minmax(0,1fr)]"
+            : "grid-cols-[minmax(0,9rem)_minmax(0,1fr)] sm:gap-3"
         }`}
       >
-        {available ? (
-          <span className="flex items-center justify-center gap-2">
+        <QuantityControl
+          value={actionQuantity}
+          onChange={handleQuantityChange}
+          disabled={!available && cartQty <= 0}
+          min={1}
+          size={isFloating ? "compact" : "regular"}
+          tone="dark"
+          className={`w-full ${quantityWidthClass}`}
+          ariaLabel="Кількість товару"
+          onRemove={cartQty > 0 ? handleQuantityRemove : undefined}
+        />
+
+        <button
+          type="button"
+          onClick={cartQty > 0 ? handleOpenCart : handleAdd}
+          disabled={!available && cartQty <= 0}
+          className={buttonClassName}
+        >
+          <span className="flex min-w-0 items-center justify-center gap-2">
             <ShoppingBasket size={isFloating ? 17 : 19} strokeWidth={2.05} />
-            Додати в кошик
+            {cartQty > 0 ? (
+              <>
+                <span className="truncate sm:hidden">У кошик</span>
+                <span className="hidden truncate sm:inline">
+                  У кошику · перейти
+                </span>
+              </>
+            ) : available ? (
+              <span className="truncate">Додати в кошик</span>
+            ) : (
+              <span className="truncate">Немає в наявності</span>
+            )}
           </span>
-        ) : (
-          "Немає в наявності"
-        )}
-      </button>
+        </button>
+      </div>
     );
   }
-
   function scrollSimilarProduct(index) {
     const card = similarCarouselRef.current?.children?.[index];
 

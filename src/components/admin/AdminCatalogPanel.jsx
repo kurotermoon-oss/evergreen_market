@@ -53,6 +53,40 @@ function getProductsByCatalogFilter(products, filter) {
   return products;
 }
 
+const VISIBILITY_FILTERS = [
+  {
+    id: "all",
+    label: "Всі товари",
+  },
+  {
+    id: "visible",
+    label: "Видимі",
+  },
+  {
+    id: "hidden",
+    label: "Приховані",
+  },
+];
+
+function getProductsByVisibility(products, visibilityFilter) {
+  if (visibilityFilter === "visible") {
+    return products.filter((product) => product.active !== false);
+  }
+
+  if (visibilityFilter === "hidden") {
+    return products.filter((product) => product.active === false);
+  }
+
+  return products;
+}
+
+function getVisibilityFilterLabel(visibilityFilter) {
+  return (
+    VISIBILITY_FILTERS.find((item) => item.id === visibilityFilter)?.label ||
+    "Всі товари"
+  );
+}
+
 function getProductsBySearch(products, categories, query) {
   const normalizedQuery = normalizeText(query);
 
@@ -69,6 +103,9 @@ function getProductsBySearch(products, categories, query) {
       product.price,
       getCategoryName(product, categories),
       getSubcategoryName(product, categories),
+      product.active === false
+        ? "приховано сховано не відображається"
+        : "видимий активний",
     ]
       .filter(Boolean)
       .join(" ")
@@ -230,6 +267,7 @@ export default function AdminCatalogPanel({
   const [showAddProductForm, setShowAddProductForm] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [catalogQuery, setCatalogQuery] = useState("");
+  const [visibilityFilter, setVisibilityFilter] = useState("all");
   const [expandedCategories, setExpandedCategories] = useState({});
   const [importStatus, setImportStatus] = useState({
     isLoading: false,
@@ -266,11 +304,27 @@ export default function AdminCatalogPanel({
     return buildCategoryStats(categories, products);
   }, [categories, products]);
 
-  const visibleProducts = useMemo(() => {
-    const filteredByTree = getProductsByCatalogFilter(products, catalogFilter);
+  const catalogScopeProducts = useMemo(() => {
+    return getProductsByCatalogFilter(products, catalogFilter);
+  }, [products, catalogFilter]);
 
-    return getProductsBySearch(filteredByTree, categories, catalogQuery);
-  }, [products, categories, catalogFilter, catalogQuery]);
+  const searchedProducts = useMemo(() => {
+    return getProductsBySearch(catalogScopeProducts, categories, catalogQuery);
+  }, [catalogScopeProducts, categories, catalogQuery]);
+
+  const visibilityCounts = useMemo(() => {
+    return {
+      all: searchedProducts.length,
+      visible: searchedProducts.filter((product) => product.active !== false)
+        .length,
+      hidden: searchedProducts.filter((product) => product.active === false)
+        .length,
+    };
+  }, [searchedProducts]);
+
+  const visibleProducts = useMemo(() => {
+    return getProductsByVisibility(searchedProducts, visibilityFilter);
+  }, [searchedProducts, visibilityFilter]);
 
   const activeProductsCount = products.filter(
     (product) => product.active !== false
@@ -598,7 +652,15 @@ export default function AdminCatalogPanel({
           <div className="flex flex-col gap-3 md:flex-row">
             <input
               value={catalogQuery}
-              onChange={(event) => setCatalogQuery(event.target.value)}
+              onChange={(event) => {
+                const nextQuery = event.target.value;
+
+                setCatalogQuery(nextQuery);
+
+                if (nextQuery.trim()) {
+                  setVisibilityFilter("all");
+                }
+              }}
               className="eg-field w-full rounded-[1.5rem] border border-stone-200 bg-white/85 px-5 py-4 outline-none backdrop-blur transition-all duration-300 focus:border-emerald-700 focus:bg-white focus:shadow-lg focus:shadow-emerald-900/10"
               placeholder="Пошук товарів, категорій, підкатегорій..."
             />
@@ -614,10 +676,52 @@ export default function AdminCatalogPanel({
             )}
           </div>
 
+          <div className="mt-4 flex flex-wrap gap-2">
+            {VISIBILITY_FILTERS.map((item) => {
+              const isActive = visibilityFilter === item.id;
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setVisibilityFilter(item.id)}
+                  className={`eg-button rounded-[1.15rem] px-4 py-2 text-xs font-black transition ${
+                    isActive
+                      ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
+                      : "border border-stone-200 bg-white/80 text-stone-700 hover:bg-white"
+                  }`}
+                >
+                  {item.label}
+                  <span
+                    className={`ml-2 rounded-full px-2 py-0.5 ${
+                      isActive
+                        ? "bg-white/20 text-white"
+                        : "bg-stone-100 text-stone-600"
+                    }`}
+                  >
+                    {visibilityCounts[item.id] || 0}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {visibilityCounts.hidden > 0 && (
+            <p className="mt-3 rounded-[1.1rem] bg-amber-50 px-4 py-2 text-xs font-semibold leading-5 text-amber-900 ring-1 ring-amber-100">
+              Приховані товари не відображаються покупцям, але залишаються
+              доступними тут для редагування та повернення на сайт.
+            </p>
+          )}
+
           <p className="mt-3 text-sm text-stone-500">
             Поточний розділ:{" "}
             <span className="font-bold text-stone-800">
               {catalogFilter.label}
+            </span>
+            {" · "}
+            фільтр:{" "}
+            <span className="font-bold text-stone-800">
+              {getVisibilityFilterLabel(visibilityFilter)}
             </span>
             {" · "}
             показано товарів:{" "}

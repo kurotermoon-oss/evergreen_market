@@ -469,6 +469,10 @@ function applyCustomerToForm(customerData) {
     startEditProduct(adminProduct || product);
   }
 
+  const shouldShowFeedbackButton =
+    view !== "admin" &&
+    (isDesktopViewport || (view !== "catalog" && view !== "cart"));
+
 
 
   if (appError) {
@@ -750,7 +754,7 @@ return (
         cartCount={cartCount}
       />
 
-      {view !== "admin" && (
+      {shouldShowFeedbackButton && (
         <FeedbackButton
           customer={customer}
           setView={setView}

@@ -239,6 +239,7 @@ const TRACKED_STOCK_STATUSES = new Set([
 ]);
 
 const FULFILLMENT_TYPES = new Set(["in_stock", "supplier_order"]);
+const PRICE_MODES = new Set(["auto", "manual"]);
 
 function toCleanString(value, fallback = "") {
   return String(value ?? fallback).trim();
@@ -725,6 +726,20 @@ function normalizeFulfillmentType(value, fallback = "in_stock") {
   return "in_stock";
 }
 
+function normalizePriceMode(value, fallback = "auto") {
+  const cleanValue = toCleanString(value);
+
+  if (PRICE_MODES.has(cleanValue)) {
+    return cleanValue;
+  }
+
+  if (PRICE_MODES.has(fallback)) {
+    return fallback;
+  }
+
+  return "auto";
+}
+
 function getLocalSupplier(db, supplierId) {
   ensureSuppliersStore(db);
 
@@ -876,6 +891,7 @@ function buildProductFromRequest(db, body) {
     price: toNumber(body.price),
     costPrice: toNumber(body.costPrice),
     oldPrice: toNullableNumber(body.oldPrice),
+    priceMode: normalizePriceMode(body.priceMode),
 
     image: body.image ? toCleanString(body.image) : DEFAULT_PRODUCT_IMAGE,
 
@@ -1003,6 +1019,11 @@ function buildUpdatedProduct(current, body, categoryData, db = null) {
       body.oldPrice === undefined
         ? current.oldPrice ?? null
         : toNullableNumber(body.oldPrice),
+
+    priceMode:
+      body.priceMode === undefined
+        ? normalizePriceMode(current.priceMode)
+        : normalizePriceMode(body.priceMode, current.priceMode || "auto"),
 
     image:
       body.image === undefined
@@ -1306,6 +1327,16 @@ function normalizeCategoryMarkupPercent(value) {
   return number;
 }
 
+function normalizeOptionalCategoryMarkupPercent(value) {
+  if (value === undefined) return undefined;
+
+  if (value === null || String(value).trim() === "") {
+    return null;
+  }
+
+  return normalizeCategoryMarkupPercent(value);
+}
+
 function calculateLocalPriceByMarkup(costPrice, markupPercent) {
   const calculatedPrice = Number(costPrice || 0) * (1 + markupPercent / 100);
 
@@ -1322,6 +1353,86 @@ function calculateLocalPriceByMarkup(costPrice, markupPercent) {
   return Math.max(0, Math.round(calculatedPrice));
 }
 
+function hasLocalMarkupPercent(value) {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    return false;
+  }
+
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0;
+}
+
+function findLocalSubcategory(category, subcategoryId) {
+  return (category?.subcategories || []).find((subcategory) => {
+    return String(subcategory.id) === String(subcategoryId || "");
+  });
+}
+
+function applyLocalSubcategoryEffectiveMarkup(db, category, subcategory) {
+  db.products = Array.isArray(db.products) ? db.products : [];
+
+  const effectiveMarkupPercent = hasLocalMarkupPercent(
+    subcategory.markupPercent
+  )
+    ? Number(subcategory.markupPercent)
+    : hasLocalMarkupPercent(category.markupPercent)
+      ? Number(category.markupPercent)
+      : null;
+
+  const subcategoryProducts = db.products.filter((product) => {
+    return (
+      String(product.category) === String(category.id) &&
+      String(product.subcategory || "") === String(subcategory.id)
+    );
+  });
+
+  if (effectiveMarkupPercent === null) {
+    return {
+      totalProducts: subcategoryProducts.length,
+      updated: 0,
+      skippedManualPrice: 0,
+      skippedWithoutCostPrice: 0,
+      skippedWithoutMarkup: subcategoryProducts.length,
+      effectiveMarkupPercent: null,
+    };
+  }
+
+  let updated = 0;
+  let skippedManualPrice = 0;
+  let skippedWithoutCostPrice = 0;
+
+  subcategoryProducts.forEach((product) => {
+    if (normalizePriceMode(product.priceMode) === "manual") {
+      skippedManualPrice += 1;
+      return;
+    }
+
+    const costPrice = toNumber(product.costPrice);
+
+    if (costPrice <= 0) {
+      skippedWithoutCostPrice += 1;
+      return;
+    }
+
+    product.price = calculateLocalPriceByMarkup(
+      costPrice,
+      effectiveMarkupPercent
+    );
+    product.priceMode = "auto";
+    product.updatedAt = new Date().toISOString();
+    updated += 1;
+  });
+
+  return {
+    totalProducts: subcategoryProducts.length,
+    updated,
+    skippedManualPrice,
+    skippedWithoutCostPrice,
+    skippedWithoutMarkup: 0,
+    effectiveMarkupPercent,
+  };
+}
+
 function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
   ensureCategoriesStore(db);
 
@@ -1331,6 +1442,7 @@ function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
     throw createLocalValidationError("Category not found", 404);
   }
 
+  category.markupPercent = markupPercent;
   db.products = Array.isArray(db.products) ? db.products : [];
 
   const categoryProducts = db.products.filter((product) => {
@@ -1339,8 +1451,14 @@ function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
 
   let updated = 0;
   let skippedWithoutCostPrice = 0;
+  let skippedManualPrice = 0;
 
   categoryProducts.forEach((product) => {
+    if (normalizePriceMode(product.priceMode) === "manual") {
+      skippedManualPrice += 1;
+      return;
+    }
+
     const costPrice = toNumber(product.costPrice);
 
     if (costPrice <= 0) {
@@ -1348,7 +1466,18 @@ function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
       return;
     }
 
-    product.price = calculateLocalPriceByMarkup(costPrice, markupPercent);
+    const subcategory = findLocalSubcategory(category, product.subcategory);
+    const effectiveMarkupPercent = hasLocalMarkupPercent(
+      subcategory?.markupPercent
+    )
+      ? Number(subcategory.markupPercent)
+      : markupPercent;
+
+    product.price = calculateLocalPriceByMarkup(
+      costPrice,
+      effectiveMarkupPercent
+    );
+    product.priceMode = "auto";
     product.updatedAt = new Date().toISOString();
     updated += 1;
   });
@@ -1360,6 +1489,7 @@ function applyLocalCategoryMarkup(db, categoryId, markupPercent) {
     markupPercent,
     totalProducts: categoryProducts.length,
     updated,
+    skippedManualPrice,
     skippedWithoutCostPrice,
   };
 }
@@ -1408,6 +1538,9 @@ app.post("/api/admin/categories", requireAdmin, async (req, res) => {
       id: createCategoryId(name),
       name,
       active: true,
+      markupPercent: normalizeOptionalCategoryMarkupPercent(
+        req.body.markupPercent
+      ),
       subcategories: [],
     };
 
@@ -1504,6 +1637,12 @@ app.patch("/api/admin/categories/:categoryId", requireAdmin, async (req, res) =>
 
     if (req.body.active !== undefined) {
       category.active = Boolean(req.body.active);
+    }
+
+    if (req.body.markupPercent !== undefined) {
+      category.markupPercent = normalizeOptionalCategoryMarkupPercent(
+        req.body.markupPercent
+      );
     }
 
     writeDatabase(db);
@@ -1671,7 +1810,7 @@ app.get("/api/products", async (req, res) => {
       ? db.products
         .filter((product) => product.active !== false)
         .map((product) => {
-          const { costPrice, ...safeProduct } = product;
+          const { costPrice, priceMode, ...safeProduct } = product;
 
           return decorateLocalProductWithSupplier(db, safeProduct);
         })
@@ -3281,6 +3420,12 @@ app.post(
         req.body.name
       );
 
+      if (req.body.markupPercent !== undefined) {
+        subcategory.markupPercent = normalizeOptionalCategoryMarkupPercent(
+          req.body.markupPercent
+        );
+      }
+
       writeDatabase(db);
 
       return res.json({
@@ -3358,11 +3503,27 @@ app.patch(
         subcategory.active = Boolean(req.body.active);
       }
 
+      let markupResult = null;
+
+      if (req.body.markupPercent !== undefined) {
+        subcategory.markupPercent = normalizeOptionalCategoryMarkupPercent(
+          req.body.markupPercent
+        );
+        markupResult = applyLocalSubcategoryEffectiveMarkup(
+          db,
+          category,
+          subcategory
+        );
+      }
+
       writeDatabase(db);
 
       return res.json({
         ok: true,
-        subcategory,
+        subcategory: {
+          ...subcategory,
+          markupResult,
+        },
       });
     } catch (error) {
       console.error("Update subcategory error:", error);

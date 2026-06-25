@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import Icon from "./Icon.jsx";
+import QuantityControl from "./QuantityControl.jsx";
 import logoEvergreen from "../img/logo_evergreen.webp";
 import { formatUAH } from "../utils/formatUAH.js";
 import {
@@ -43,12 +44,12 @@ function CartItem({
   const quantity = Number(item.quantity || 0);
   const itemTotal = Number(item.price || 0) * quantity;
 
-  function decreaseItem() {
-    changeQuantity?.(productId, Math.max(0, quantity - 1));
+  function handleQuantityChange(nextQuantity) {
+    changeQuantity?.(productId, nextQuantity);
   }
 
-  function increaseItem() {
-    changeQuantity?.(productId, quantity + 1);
+  function handleQuantityRemove() {
+    removeFromCart?.(productId);
   }
 
   return (
@@ -71,33 +72,20 @@ function CartItem({
           </p>
         )}
 
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <div className="flex h-10 overflow-hidden rounded-xl border border-stone-200 bg-stone-50">
-            <button
-              type="button"
-              onClick={decreaseItem}
-              className="eg-counter-button flex h-10 w-10 items-center justify-center text-stone-700 hover:bg-emerald-100 hover:text-emerald-900"
-              aria-label="Зменшити кількість"
-            >
-              <Icon name="minus" size={14} />
-            </button>
+        <div className="mt-3 grid min-w-0 grid-cols-[minmax(0,7.75rem)_auto] items-center gap-2">
+          <QuantityControl
+            value={quantity}
+            onChange={handleQuantityChange}
+            min={1}
+            size="compact"
+            tone="light"
+            className="w-full"
+            ariaLabel="Кількість товару в кошику"
+            onRemove={handleQuantityRemove}
+          />
 
-            <span className="flex h-10 min-w-10 items-center justify-center bg-white px-2 text-sm font-black text-stone-950">
-              {quantity}
-            </span>
-
-            <button
-              type="button"
-              onClick={increaseItem}
-              className="eg-counter-button flex h-10 w-10 items-center justify-center text-stone-700 hover:bg-emerald-100 hover:text-emerald-900"
-              aria-label="Збільшити кількість"
-            >
-              <Icon name="plus" size={14} />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-black text-stone-950">
+          <div className="flex min-w-0 items-center justify-end gap-2">
+            <p className="min-w-0 truncate text-sm font-black text-stone-950">
               {formatUAH(itemTotal)}
             </p>
 

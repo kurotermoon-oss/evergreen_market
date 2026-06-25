@@ -3,6 +3,7 @@ import { AlertTriangle, Layers3, Store, Truck } from "lucide-react";
 import { getRecentOrders, clearRecentOrders } from "../utils/recentOrders.js";
 import Icon from "../components/Icon.jsx";
 import OrderRulesModal from "../components/OrderRulesModal.jsx";
+import QuantityControl from "../components/QuantityControl.jsx";
 import logoEvergreen from "../img/logo_evergreen.webp";
 import { formatUAH } from "../utils/formatUAH.js";
 import {
@@ -199,12 +200,12 @@ function CartLineItem({
   const quantity = Number(item.quantity || 0);
   const itemTotal = Number(item.price || 0) * quantity;
 
-  function decreaseItem() {
-    changeQuantity(productId, Math.max(0, quantity - 1));
+  function handleQuantityChange(nextQuantity) {
+    changeQuantity(productId, nextQuantity);
   }
 
-  function increaseItem() {
-    changeQuantity(productId, quantity + 1);
+  function handleQuantityRemove() {
+    removeFromCart(productId);
   }
 
   function handleImageError(event) {
@@ -238,35 +239,20 @@ function CartLineItem({
           {formatUAH(item.price)} за одиницю
         </p>
 
-        <div className="mt-4 flex flex-col gap-3 min-[390px]:flex-row min-[390px]:items-center min-[390px]:justify-between">
-          <div className="overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 shadow-sm">
-            <div className="eg-quantity-stepper grid h-11 w-[8.25rem] grid-cols-3 items-stretch sm:h-12 sm:w-36">
-              <button
-                type="button"
-                onClick={decreaseItem}
-                className="eg-counter-button flex h-full min-w-0 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900"
-                aria-label="Зменшити кількість"
-              >
-                <Icon name="minus" size={16} />
-              </button>
+        <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,9rem)_auto] sm:items-center sm:justify-between">
+          <QuantityControl
+            value={quantity}
+            onChange={handleQuantityChange}
+            min={1}
+            size="regular"
+            tone="light"
+            className="w-full max-w-36"
+            ariaLabel="Кількість товару в кошику"
+            onRemove={handleQuantityRemove}
+          />
 
-              <span className="flex h-full min-w-0 items-center justify-center bg-white px-1 text-center font-black text-stone-950">
-                {quantity}
-              </span>
-
-              <button
-                type="button"
-                onClick={increaseItem}
-                className="eg-counter-button flex h-full min-w-0 items-center justify-center text-stone-700 transition hover:bg-emerald-100 hover:text-emerald-900"
-                aria-label="Збільшити кількість"
-              >
-                <Icon name="plus" size={16} />
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-3 min-[390px]:justify-start">
-            <p className="text-lg font-black leading-none text-stone-950 sm:text-base">
+          <div className="flex min-w-0 items-center justify-between gap-3 sm:justify-start">
+            <p className="min-w-0 text-lg font-black leading-none text-stone-950 sm:text-base">
               {formatUAH(itemTotal)}
             </p>
 

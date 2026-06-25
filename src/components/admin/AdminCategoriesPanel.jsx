@@ -15,7 +15,7 @@ function StatCard({ label, value, tone = "stone" }) {
   );
 }
 
-function ActionButton({ children, tone = "stone", onClick }) {
+function ActionButton({ children, tone = "stone", onClick, disabled = false }) {
   const className =
     tone === "red"
       ? "bg-red-50 text-red-800 ring-1 ring-red-200 hover:bg-red-100"
@@ -27,7 +27,8 @@ function ActionButton({ children, tone = "stone", onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className={`eg-button rounded-xl px-3 py-2 text-xs font-black ${className}`}
+      disabled={disabled}
+      className={`eg-button rounded-xl px-3 py-2 text-xs font-black disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
     >
       {children}
     </button>
@@ -49,9 +50,63 @@ function parseMarkupPercent(value) {
 }
 
 function formatMarkupPercent(value) {
-  if (!Number.isFinite(value)) return "";
+  const number = Number(value);
 
-  return value.toFixed(2).replace(/\.?0+$/, "");
+  if (!Number.isFinite(number)) return "";
+
+  return number.toFixed(2).replace(/\.?0+$/, "");
+}
+
+function hasMarkupPercent(value) {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    return false;
+  }
+
+  const number = Number(value);
+
+  return Number.isFinite(number) && number >= 0;
+}
+
+function getMarkupDraft(value) {
+  return hasMarkupPercent(value) ? formatMarkupPercent(value) : "";
+}
+
+function getEffectiveSubcategoryMarkupLabel(category, subcategory) {
+  if (hasMarkupPercent(subcategory.markupPercent)) {
+    return `Своя націнка: ${formatMarkupPercent(subcategory.markupPercent)}%`;
+  }
+
+  if (hasMarkupPercent(category.markupPercent)) {
+    return `Від категорії: ${formatMarkupPercent(category.markupPercent)}%`;
+  }
+
+  return "Без автоматичної націнки";
+}
+
+function getMarkupResultMessage(result, fallbackText = "") {
+  if (!result) return fallbackText;
+
+  const parts = [`Оновлено товарів: ${result.updated || 0}.`];
+
+  if (result.skippedManualPrice) {
+    parts.push(`Ручна ціна, без змін: ${result.skippedManualPrice}.`);
+  }
+
+  if (result.skippedWithoutCostPrice) {
+    parts.push(`Без собівартості, пропущено: ${result.skippedWithoutCostPrice}.`);
+  }
+
+  if (result.skippedWithoutMarkup) {
+    parts.push(`Без автоматичної націнки: ${result.skippedWithoutMarkup}.`);
+  }
+
+  if (hasMarkupPercent(result.effectiveMarkupPercent)) {
+    parts.push(
+      `Застосована націнка: ${formatMarkupPercent(result.effectiveMarkupPercent)}%.`
+    );
+  }
+
+  return parts.join("\n");
 }
 
 export default function AdminCategoriesPanel({
@@ -70,6 +125,7 @@ export default function AdminCategoriesPanel({
   const [categoryNameDrafts, setCategoryNameDrafts] = useState({});
   const [subcategoryNameDrafts, setSubcategoryNameDrafts] = useState({});
   const [categoryMarkupDrafts, setCategoryMarkupDrafts] = useState({});
+  const [subcategoryMarkupDrafts, setSubcategoryMarkupDrafts] = useState({});
   const [modal, setModal] = useState(null);
   const [isModalLoading, setIsModalLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -120,6 +176,8 @@ export default function AdminCategoriesPanel({
 
     (Array.isArray(products) ? products : []).forEach((product) => {
       const categoryId = product.category;
+      const hasCostPrice = Number(product.costPrice || 0) > 0;
+      const hasManualPrice = product.priceMode === "manual";
 
       if (!categoryId) return;
 
@@ -128,15 +186,75 @@ export default function AdminCategoriesPanel({
           total: 0,
           withCostPrice: 0,
           withoutCostPrice: 0,
+          autoWithCostPrice: 0,
+          autoWithoutCostPrice: 0,
+          manualPrice: 0,
         };
       }
 
       stats[categoryId].total += 1;
 
-      if (Number(product.costPrice || 0) > 0) {
+      if (hasManualPrice) {
+        stats[categoryId].manualPrice += 1;
+      }
+
+      if (hasCostPrice) {
         stats[categoryId].withCostPrice += 1;
       } else {
         stats[categoryId].withoutCostPrice += 1;
+      }
+
+      if (!hasManualPrice && hasCostPrice) {
+        stats[categoryId].autoWithCostPrice += 1;
+      }
+
+      if (!hasManualPrice && !hasCostPrice) {
+        stats[categoryId].autoWithoutCostPrice += 1;
+      }
+    });
+
+    return stats;
+  }, [products]);
+
+  const productStatsBySubcategory = useMemo(() => {
+    const stats = {};
+
+    (Array.isArray(products) ? products : []).forEach((product) => {
+      const subcategoryId = product.subcategory;
+      const hasCostPrice = Number(product.costPrice || 0) > 0;
+      const hasManualPrice = product.priceMode === "manual";
+
+      if (!subcategoryId) return;
+
+      if (!stats[subcategoryId]) {
+        stats[subcategoryId] = {
+          total: 0,
+          withCostPrice: 0,
+          withoutCostPrice: 0,
+          autoWithCostPrice: 0,
+          autoWithoutCostPrice: 0,
+          manualPrice: 0,
+        };
+      }
+
+      stats[subcategoryId].total += 1;
+
+      if (hasManualPrice) {
+        stats[subcategoryId].manualPrice += 1;
+      }
+
+      if (hasCostPrice) {
+        stats[subcategoryId].withCostPrice += 1;
+      } else {
+        stats[subcategoryId].withoutCostPrice += 1;
+      }
+
+      if (!hasManualPrice && hasCostPrice) {
+        stats[subcategoryId].autoWithCostPrice += 1;
+      }
+
+      if (!hasManualPrice && !hasCostPrice) {
+        stats[subcategoryId].autoWithoutCostPrice += 1;
       }
     });
 
@@ -180,7 +298,22 @@ export default function AdminCategoriesPanel({
       const nextDrafts = {};
 
       categoryList.forEach((category) => {
-        nextDrafts[category.id] = current[category.id] || "";
+        nextDrafts[category.id] =
+          current[category.id] ?? getMarkupDraft(category.markupPercent);
+      });
+
+      return nextDrafts;
+    });
+
+    setSubcategoryMarkupDrafts((current) => {
+      const nextDrafts = {};
+
+      categoryList.forEach((category) => {
+        (category.subcategories || []).forEach((subcategory) => {
+          nextDrafts[subcategory.id] =
+            current[subcategory.id] ??
+            getMarkupDraft(subcategory.markupPercent);
+        });
       });
 
       return nextDrafts;
@@ -279,6 +412,9 @@ export default function AdminCategoriesPanel({
       total: 0,
       withCostPrice: 0,
       withoutCostPrice: 0,
+      autoWithCostPrice: 0,
+      autoWithoutCostPrice: 0,
+      manualPrice: 0,
     };
 
     if (!applyCategoryMarkup) {
@@ -305,17 +441,20 @@ export default function AdminCategoriesPanel({
       return;
     }
 
-    if (stats.withCostPrice === 0) {
+    if (stats.autoWithCostPrice === 0) {
       showError(
         "Немає товарів із собівартістю",
-        "Націнку можна застосувати тільки до товарів, де заповнена собівартість."
+        "Немає товарів з автоматичною ціною та заповненою собівартістю. Ручні ціни масовою націнкою не змінюються."
       );
       return;
     }
 
     const percentLabel = formatMarkupPercent(markupPercent);
-    const skippedText = stats.withoutCostPrice
-      ? `\nБез собівартості буде пропущено: ${stats.withoutCostPrice}.`
+    const skippedText = stats.autoWithoutCostPrice
+      ? `\nБез собівартості буде пропущено: ${stats.autoWithoutCostPrice}.`
+      : "";
+    const manualText = stats.manualPrice
+      ? `\nРучна ціна не зміниться: ${stats.manualPrice}.`
       : "";
 
     setModal({
@@ -324,8 +463,8 @@ export default function AdminCategoriesPanel({
       message:
         `Категорія: ${category.name}\n` +
         `Ціна продажу буде перерахована як собівартість + ${percentLabel}%.\n` +
-        `Буде оновлено товарів: ${stats.withCostPrice}.${skippedText}\n\n` +
-        "Поточні ціни продажу цих товарів буде перезаписано.",
+        `Буде оновлено товарів: ${stats.autoWithCostPrice}.${skippedText}${manualText}\n\n` +
+        "Автоматичні ціни буде перераховано. Ручні ціни товарів не перезаписуються.",
       confirmLabel: "Застосувати",
       cancelLabel: "Скасувати",
       showCancel: true,
@@ -340,15 +479,12 @@ export default function AdminCategoriesPanel({
 
           setCategoryMarkupDrafts((current) => ({
             ...current,
-            [category.id]: "",
+            [category.id]: formatMarkupPercent(markupPercent),
           }));
 
           showSuccess(
             "Націнку застосовано",
-            `Оновлено товарів: ${result.updated || 0}.\n` +
-              `Пропущено без собівартості: ${
-                result.skippedWithoutCostPrice || 0
-              }.`
+            getMarkupResultMessage(result)
           );
         } catch (error) {
           setModal({
@@ -430,6 +566,71 @@ export default function AdminCategoriesPanel({
         error?.message || "Спробуйте ще раз."
       );
     }
+  }
+
+  async function saveSubcategoryMarkup(category, subcategory, rawValue) {
+    const value = String(rawValue ?? "").trim();
+    const shouldInheritCategory = value === "";
+    const markupPercent = shouldInheritCategory
+      ? null
+      : parseMarkupPercent(value);
+
+    if (!shouldInheritCategory && markupPercent === null) {
+      showError(
+        "Некоректна націнка",
+        "Вкажіть невідʼємне число. Порожнє поле означає використати націнку категорії."
+      );
+      return;
+    }
+
+    try {
+      const result = await updateSubcategory(category.id, subcategory.id, {
+        markupPercent,
+      });
+      const markupResult =
+        result?.subcategory?.markupResult || result?.markupResult || null;
+
+      setSubcategoryMarkupDrafts((current) => ({
+        ...current,
+        [subcategory.id]: shouldInheritCategory
+          ? ""
+          : formatMarkupPercent(markupPercent),
+      }));
+
+      showSuccess(
+        shouldInheritCategory
+          ? "Націнку підкатегорії очищено"
+          : "Націнку підкатегорії збережено",
+        getMarkupResultMessage(
+          markupResult,
+          shouldInheritCategory
+            ? "Підкатегорія знову використовує націнку категорії."
+            : "Націнку підкатегорії збережено."
+        )
+      );
+    } catch (error) {
+      showError(
+        "Не вдалося зберегти націнку підкатегорії",
+        error?.message || "Спробуйте ще раз."
+      );
+    }
+  }
+
+  function handleSaveSubcategoryMarkup(category, subcategory) {
+    return saveSubcategoryMarkup(
+      category,
+      subcategory,
+      subcategoryMarkupDrafts[subcategory.id]
+    );
+  }
+
+  function handleClearSubcategoryMarkup(category, subcategory) {
+    setSubcategoryMarkupDrafts((current) => ({
+      ...current,
+      [subcategory.id]: "",
+    }));
+
+    return saveSubcategoryMarkup(category, subcategory, "");
   }
 
   function getDeleteErrorMessage(error, entityName) {
@@ -617,13 +818,16 @@ export default function AdminCategoriesPanel({
             total: 0,
             withCostPrice: 0,
             withoutCostPrice: 0,
+            autoWithCostPrice: 0,
+            autoWithoutCostPrice: 0,
+            manualPrice: 0,
           };
           const markupDraft = categoryMarkupDrafts[category.id] || "";
           const markupPercent = parseMarkupPercent(markupDraft);
           const canApplyMarkup =
             Boolean(applyCategoryMarkup) &&
             markupPercent !== null &&
-            productStats.withCostPrice > 0;
+            productStats.autoWithCostPrice > 0;
 
           return (
             <div
@@ -714,8 +918,14 @@ export default function AdminCategoriesPanel({
                       </span>
 
                       <span className="rounded-full bg-white/80 px-2 py-1 text-emerald-900 ring-1 ring-emerald-100">
-                        з собівартістю: {productStats.withCostPrice}
+                        авто з собівартістю: {productStats.autoWithCostPrice}
                       </span>
+
+                      {productStats.manualPrice > 0 && (
+                        <span className="rounded-full bg-white/80 px-2 py-1 text-emerald-900 ring-1 ring-emerald-100">
+                          ручна ціна: {productStats.manualPrice}
+                        </span>
+                      )}
 
                       {productStats.withoutCostPrice > 0 && (
                         <span className="rounded-full bg-amber-50 px-2 py-1 text-amber-900 ring-1 ring-amber-100">
@@ -777,11 +987,29 @@ export default function AdminCategoriesPanel({
                   {subcategories.map((subcategory) => {
                     const isSubcategoryHidden =
                       subcategory.active === false;
+                    const subcategoryStats =
+                      productStatsBySubcategory[subcategory.id] || {
+                        total: 0,
+                        withCostPrice: 0,
+                        withoutCostPrice: 0,
+                        autoWithCostPrice: 0,
+                        autoWithoutCostPrice: 0,
+                        manualPrice: 0,
+                      };
+                    const storedSubcategoryMarkupDraft = getMarkupDraft(
+                      subcategory.markupPercent
+                    );
+                    const subcategoryMarkupDraft =
+                      subcategoryMarkupDrafts[subcategory.id] ??
+                      storedSubcategoryMarkupDraft;
+                    const isSubcategoryMarkupDirty =
+                      String(subcategoryMarkupDraft) !==
+                      String(storedSubcategoryMarkupDraft);
 
                     return (
                       <div
                         key={subcategory.id}
-                        className={`grid gap-2 rounded-xl p-2 lg:grid-cols-[1fr_auto] lg:items-center ${
+                        className={`grid gap-3 rounded-xl p-2 xl:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)_auto] xl:items-center ${
                           isSubcategoryHidden
                             ? "bg-amber-50 ring-1 ring-amber-100"
                             : "bg-white"
@@ -826,6 +1054,76 @@ export default function AdminCategoriesPanel({
                             }}
                             className={getInputClass()}
                           />
+                        </div>
+
+                        <div className="rounded-xl bg-stone-50/90 p-2 ring-1 ring-stone-100">
+                          <div className="grid gap-1.5">
+                            <p className="text-[11px] font-black uppercase tracking-wide text-stone-500">
+                              Націнка підкатегорії, %
+                            </p>
+
+                            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto] xl:grid-cols-[minmax(0,1fr)_auto]">
+                              <input
+                                value={subcategoryMarkupDraft}
+                                onChange={(event) =>
+                                  setSubcategoryMarkupDrafts((current) => ({
+                                    ...current,
+                                    [subcategory.id]: event.target.value,
+                                  }))
+                                }
+                                onKeyDown={(event) => {
+                                  if (event.key === "Enter") {
+                                    handleSaveSubcategoryMarkup(
+                                      category,
+                                      subcategory
+                                    );
+                                  }
+                                }}
+                                placeholder="від категорії"
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                className={getInputClass("bg-white")}
+                              />
+
+                              <ActionButton
+                                tone="emerald"
+                                onClick={() =>
+                                  handleSaveSubcategoryMarkup(
+                                    category,
+                                    subcategory
+                                  )
+                                }
+                                disabled={!isSubcategoryMarkupDirty}
+                              >
+                                Зберегти
+                              </ActionButton>
+
+                              <ActionButton
+                                onClick={() =>
+                                  handleClearSubcategoryMarkup(
+                                    category,
+                                    subcategory
+                                  )
+                                }
+                                disabled={
+                                  !hasMarkupPercent(subcategory.markupPercent)
+                                }
+                              >
+                                Очистити
+                              </ActionButton>
+                            </div>
+                          </div>
+
+                          <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] font-bold text-stone-500">
+                            <span>{getEffectiveSubcategoryMarkupLabel(category, subcategory)}</span>
+
+                            <span>товарів: {subcategoryStats.total}</span>
+
+                            {subcategoryStats.manualPrice > 0 && (
+                              <span>ручна ціна: {subcategoryStats.manualPrice}</span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex flex-wrap gap-2 lg:justify-end">

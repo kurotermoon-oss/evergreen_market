@@ -37,6 +37,7 @@ export const EMPTY_DRAFT_PRODUCT = {
   price: "",
   costPrice: "",
   oldPrice: "",
+  priceMode: "auto",
 
   image: "",
 

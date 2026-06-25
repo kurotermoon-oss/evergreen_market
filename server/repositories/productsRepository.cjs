@@ -4,6 +4,7 @@ const prisma = require("../database/prisma.cjs");
 const categoriesRepository = require("./categoriesRepository.cjs");
 
 const FULFILLMENT_TYPES = new Set(["in_stock", "supplier_order"]);
+const PRICE_MODES = new Set(["auto", "manual"]);
 
 function toCleanString(value) {
   return String(value || "").trim();
@@ -79,6 +80,20 @@ function normalizeFulfillmentType(value, fallback = "in_stock") {
   return "in_stock";
 }
 
+function normalizePriceMode(value, fallback = "auto") {
+  const cleanValue = toCleanString(value);
+
+  if (PRICE_MODES.has(cleanValue)) {
+    return cleanValue;
+  }
+
+  if (PRICE_MODES.has(fallback)) {
+    return fallback;
+  }
+
+  return "auto";
+}
+
 function mapSupplierForProduct(supplier, includeComment = false) {
   if (!supplier) return null;
 
@@ -143,6 +158,7 @@ function mapProductForAdmin(product) {
     ...mapProductForPublic(product),
 
     costPrice: Number(product.costPrice || 0),
+    priceMode: product.priceMode || "auto",
     supplier: mapSupplierForProduct(product.supplier, true),
   };
 }
@@ -444,6 +460,10 @@ async function buildProductData(payload, existingProduct = null) {
       payload.costPrice ?? existingProduct?.costPrice,
       0,
       "Собівартість"
+    ),
+    priceMode: normalizePriceMode(
+      payload.priceMode ?? existingProduct?.priceMode,
+      existingProduct?.priceMode || "auto"
     ),
 
     unit: toCleanString(payload.unit ?? existingProduct?.unit) || "1 шт",
