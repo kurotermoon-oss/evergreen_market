@@ -4,7 +4,11 @@ const prisma = require("../database/prisma.cjs");
 const categoriesRepository = require("./categoriesRepository.cjs");
 
 const FULFILLMENT_TYPES = new Set(["in_stock", "supplier_order"]);
+<<<<<<< HEAD
 const PRICE_MODES = new Set(["auto", "manual"]);
+=======
+const SUPPLIER_ORDER_STOCK_STATUSES = new Set(["preorder", "out_of_stock"]);
+>>>>>>> 10129bf (parser add)
 
 function toCleanString(value) {
   return String(value || "").trim();
@@ -160,6 +164,14 @@ function mapProductForAdmin(product) {
     costPrice: Number(product.costPrice || 0),
     priceMode: product.priceMode || "auto",
     supplier: mapSupplierForProduct(product.supplier, true),
+    supplierProductUrl: product.supplierProductUrl || "",
+    supplierExternalId: product.supplierExternalId || "",
+    supplierSyncEnabled: product.supplierSyncEnabled === true,
+    supplierRemoteStatus: product.supplierRemoteStatus || "unknown",
+    supplierStatusOverride: product.supplierStatusOverride || "auto",
+    supplierLastCheckedAt: product.supplierLastCheckedAt || null,
+    supplierLastError: product.supplierLastError || "",
+    supplierStatusChangedAt: product.supplierStatusChangedAt || null,
   };
 }
 
@@ -412,11 +424,15 @@ async function buildProductData(payload, existingProduct = null) {
     payload,
     "stockQuantity"
   );
+  const requestedStockStatus = toCleanString(
+    payload.stockStatus ?? existingProduct?.stockStatus
+  );
   let stockStatus =
     fulfillmentType === "supplier_order"
-      ? "preorder"
-      : toCleanString(payload.stockStatus ?? existingProduct?.stockStatus) ||
-        "in_stock";
+      ? SUPPLIER_ORDER_STOCK_STATUSES.has(requestedStockStatus)
+        ? requestedStockStatus
+        : "preorder"
+      : requestedStockStatus || "in_stock";
   const stockQuantity =
     fulfillmentType === "supplier_order"
       ? null

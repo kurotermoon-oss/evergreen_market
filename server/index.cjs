@@ -52,6 +52,7 @@ const adminAnalyticsRoutes = require("./routes/adminAnalytics.routes.cjs");
 const adminCustomersRoutes = require("./routes/adminCustomers.routes.cjs");
 const adminSecurityRoutes = require("./routes/adminSecurity.routes.cjs");
 const adminUploadsRoutes = require("./routes/adminUploads.routes.cjs");
+const adminSupplierSyncRoutes = require("./routes/adminSupplierSync.routes.cjs");
 const { registerSeoRoutes } = require("./seoRoutes.cjs");
 
 
@@ -853,7 +854,9 @@ function buildProductFromRequest(db, body) {
   const supplierFields = normalizeLocalProductSupplierFields(db, body);
   let stockStatus =
     supplierFields.fulfillmentType === "supplier_order"
-      ? "preorder"
+      ? normalizeStockStatus(body.stockStatus, "preorder") === "out_of_stock"
+        ? "out_of_stock"
+        : "preorder"
       : normalizeStockStatus(body.stockStatus);
   const stockQuantity = normalizeStockQuantity(stockStatus, body.stockQuantity);
 
@@ -922,7 +925,12 @@ function buildUpdatedProduct(current, body, categoryData, db = null) {
       };
   let nextStockStatus =
     supplierFields.fulfillmentType === "supplier_order"
-      ? "preorder"
+      ? normalizeStockStatus(
+            body.stockStatus,
+            current.stockStatus || "preorder"
+          ) === "out_of_stock"
+        ? "out_of_stock"
+        : "preorder"
       : normalizeStockStatus(body.stockStatus, current.stockStatus || "in_stock");
   const nextStockQuantity = normalizeStockQuantity(
     nextStockStatus,
@@ -1214,6 +1222,7 @@ app.use("/api/admin/analytics", adminAnalyticsRoutes);
 app.use("/api/admin/customers", adminCustomersRoutes);
 app.use("/api/admin/security", adminSecurityRoutes);
 app.use("/api/admin/uploads", adminUploadsRoutes);
+app.use("/api/admin/supplier-sync", adminSupplierSyncRoutes);
 
 console.log("[debug] admin routes mounted");
 

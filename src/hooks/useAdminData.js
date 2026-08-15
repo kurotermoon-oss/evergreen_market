@@ -31,7 +31,9 @@ function getProductPayload(product) {
     supplierId: fulfillmentType === "supplier_order" ? product.supplierId || "" : "",
     stockStatus:
       fulfillmentType === "supplier_order"
-        ? "preorder"
+        ? product.stockStatus === "out_of_stock"
+          ? "out_of_stock"
+          : "preorder"
         : stockQuantity > 0
           ? "in_stock"
           : "out_of_stock",

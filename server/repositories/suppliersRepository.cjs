@@ -71,7 +71,7 @@ async function createUniqueSupplierId(seedValue) {
   return candidate;
 }
 
-function mapSupplier(supplier) {
+function mapSupplier(supplier, includeSync = false) {
   if (!supplier) return null;
 
   return {
@@ -80,6 +80,18 @@ function mapSupplier(supplier) {
     minOrderAmount: Number(supplier.minOrderAmount || 0),
     isActive: supplier.isActive !== false,
     comment: supplier.comment || "",
+    ...(includeSync
+      ? {
+          availabilitySyncAdapter: supplier.availabilitySyncAdapter || "",
+          availabilitySyncEnabled: supplier.availabilitySyncEnabled === true,
+          availabilitySyncPaused: supplier.availabilitySyncPaused === true,
+          availabilitySyncLastRunAt: supplier.availabilitySyncLastRunAt || null,
+          availabilitySyncLastOkAt: supplier.availabilitySyncLastOkAt || null,
+          availabilitySyncLastStatus:
+            supplier.availabilitySyncLastStatus || "idle",
+          availabilitySyncLastError: supplier.availabilitySyncLastError || "",
+        }
+      : {}),
     createdAt: supplier.createdAt,
     updatedAt: supplier.updatedAt,
   };
@@ -116,7 +128,7 @@ async function getAdminSuppliers() {
     ],
   });
 
-  return suppliers.map(mapSupplier);
+  return suppliers.map((supplier) => mapSupplier(supplier, true));
 }
 
 async function getPublicSuppliers() {
@@ -161,7 +173,7 @@ async function createAdminSupplier(payload = {}) {
     },
   });
 
-  return mapSupplier(supplier);
+  return mapSupplier(supplier, true);
 }
 
 async function updateAdminSupplier(id, payload = {}) {
@@ -184,7 +196,7 @@ async function updateAdminSupplier(id, payload = {}) {
     data: buildSupplierData(payload, existingSupplier),
   });
 
-  return mapSupplier(supplier);
+  return mapSupplier(supplier, true);
 }
 
 async function deleteAdminSupplier(id) {

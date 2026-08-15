@@ -7,6 +7,7 @@ import AdminCustomersPanel from "../components/admin/AdminCustomersPanel.jsx";
 import AdminFeedbackPanel from "../components/admin/AdminFeedbackPanel.jsx";
 import AdminSecurityPanel from "../components/admin/AdminSecurityPanel.jsx";
 import AdminSuppliersPanel from "../components/admin/AdminSuppliersPanel.jsx";
+import AdminSupplierSyncPanel from "../components/admin/AdminSupplierSyncPanel.jsx";
 
 export default function AdminView({
   categories,
@@ -29,6 +30,8 @@ export default function AdminView({
   createSupplier,
   updateSupplier,
   deleteSupplier,
+  refreshAdminData,
+  refreshPublicData,
 
   updateOrderAction,
   updateFeedbackStatus,
@@ -92,6 +95,10 @@ export default function AdminView({
       id: "suppliers",
       label: "Постачальники",
       count: stats.suppliers,
+    },
+    {
+      id: "supplier-sync",
+      label: "Синхронізація",
     },
     {
       id: "customers",
@@ -245,6 +252,14 @@ export default function AdminView({
           createSupplier={createSupplier}
           updateSupplier={updateSupplier}
           deleteSupplier={deleteSupplier}
+        />
+      )}
+
+      {adminTab === "supplier-sync" && (
+        <AdminSupplierSyncPanel
+          suppliers={suppliers}
+          refreshAdminData={refreshAdminData}
+          refreshPublicData={refreshPublicData}
         />
       )}
 

@@ -42,15 +42,24 @@ model Subcategory {
 }
 
 model Supplier {
-  id             String   @id
-  name           String
-  minOrderAmount Int      @default(0)
-  isActive       Boolean  @default(true)
-  comment        String   @default("")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                         String    @id
+  name                       String
+  minOrderAmount             Int       @default(0)
+  isActive                   Boolean   @default(true)
+  comment                    String    @default("")
+  availabilitySyncAdapter    String    @default("")
+  availabilitySyncEnabled    Boolean   @default(false)
+  availabilitySyncPaused     Boolean   @default(false)
+  availabilitySyncLastRunAt  DateTime?
+  availabilitySyncLastOkAt   DateTime?
+  availabilitySyncLastStatus String    @default("idle")
+  availabilitySyncLastError  String    @default("")
+  availabilitySyncLockUntil  DateTime?
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
 
   products Product[]
+  syncRuns SupplierSyncRun[]
 
   @@index([isActive])
   @@map("suppliers")
@@ -90,6 +99,15 @@ model Product {
   supplierId      String?
   fulfillmentType String  @default("in_stock")
 
+  supplierProductUrl      String    @default("")
+  supplierExternalId      String    @default("")
+  supplierSyncEnabled     Boolean   @default(false)
+  supplierRemoteStatus    String    @default("unknown")
+  supplierStatusOverride  String    @default("auto")
+  supplierLastCheckedAt   DateTime?
+  supplierLastError       String    @default("")
+  supplierStatusChangedAt DateTime?
+
   active        Boolean @default(true)
   popular       Boolean @default(false)
   purchaseCount Int     @default(0)
@@ -107,8 +125,38 @@ model Product {
   @@index([subcategoryId])
   @@index([supplierId])
   @@index([fulfillmentType])
+  @@index([supplierSyncEnabled])
   @@index([active])
   @@map("products")
+}
+
+model SupplierSyncRun {
+  id String @id
+
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  trigger String  @default("cron")
+  status  String  @default("running")
+  dryRun  Boolean @default(false)
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  mappedCount      Int   @default(0)
+  checkedCount     Int   @default(0)
+  availableCount   Int   @default(0)
+  unavailableCount Int   @default(0)
+  changedCount     Int   @default(0)
+  errorCount       Int   @default(0)
+  changeRatio      Float @default(0)
+
+  message String @default("")
+  details Json?
+
+  @@index([supplierId, startedAt])
+  @@index([status])
+  @@map("supplier_sync_runs")
 }
 
 model Customer {
@@ -140,7 +188,7 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  orders Order[]
+  orders   Order[]
   feedback CustomerFeedback[]
 
   @@unique([phone])

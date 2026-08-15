@@ -716,6 +716,8 @@ return (
         createSupplier={createSupplier}
         updateSupplier={updateSupplier}
         deleteSupplier={deleteSupplier}
+        refreshAdminData={loadAdminData}
+        refreshPublicData={loadPublicData}
         updateOrderAction={updateOrderAction}
         updateFeedbackStatus={updateFeedbackStatus}
         logoutAdmin={logoutAdmin}

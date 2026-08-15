@@ -524,6 +524,9 @@ Before finishing, check:
 - Prisma dev migration: `npm run db:migrate`
 - Prisma deploy migrations: `npm run db:deploy`
 - Prisma Studio: `npm run db:studio`
+- Milk Diller availability sync: `npm run sync:milkdiller`
+- Milk Diller parser fixture test: `npm run test:milkdiller-parser`
+- Milk Diller live read-only check: `npm run test:milkdiller-live`
 - Local Postgres: `docker compose up -d postgres`
 
 There is no configured `npm test` script. Use `npm run build` as the baseline verification, plus targeted scripts when relevant:
@@ -547,6 +550,10 @@ These scripts require a valid database environment.
 - Cart checkout is segmented: all `in_stock` items form one orderable group with no supplier minimum; each `supplier_order` supplier forms its own orderable group and must meet that supplier's `minOrderAmount`. The UI may keep mixed groups in one cart, but order submission must send only one segment.
 - Checkout delivery is temporarily disabled in the UI with `DELIVERY_ORDERS_ENABLED` in `src/views/CartView.jsx`. Keep orders as pickup until the business is ready to re-enable delivery; customer registration/profile address fields can remain for future use. Public copy may mention delivery only as a future plan, not as an available service.
 - Telegram notifications are best-effort. Order creation must not fail just because Telegram `fetch` fails or Telegram API returns an error.
+- Milk Diller availability synchronization is PostgreSQL-only and runs through `server/scripts/syncMilkDillerAvailability.cjs`. It must be deployed as a short-lived Railway Cron service, not an in-process interval. The admin panel and cron script share `server/services/supplierAvailabilitySync.cjs`.
+- Supplier synchronization changes `stockStatus`, never the manual merchandising field `active`. Explicit remote `outstock` maps to `out_of_stock`; network/markup errors preserve the last known stock status. Manual product overrides take priority over the parsed status.
+- Milk Diller catalog markup is server-rendered and parsed without a browser. The adapter discovers page count from the advertised product total because visible pagination only exposes a few adjacent page numbers. Do not replace this with Playwright unless the site stops serving product cards in HTML.
+- Optional supplier sync tuning variables: `SUPPLIER_SYNC_USER_AGENT`, `SUPPLIER_SYNC_MASS_CHANGE_RATIO`, `MILKDILLER_FETCH_TIMEOUT_MS`, `MILKDILLER_FETCH_RETRIES`, `MILKDILLER_FETCH_CONCURRENCY`, and `MILKDILLER_MAX_PAGES`. Defaults are safe for four daily runs; `USE_POSTGRES=true` and `DATABASE_URL` are required.
 
 ## Important File Map
 
@@ -563,6 +570,9 @@ These scripts require a valid database environment.
 - `server/routes/`: modular Express routes.
 - `server/repositories/`: Prisma-backed data access and mappers.
 - `server/services/`: domain helpers for products/categories/orders/Telegram.
+- `server/integrations/suppliers/milkDillerAdapter.cjs`: Milk Diller HTML parsing, pagination, retries, and URL normalization.
+- `server/services/supplierAvailabilitySync.cjs`, `server/routes/adminSupplierSync.routes.cjs`: shared sync workflow, safeguards, run logs, admin API, and manual overrides.
+- `docs/SUPPLIER_AVAILABILITY_SYNC.md`: deployment and operating guide for the Milk Diller parser.
 - `server/middleware/adminAuth.cjs`, `server/runtimeSecurity.cjs`, `server/httpSecurity.cjs`: auth/security/cookie/rate-limit behavior.
 - `server/storage/s3Client.cjs`, `server/repositories/uploadsRepository.cjs`, `server/routes/uploads.routes.cjs`: upload path.
 - `server/orderWorkflow.cjs`, `server/orderSecurity.cjs`, `server/orderMessage.cjs`: order state, validation, and messages.
@@ -640,6 +650,7 @@ Avoid:
 - For backend/data changes: also run the relevant Node smoke script or hit the changed endpoint through the dev server.
 - For Prisma/schema changes: run `npm run db:generate`; run migrations only when the task requires database mutation.
 - For meaningful frontend changes: run `npm run dev`, open the local Vite app, and inspect affected desktop/mobile views.
+- For Milk Diller parser changes: run `npm run test:milkdiller-parser` and, when network access is available, `npm run test:milkdiller-live`. The live check is read-only and must recognize both catalog coverage and availability statuses before deployment.
 - For public marketing page changes: verify desktop and mobile layouts, CTA visibility, fixed cart/chat controls, heading hierarchy, long Ukrainian copy wrapping, sticky header interaction, no overlaps, no horizontal overflow, and reduced-motion behavior if animations were added.
 
 ## Git And Safety

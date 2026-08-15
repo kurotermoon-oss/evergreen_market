@@ -162,6 +162,34 @@ checkTelegramVerification() {
     });
   },
 
+  getAdminSupplierSync(supplierId) {
+    return request(`/api/admin/supplier-sync/${supplierId}`);
+  },
+
+  updateAdminSupplierSyncSettings(supplierId, payload) {
+    return request(`/api/admin/supplier-sync/${supplierId}/settings`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updateAdminSupplierSyncProduct(supplierId, productId, payload) {
+    return request(
+      `/api/admin/supplier-sync/${supplierId}/products/${productId}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(payload),
+      }
+    );
+  },
+
+  runAdminSupplierSync(supplierId, payload = {}) {
+    return request(`/api/admin/supplier-sync/${supplierId}/run`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
   getAdminCategories() {
   return request("/api/admin/categories");
 },
