@@ -4,11 +4,8 @@ const prisma = require("../database/prisma.cjs");
 const categoriesRepository = require("./categoriesRepository.cjs");
 
 const FULFILLMENT_TYPES = new Set(["in_stock", "supplier_order"]);
-<<<<<<< HEAD
 const PRICE_MODES = new Set(["auto", "manual"]);
-=======
 const SUPPLIER_ORDER_STOCK_STATUSES = new Set(["preorder", "out_of_stock"]);
->>>>>>> 10129bf (parser add)
 
 function toCleanString(value) {
   return String(value || "").trim();
