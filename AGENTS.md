@@ -526,7 +526,9 @@ Before finishing, check:
 - Prisma Studio: `npm run db:studio`
 - Milk Diller availability sync: `npm run sync:milkdiller`
 - Milk Diller parser fixture test: `npm run test:milkdiller-parser`
+- Milk Diller mapping unit test: `npm run test:milkdiller-mapping`
 - Milk Diller live read-only check: `npm run test:milkdiller-live`
+- Milk Diller mapping live read-only check: `npm run test:milkdiller-mapping-live`
 - Local Postgres: `docker compose up -d postgres`
 
 There is no configured `npm test` script. Use `npm run build` as the baseline verification, plus targeted scripts when relevant:
@@ -553,6 +555,7 @@ These scripts require a valid database environment.
 - Milk Diller availability synchronization is PostgreSQL-only and runs through `server/scripts/syncMilkDillerAvailability.cjs`. It must be deployed as a short-lived Railway Cron service, not an in-process interval. The admin panel and cron script share `server/services/supplierAvailabilitySync.cjs`.
 - Supplier synchronization changes `stockStatus`, never the manual merchandising field `active`. Explicit remote `outstock` maps to `out_of_stock`; network/markup errors preserve the last known stock status. Manual product overrides take priority over the parsed status.
 - Milk Diller catalog markup is server-rendered and parsed without a browser. The adapter discovers page count from the advertised product total because visible pagination only exposes a few adjacent page numbers. Do not replace this with Playwright unless the site stops serving product cards in HTML.
+- Milk Diller bulk product mapping may apply only unique exact or canonical-name matches. It must not overwrite an existing product URL, and fuzzy suggestions must remain review-only; ambiguous and missing catalog entries require manual mapping.
 - Optional supplier sync tuning variables: `SUPPLIER_SYNC_USER_AGENT`, `SUPPLIER_SYNC_MASS_CHANGE_RATIO`, `MILKDILLER_FETCH_TIMEOUT_MS`, `MILKDILLER_FETCH_RETRIES`, `MILKDILLER_FETCH_CONCURRENCY`, and `MILKDILLER_MAX_PAGES`. Defaults are safe for four daily runs; `USE_POSTGRES=true` and `DATABASE_URL` are required.
 
 ## Important File Map
@@ -650,7 +653,7 @@ Avoid:
 - For backend/data changes: also run the relevant Node smoke script or hit the changed endpoint through the dev server.
 - For Prisma/schema changes: run `npm run db:generate`; run migrations only when the task requires database mutation.
 - For meaningful frontend changes: run `npm run dev`, open the local Vite app, and inspect affected desktop/mobile views.
-- For Milk Diller parser changes: run `npm run test:milkdiller-parser` and, when network access is available, `npm run test:milkdiller-live`. The live check is read-only and must recognize both catalog coverage and availability statuses before deployment.
+- For Milk Diller parser or mapping changes: run `npm run test:milkdiller-parser`, `npm run test:milkdiller-mapping`, and, when network and PostgreSQL access are available, the corresponding live read-only checks. The parser live check must recognize both catalog coverage and availability statuses before deployment.
 - For public marketing page changes: verify desktop and mobile layouts, CTA visibility, fixed cart/chat controls, heading hierarchy, long Ukrainian copy wrapping, sticky header interaction, no overlaps, no horizontal overflow, and reduced-motion behavior if animations were added.
 
 ## Git And Safety

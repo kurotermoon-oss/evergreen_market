@@ -3,6 +3,9 @@ const crypto = require("crypto");
 const prisma = require("../database/prisma.cjs");
 const milkDillerAdapter = require("../integrations/suppliers/milkDillerAdapter.cjs");
 const {
+  buildProductAutoMapping,
+} = require("./supplierProductAutoMapping.cjs");
+const {
   notifySupplierSyncIssue,
 } = require("./supplierSyncNotifications.cjs");
 
@@ -280,6 +283,98 @@ async function acquireSupplierLock(supplierId) {
       409,
       "SUPPLIER_SYNC_RUNNING"
     );
+  }
+}
+
+async function releaseSupplierLock(supplierId) {
+  await prisma.supplier.updateMany({
+    where: {
+      id: supplierId,
+    },
+    data: {
+      availabilitySyncLockUntil: null,
+    },
+  });
+}
+
+async function autoMapSupplierProducts(
+  supplierId,
+  { apply = false, enableSync = true, fetchImpl } = {}
+) {
+  const id = cleanString(supplierId);
+  const supplier = await prisma.supplier.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!supplier) {
+    throw createHttpError("Постачальника не знайдено.", 404, "SUPPLIER_NOT_FOUND");
+  }
+
+  if (!ALLOWED_ADAPTERS.has(supplier.availabilitySyncAdapter)) {
+    throw createHttpError(
+      "Спочатку підключіть адаптер Milk Diller.",
+      409,
+      "SUPPLIER_SYNC_NOT_CONFIGURED"
+    );
+  }
+
+  await acquireSupplierLock(id);
+
+  try {
+    const [products, catalogResult] = await Promise.all([
+      prisma.product.findMany({
+        where: {
+          supplierId: id,
+          fulfillmentType: "supplier_order",
+        },
+        orderBy: {
+          name: "asc",
+        },
+      }),
+      milkDillerAdapter.crawlCatalog({ fetchImpl }),
+    ]);
+    const mapping = buildProductAutoMapping(
+      products,
+      [...catalogResult.products.values()]
+    );
+
+    let applied = 0;
+
+    if (apply && mapping.matches.length > 0) {
+      const operations = mapping.matches.map((match) => {
+        return prisma.product.updateMany({
+          where: {
+            id: match.productId,
+            supplierId: id,
+            fulfillmentType: "supplier_order",
+            supplierProductUrl: "",
+          },
+          data: {
+            supplierProductUrl: match.remote.url,
+            supplierExternalId: match.remote.externalId,
+            supplierSyncEnabled:
+              enableSync === true ? true : match.currentSyncEnabled,
+          },
+        });
+      });
+
+      const results = await prisma.$transaction(operations);
+      applied = results.reduce((total, result) => total + result.count, 0);
+    }
+
+    return {
+      applied,
+      catalog: {
+        pages: catalogResult.pageCount,
+        advertisedProducts: catalogResult.totalCount,
+        parsedProducts: catalogResult.products.size,
+      },
+      ...mapping,
+    };
+  } finally {
+    await releaseSupplierLock(id).catch(() => undefined);
   }
 }
 
@@ -710,6 +805,7 @@ module.exports = {
   getSupplierSyncDashboard,
   updateSupplierSyncSettings,
   updateProductSyncMapping,
+  autoMapSupplierProducts,
   runSupplierSync,
   runEnabledSupplierSyncs,
   mapSyncRun,

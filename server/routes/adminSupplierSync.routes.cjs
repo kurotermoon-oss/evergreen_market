@@ -74,6 +74,25 @@ router.patch("/:supplierId/products/:productId", async (req, res) => {
   }
 });
 
+router.post("/:supplierId/auto-map", async (req, res) => {
+  try {
+    const result = await supplierSyncService.autoMapSupplierProducts(
+      req.params.supplierId,
+      {
+        apply: req.body?.apply === true,
+        enableSync: req.body?.enableSync !== false,
+      }
+    );
+
+    return res.json({
+      ok: true,
+      result,
+    });
+  } catch (error) {
+    return sendError(res, error, "Не вдалося автоматично привʼязати товари.");
+  }
+});
+
 router.post("/:supplierId/run", async (req, res) => {
   try {
     const run = await supplierSyncService.runSupplierSync(req.params.supplierId, {

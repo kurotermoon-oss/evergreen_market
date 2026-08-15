@@ -16,11 +16,15 @@ Evergreen Market synchronizes supplier-order availability from Milk Diller's pub
 
 1. Open `Адмін-панель → Синхронізація`.
 2. Select the Milk Diller supplier and connect the `Milk Diller` adapter.
-3. Paste the matching Milk Diller product URL for each supplier-order product.
-4. Enable automatic checking per product.
-5. Run `Перевірити без змін` first.
-6. Review the run summary, then run `Перевірити зараз`.
-7. Enable automatic runs only after the mappings are confirmed.
+3. Click `Знайти посилання` to preview bulk product matching.
+4. Review the exact and normalized matches, then click `Зберегти N`. Existing links are never overwritten.
+5. Review the unmatched and ambiguous lists. Add those links manually only after confirming the exact product, volume, and variant on Milk Diller.
+6. Enable automatic checking per product if it was not enabled during bulk matching.
+7. Run `Перевірити без змін` first.
+8. Review the run summary, then run `Перевірити зараз`.
+9. Enable automatic runs only after the mappings are confirmed.
+
+Bulk matching writes only unique exact or safely normalized name matches. Similar-name suggestions are informational and are never applied automatically. Products removed from the current Milk Diller catalog, or products with several plausible variants, remain unresolved instead of receiving an unsafe link.
 
 If more than 30% of at least ten mapped products would change at once, the run is recorded as `blocked` and no product statuses are updated. The admin can rerun and force the changes after reviewing them.
 
@@ -28,11 +32,13 @@ If more than 30% of at least ten mapped products would change at once, the run i
 
 ```bash
 npm run test:milkdiller-parser
+npm run test:milkdiller-mapping
 npm run test:milkdiller-live
+npm run test:milkdiller-mapping-live
 npm run sync:milkdiller
 ```
 
-The live parser check is read-only. The sync command writes to PostgreSQL and requires:
+Both live checks are read-only. The mapping live check also reads local products from PostgreSQL. The sync command writes to PostgreSQL and requires:
 
 ```text
 USE_POSTGRES=true

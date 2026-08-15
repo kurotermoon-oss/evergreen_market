@@ -183,6 +183,13 @@ checkTelegramVerification() {
     );
   },
 
+  autoMapAdminSupplierProducts(supplierId, payload = {}) {
+    return request(`/api/admin/supplier-sync/${supplierId}/auto-map`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
   runAdminSupplierSync(supplierId, payload = {}) {
     return request(`/api/admin/supplier-sync/${supplierId}/run`, {
       method: "POST",

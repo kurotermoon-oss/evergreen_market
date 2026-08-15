@@ -84,6 +84,7 @@ export default function AdminSupplierSyncPanel({
   }, [suppliers]);
   const [supplierId, setSupplierId] = useState(initialSupplierId);
   const [dashboard, setDashboard] = useState(null);
+  const [autoMapResult, setAutoMapResult] = useState(null);
   const [drafts, setDrafts] = useState({});
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("problems");
@@ -130,6 +131,7 @@ export default function AdminSupplierSyncPanel({
 
   useEffect(() => {
     setDashboard(null);
+    setAutoMapResult(null);
     setDrafts({});
     setNotice("");
 
@@ -197,6 +199,45 @@ export default function AdminSupplierSyncPanel({
     }
   }
 
+  async function runAutoMap({ apply = false } = {}) {
+    if (!supplierId) return;
+
+    if (
+      apply &&
+      !window.confirm(
+        `Зберегти ${autoMapResult?.summary?.matched || 0} однозначних привʼязок і ввімкнути для них автоматичну перевірку?`
+      )
+    ) {
+      return;
+    }
+
+    setAction(apply ? "auto-map-apply" : "auto-map-preview");
+    setError("");
+    setNotice("");
+
+    try {
+      const response = await api.autoMapAdminSupplierProducts(supplierId, {
+        apply,
+        enableSync: true,
+      });
+
+      setAutoMapResult(response.result);
+
+      if (apply) {
+        await Promise.all([loadDashboard(), refreshAdminData?.()]);
+        setNotice(
+          `Автоматично збережено ${response.result?.applied || 0} привʼязок. Перед застосуванням статусів виконайте тестову перевірку.`
+        );
+      } else {
+        setNotice("Попередній перегляд автопривʼязки готовий. Дані товарів не змінено.");
+      }
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setAction("");
+    }
+  }
+
   function updateDraft(productId, field, value) {
     setDrafts((current) => ({
       ...current,
@@ -218,6 +259,7 @@ export default function AdminSupplierSyncPanel({
 
     try {
       await api.updateAdminSupplierSyncProduct(supplierId, productId, draft);
+      setAutoMapResult(null);
       await Promise.all([loadDashboard(), refreshAdminData?.()]);
       setNotice("Привʼязку товару збережено.");
     } catch (requestError) {
@@ -418,6 +460,134 @@ export default function AdminSupplierSyncPanel({
             <StatCard label="Очікується" value={dashboard.stats.unavailable} tone="amber" />
             <StatCard label="Помилки" value={dashboard.stats.errors} tone="red" />
           </div>
+
+          {connected && (
+            <div className="eg-glass eg-premium-card rounded-[2rem] p-5 lg:p-6">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-stone-950">
+                    Масова автопривʼязка
+                  </h3>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-600">
+                    Парсер зіставить назви товарів Evergreen із каталогом Milk Diller.
+                    Автоматично зберігаються лише однозначні збіги, а вже додані
+                    посилання не перезаписуються.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={Boolean(action)}
+                    onClick={() => runAutoMap()}
+                    className="eg-button rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-black text-emerald-900 disabled:opacity-50"
+                  >
+                    {action === "auto-map-preview"
+                      ? "Шукаємо збіги…"
+                      : "Знайти посилання"}
+                  </button>
+
+                  {autoMapResult?.summary?.matched > 0 &&
+                    autoMapResult.applied === 0 && (
+                      <button
+                        type="button"
+                        disabled={Boolean(action)}
+                        onClick={() => runAutoMap({ apply: true })}
+                        className="eg-button rounded-2xl bg-emerald-900 px-5 py-3 text-sm font-black text-white disabled:opacity-50"
+                      >
+                        {action === "auto-map-apply"
+                          ? "Зберігаємо…"
+                          : `Зберегти ${autoMapResult.summary.matched}`}
+                      </button>
+                    )}
+                </div>
+              </div>
+
+              {autoMapResult && (
+                <div className="mt-5 space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                    <StatCard
+                      label="Вже привʼязано"
+                      value={autoMapResult.summary.alreadyMapped}
+                    />
+                    <StatCard
+                      label="Точні збіги"
+                      value={autoMapResult.summary.exact}
+                      tone="green"
+                    />
+                    <StatCard
+                      label="Нормалізовані"
+                      value={autoMapResult.summary.normalized}
+                      tone="green"
+                    />
+                    <StatCard
+                      label="Спірні"
+                      value={autoMapResult.summary.ambiguous}
+                      tone="amber"
+                    />
+                    <StatCard
+                      label="Не знайдено"
+                      value={autoMapResult.summary.unmatched}
+                      tone="red"
+                    />
+                  </div>
+
+                  {autoMapResult.applied > 0 && (
+                    <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900">
+                      Збережено привʼязок: {autoMapResult.applied}. Тепер виконайте
+                      «Перевірити без змін».
+                    </p>
+                  )}
+
+                  {autoMapResult.summary.ambiguous === 0 &&
+                    autoMapResult.summary.unmatched === 0 && (
+                      <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-900">
+                        Усі непривʼязані товари мають однозначні відповідники.
+                      </p>
+                    )}
+
+                  {autoMapResult.ambiguous?.length > 0 && (
+                    <div className="rounded-[1.4rem] border border-amber-200 bg-amber-50 p-4">
+                      <p className="font-black text-amber-950">
+                        Потрібна ручна перевірка
+                      </p>
+                      <div className="mt-3 space-y-2 text-sm text-amber-900">
+                        {autoMapResult.ambiguous.slice(0, 20).map((item) => (
+                          <p key={item.productId}>
+                            <span className="font-black">{item.productName}</span>
+                            {item.candidates?.[0]?.name
+                              ? ` → ${item.candidates[0].name}`
+                              : ""}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {autoMapResult.unmatched?.length > 0 && (
+                    <div className="rounded-[1.4rem] border border-stone-200 bg-stone-50 p-4">
+                      <p className="font-black text-stone-900">Не знайдені автоматично</p>
+                      <div className="mt-3 space-y-2 text-sm text-stone-700">
+                        {autoMapResult.unmatched.slice(0, 20).map((item) => (
+                          <p key={item.productId}>
+                            <span className="font-black">{item.productName}</span>
+                            {item.suggestions?.[0]?.name
+                              ? ` — можливо: ${item.suggestions[0].name}`
+                              : ""}
+                          </p>
+                        ))}
+                      </div>
+                      {autoMapResult.unmatched.length > 20 && (
+                        <p className="mt-3 text-xs font-bold text-stone-500">
+                          Показано перші 20 із {autoMapResult.unmatched.length}.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {latestRun?.status === "blocked" && (
             <div className="rounded-[1.6rem] border border-amber-200 bg-amber-50 p-5">
