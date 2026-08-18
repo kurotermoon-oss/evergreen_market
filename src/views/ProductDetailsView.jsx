@@ -5,6 +5,7 @@ import QuantityControl from "../components/QuantityControl.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import { formatUAH } from "../utils/formatUAH.js";
 import {
+  compareProductAvailability,
   getDiscountPercent,
   getProductPackage,
   getProductUnit,
@@ -158,6 +159,7 @@ export default function ProductDetailsView({
         String(item.id) !== String(product.id)
       );
     })
+    .sort(compareProductAvailability)
     .slice(0, 8);
 
   const activeSimilarProductIndex = Math.min(

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  compareProductAvailability,
   markPopularProducts,
   getPopularProducts,
 } from "../utils/products.js";
@@ -220,6 +221,10 @@ export function useCatalogFilters({
     });
 
     return [...filtered].sort((a, b) => {
+      const availabilityDiff = compareProductAvailability(a, b);
+
+      if (availabilityDiff !== 0) return availabilityDiff;
+
       if (sortBy === "price-asc") {
         return Number(a.price) - Number(b.price);
       }

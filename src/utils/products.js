@@ -188,6 +188,13 @@ export function isProductAvailable(product) {
   return true;
 }
 
+export function compareProductAvailability(firstProduct, secondProduct) {
+  return (
+    Number(isProductAvailable(secondProduct)) -
+    Number(isProductAvailable(firstProduct))
+  );
+}
+
 export function getCategoryName(categories, categoryId) {
   return (
     categories.find((category) => category.id === categoryId)?.name || "Товар"
