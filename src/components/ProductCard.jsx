@@ -1,3 +1,4 @@
+import { Truck } from "lucide-react";
 import Icon from "./Icon.jsx";
 import QuantityControl from "./QuantityControl.jsx";
 import logoEvergreen from "../img/logo_evergreen.webp";
@@ -168,12 +169,19 @@ export default function ProductCard({
         </p>
 
         {product.fulfillmentType === "supplier_order" && product.supplier && (
-          <p className="mt-2 line-clamp-2 text-xs font-bold leading-5 text-blue-800">
-            {product.supplier.name}
-            {product.supplier.minOrderAmount
-              ? ` · мінімум ${formatUAH(product.supplier.minOrderAmount)}`
-              : ""}
-          </p>
+          <div className="mt-2 flex min-w-0 items-start gap-2 rounded-xl border border-blue-100 bg-blue-50/75 px-2.5 py-2 text-blue-900">
+            <Truck size={14} className="mt-0.5 shrink-0 text-blue-700" />
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-black leading-4 sm:text-xs">
+                {product.supplier.name}
+              </p>
+              <p className="text-[10px] font-semibold leading-4 text-blue-700 sm:text-[11px]">
+                {Number(product.supplier.minOrderAmount || 0) > 0
+                  ? `Мінімум ${formatUAH(product.supplier.minOrderAmount)}`
+                  : "Без мінімальної суми"}
+              </p>
+            </div>
+          </div>
         )}
 
         <div className="mt-auto pt-3 sm:pt-5">

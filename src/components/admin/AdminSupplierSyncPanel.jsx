@@ -238,6 +238,56 @@ export default function AdminSupplierSyncPanel({
     }
   }
 
+  async function toggleAutomaticSync() {
+    if (!supplierId || !dashboard) return;
+
+    const nextEnabled = !(
+      dashboard.supplier.enabled && !dashboard.supplier.paused
+    );
+    let settingsSaved = false;
+
+    setAction("automatic-sync");
+    setError("");
+    setNotice("");
+
+    try {
+      await api.updateAdminSupplierSyncSettings(supplierId, {
+        adapter: ADAPTER_ID,
+        enabled: nextEnabled,
+        paused: false,
+      });
+      settingsSaved = true;
+
+      let immediateRun = null;
+
+      if (nextEnabled) {
+        const response = await api.runAdminSupplierSync(supplierId, {
+          dryRun: false,
+          force: false,
+        });
+        immediateRun = response.run;
+      }
+
+      await Promise.all([loadDashboard(), refreshApplicationData()]);
+      setNotice(
+        nextEnabled
+          ? `Автоматичну перевірку увімкнено. ${
+              immediateRun?.message || "Першу перевірку завершено."
+            }`
+          : "Автоматичну перевірку вимкнено. Планові запуски не змінюватимуть статуси товарів."
+      );
+    } catch (requestError) {
+      await loadDashboard();
+      setError(
+        settingsSaved && nextEnabled
+          ? `Автоматичну перевірку увімкнено, але перший запуск не завершився: ${requestError.message}`
+          : requestError.message
+      );
+    } finally {
+      setAction("");
+    }
+  }
+
   function updateDraft(productId, field, value) {
     setDrafts((current) => ({
       ...current,
@@ -292,6 +342,8 @@ export default function AdminSupplierSyncPanel({
   }, [dashboard?.products, filter, query]);
 
   const connected = dashboard?.supplier?.adapter === ADAPTER_ID;
+  const automaticSyncEnabled =
+    connected && dashboard?.supplier?.enabled && !dashboard?.supplier?.paused;
   const latestRun = dashboard?.runs?.[0] || null;
 
   return (
@@ -306,8 +358,9 @@ export default function AdminSupplierSyncPanel({
               Синхронізація Milk Diller
             </h2>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600">
-              Легкий серверний парсер перевіряє каталог чотири рази на день.
-              Помилка сайту постачальника не змінює попередній статус товару.
+              Автоматичний режим перевіряє каталог кожні 6 годин через короткі
+              запуски Railway Cron. Помилка сайту постачальника не змінює
+              попередній статус товару.
             </p>
           </div>
 
@@ -362,7 +415,9 @@ export default function AdminSupplierSyncPanel({
                   Остання перевірка: {formatDateTime(dashboard.supplier.lastRunAt)}
                 </span>
                 <span className="text-sm text-stone-600">
-                  Розклад: 4 рази на день у Railway Cron
+                  {automaticSyncEnabled
+                    ? "Автоматична перевірка: кожні 6 годин"
+                    : "Автоматична перевірка вимкнена"}
                 </span>
               </div>
 
@@ -405,41 +460,39 @@ export default function AdminSupplierSyncPanel({
                     </button>
                     <button
                       type="button"
+                      role="switch"
+                      aria-checked={automaticSyncEnabled}
                       disabled={Boolean(action)}
-                      onClick={() =>
-                        updateSettings(
-                          {
-                            adapter: ADAPTER_ID,
-                            enabled: dashboard.supplier.enabled,
-                            paused: !dashboard.supplier.paused,
-                          },
-                          "pause"
-                        )
-                      }
-                      className="eg-button rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm font-black text-stone-800 disabled:opacity-50"
-                    >
-                      {dashboard.supplier.paused ? "Відновити" : "Призупинити"}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={Boolean(action)}
-                      onClick={() =>
-                        updateSettings(
-                          {
-                            adapter: ADAPTER_ID,
-                            enabled: !dashboard.supplier.enabled,
-                            paused: dashboard.supplier.paused,
-                          },
-                          "automatic"
-                        )
-                      }
-                      className={`eg-button rounded-2xl border px-4 py-3 text-sm font-black disabled:opacity-50 ${
-                        dashboard.supplier.enabled
-                          ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                          : "border-amber-200 bg-amber-50 text-amber-900"
+                      onClick={toggleAutomaticSync}
+                      className={`eg-button flex items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-black disabled:opacity-50 ${
+                        automaticSyncEnabled
+                          ? "border-emerald-300 bg-emerald-50 text-emerald-950"
+                          : "border-stone-300 bg-white text-stone-800"
                       }`}
                     >
-                      Автозапуск: {dashboard.supplier.enabled ? "увімкнено" : "вимкнено"}
+                      <span
+                        aria-hidden="true"
+                        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                          automaticSyncEnabled
+                            ? "bg-emerald-700"
+                            : "bg-stone-300"
+                        }`}
+                      >
+                        <span
+                          className={`absolute left-0 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+                            automaticSyncEnabled
+                              ? "translate-x-6"
+                              : "translate-x-1"
+                          }`}
+                        />
+                      </span>
+                      <span>
+                        {action === "automatic-sync"
+                          ? "Змінюємо режим…"
+                          : `Автоматична перевірка: ${
+                              automaticSyncEnabled ? "увімкнена" : "вимкнена"
+                            }`}
+                      </span>
                     </button>
                   </>
                 )}

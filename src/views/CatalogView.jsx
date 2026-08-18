@@ -88,60 +88,6 @@ const SORT_OPTIONS = [
   { value: "name-asc", label: "За назвою" },
 ];
 
-function SupplierTileGrid({ suppliers = [], onSelect }) {
-  if (!suppliers.length) {
-    return (
-      <div className="eg-panel rounded-[2rem] border border-dashed border-stone-200 bg-white p-10 text-center shadow-sm">
-        <p className="text-xl font-black text-stone-950">
-          Постачальників поки немає
-        </p>
-
-        <p className="mt-2 text-sm leading-6 text-stone-500">
-          Коли зʼявляться товари під замовлення, тут будуть плитки постачальників.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="eg-catalog-results grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 lg:grid-cols-3">
-      {suppliers.map((supplier) => (
-        <button
-          key={supplier.id}
-          type="button"
-          onClick={() => onSelect?.(supplier.id)}
-          className="eg-button eg-premium-card min-h-[168px] rounded-[1.6rem] border border-emerald-100 bg-white/92 p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50/70 hover:shadow-lg hover:shadow-emerald-900/10"
-        >
-          <span className="flex items-start justify-between gap-4">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[1.05rem] bg-blue-50 text-blue-800 ring-1 ring-blue-100">
-              <Truck size={23} />
-            </span>
-
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-950">
-              {supplier.count} {getProductWord(supplier.count)}
-            </span>
-          </span>
-
-          <span className="mt-5 block text-xl font-black leading-tight text-stone-950">
-            {supplier.name}
-          </span>
-
-          <span className="mt-2 block text-sm font-semibold leading-6 text-stone-600">
-            Мінімальне замовлення:{" "}
-            <span className="font-black text-stone-950">
-              {formatUAH(supplier.minOrderAmount)}
-            </span>
-          </span>
-
-          <span className="mt-4 inline-flex min-h-10 items-center rounded-2xl bg-emerald-900 px-4 text-sm font-black text-white">
-            Відкрити каталог
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export default function CatalogView({
   categories,
   products = [],
@@ -203,16 +149,12 @@ export default function CatalogView({
       const isSupplierOrder = product.fulfillmentType === "supplier_order";
 
       if (selectedFulfillmentType === "supplier_order") {
-        return (
-          isSupplierOrder &&
-          selectedSupplierId &&
-          String(product.supplierId || "") === String(selectedSupplierId)
-        );
+        return isSupplierOrder;
       }
 
       return !isSupplierOrder;
     });
-  }, [products, selectedFulfillmentType, selectedSupplierId]);
+  }, [products, selectedFulfillmentType]);
 
   const catalogCategoryIds = useMemo(() => {
     return new Set(
@@ -309,7 +251,11 @@ export default function CatalogView({
       if (
         product.active === false ||
         product.fulfillmentType !== "supplier_order" ||
-        !product.supplierId
+        !product.supplierId ||
+        (selectedCategory !== "all" &&
+          product.category !== selectedCategory) ||
+        (selectedSubcategory !== "all" &&
+          product.subcategory !== selectedSubcategory)
       ) {
         return;
       }
@@ -328,7 +274,7 @@ export default function CatalogView({
     return [...suppliersById.values()].sort((a, b) => {
       return a.name.localeCompare(b.name, "uk");
     });
-  }, [products]);
+  }, [products, selectedCategory, selectedSubcategory]);
 
   const productCounts = useMemo(() => {
     const categoryCounts = {};
@@ -380,20 +326,37 @@ export default function CatalogView({
     return String(supplier.id) === String(selectedSupplierId);
   });
 
-  const isSupplierSelectionMode =
-    selectedFulfillmentType === "supplier_order" && !selectedSupplierId;
+  const pageTitle =
+    selectedCategory !== "all"
+      ? activeCategory?.name || "Каталог товарів"
+      : selectedSupplier
+        ? selectedSupplier.name
+        : selectedFulfillmentType === "supplier_order"
+          ? "Товари під замовлення"
+          : "Каталог товарів";
 
-  const pageTitle = isSupplierSelectionMode
-    ? "Постачальники"
-    : selectedSupplier
-      ? selectedSupplier.name
-      : selectedCategory === "all"
-        ? "Каталог товарів"
-        : activeCategory?.name || "Каталог товарів";
+  const pageCountLabel = `${totalProducts} ${getProductWord(totalProducts)}`;
 
-  const pageCountLabel = isSupplierSelectionMode
-    ? `${supplierFilters.length} постачальників`
-    : `${totalProducts} ${getProductWord(totalProducts)}`;
+  useEffect(() => {
+    if (
+      selectedFulfillmentType !== "supplier_order" ||
+      !selectedSupplierId ||
+      supplierFilters.some(
+        (supplier) => String(supplier.id) === String(selectedSupplierId)
+      )
+    ) {
+      return;
+    }
+
+    setSelectedSupplierId("");
+    setCurrentPage(1);
+  }, [
+    selectedFulfillmentType,
+    selectedSupplierId,
+    supplierFilters,
+    setSelectedSupplierId,
+    setCurrentPage,
+  ]);
 
   const selectedSortOption =
     SORT_OPTIONS.find((option) => option.value === sortBy) || SORT_OPTIONS[0];
@@ -718,12 +681,34 @@ export default function CatalogView({
 
   function selectSupplierFilter(supplierId) {
     setSelectedSupplierId(supplierId);
-    setSelectedCategory("all");
-    setSelectedSubcategory("all");
     setCurrentPage(1);
   }
 
+  function keepSupplierIfAvailable(categoryId, subcategoryId = "all") {
+    if (
+      selectedFulfillmentType !== "supplier_order" ||
+      !selectedSupplierId
+    ) {
+      return;
+    }
+
+    const supplierHasProducts = products.some((product) => {
+      return (
+        product.active !== false &&
+        product.fulfillmentType === "supplier_order" &&
+        String(product.supplierId || "") === String(selectedSupplierId) &&
+        product.category === categoryId &&
+        (subcategoryId === "all" || product.subcategory === subcategoryId)
+      );
+    });
+
+    if (!supplierHasProducts) {
+      setSelectedSupplierId("");
+    }
+  }
+
   function selectCategory(categoryId) {
+    keepSupplierIfAvailable(categoryId);
     setSelectedCategory(categoryId);
     setSelectedSubcategory("all");
     setCurrentPage(1);
@@ -731,6 +716,7 @@ export default function CatalogView({
   }
 
   function selectSubcategory(categoryId, subcategoryId) {
+    keepSupplierIfAvailable(categoryId, subcategoryId);
     setSelectedCategory(categoryId);
     setSelectedSubcategory(subcategoryId);
     setCurrentPage(1);
@@ -1412,7 +1398,10 @@ export default function CatalogView({
                           : "text-stone-500"
                       }`}
                     >
-                      Мінімум {formatUAH(supplier.minOrderAmount)} ·{" "}
+                      {supplier.minOrderAmount > 0
+                        ? `Мінімум ${formatUAH(supplier.minOrderAmount)}`
+                        : "Без мінімальної суми"}{" "}
+                      ·{" "}
                       {supplier.count} {getProductWord(supplier.count)}
                     </span>
                   </button>
@@ -1464,6 +1453,31 @@ export default function CatalogView({
             {pageCountLabel}
           </span>
         </div>
+
+        {selectedFulfillmentType === "supplier_order" && (
+          <div className="mb-5 flex max-w-4xl items-start gap-3 rounded-[1.25rem] border border-blue-100 bg-blue-50/75 px-4 py-3.5 text-blue-950 sm:mb-7 sm:px-5 sm:py-4">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-blue-800 shadow-sm ring-1 ring-blue-100">
+              <Truck size={18} />
+            </span>
+
+            <div className="min-w-0">
+              <p className="text-sm font-black">
+                {selectedSupplier
+                  ? `Постачальник: ${selectedSupplier.name}`
+                  : "Показуємо товари всіх постачальників"}
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-blue-800 sm:text-sm">
+                {selectedSupplier
+                  ? selectedSupplier.minOrderAmount > 0
+                    ? `Мінімальне замовлення — ${formatUAH(
+                        selectedSupplier.minOrderAmount
+                      )}.`
+                    : "Для цього постачальника немає мінімальної суми."
+                  : "Постачальник і його мінімальна сума вказані на кожній картці товару."}
+              </p>
+            </div>
+          </div>
+        )}
 
         {query.trim() && (
           <div className="mb-4 flex md:hidden">
@@ -1694,12 +1708,7 @@ export default function CatalogView({
       </section>
 
       <section className="min-w-0">
-          {isSupplierSelectionMode ? (
-            <SupplierTileGrid
-              suppliers={supplierFilters}
-              onSelect={selectSupplierFilter}
-            />
-          ) : visibleProducts.length > 0 ? (
+          {visibleProducts.length > 0 ? (
             <div
               key={catalogResultsKey}
               className="eg-catalog-results grid grid-cols-2 gap-2.5 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
@@ -1740,7 +1749,7 @@ export default function CatalogView({
             </div>
           )}
 
-          {!isSupplierSelectionMode && totalProductPages > 1 && (
+          {totalProductPages > 1 && (
             <nav
               className="mt-8 flex flex-col items-center justify-center gap-3"
               aria-label="Пагінація товарів"

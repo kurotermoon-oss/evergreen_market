@@ -83,11 +83,7 @@ export function useCatalogFilters({
       const isSupplierOrder = product.fulfillmentType === "supplier_order";
 
       if (selectedFulfillmentType === "supplier_order") {
-        return (
-          isSupplierOrder &&
-          selectedSupplierId &&
-          String(product.supplierId || "") === String(selectedSupplierId)
-        );
+        return isSupplierOrder;
       }
 
       return !isSupplierOrder;
@@ -118,7 +114,6 @@ export function useCatalogFilters({
     selectedCategory,
     selectedSubcategory,
     selectedFulfillmentType,
-    selectedSupplierId,
   ]);
 
   const productsWithPopularity = useMemo(() => {
@@ -203,6 +198,7 @@ export function useCatalogFilters({
           : !isSupplierOrder;
       const supplierMatch =
         selectedFulfillmentType !== "supplier_order" ||
+        !selectedSupplierId ||
         (Boolean(selectedSupplierId) &&
           String(product.supplierId || "") === String(selectedSupplierId));
 

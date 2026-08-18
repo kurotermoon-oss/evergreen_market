@@ -1,6 +1,6 @@
 # Supplier Availability Sync
 
-Evergreen Market synchronizes supplier-order availability from Milk Diller's public HTML catalog. The integration is deliberately lightweight: it uses regular HTTP requests plus Cheerio and does not launch a browser.
+Evergreen Market synchronizes supplier-order availability from Milk Diller's public HTML catalog. The integration is deliberately lightweight: it uses regular HTTP requests plus Cheerio and does not launch a browser. Because Milk Diller has no API or webhooks, the current mode is a periodic check every six hours rather than true real-time updates.
 
 ## Data Rules
 
@@ -22,7 +22,7 @@ Evergreen Market synchronizes supplier-order availability from Milk Diller's pub
 6. Enable automatic checking per product if it was not enabled during bulk matching.
 7. Run `Перевірити без змін` first.
 8. Review the run summary, then run `Перевірити зараз`.
-9. Enable automatic runs only after the mappings are confirmed.
+9. Turn on `Автоматична перевірка` only after the mappings are confirmed. Enabling it starts one immediate check; disabling it stops later cron runs from changing product statuses.
 
 Bulk matching writes only unique exact or safely normalized name matches. Similar-name suggestions are informational and are never applied automatically. Products removed from the current Milk Diller catalog, or products with several plausible variants, remain unresolved instead of receiving an unsafe link.
 
@@ -57,15 +57,17 @@ Start command:
 npm run sync:milkdiller
 ```
 
-Suggested schedule for four daily runs:
+Recommended six-hour schedule:
 
 ```text
-0 5,9,13,16 * * *
+0 */6 * * *
 ```
 
-Railway evaluates cron schedules in UTC. During Kyiv summer time this corresponds to 08:00, 12:00, 16:00, and 19:00. The local time shifts by one hour in winter unless the Railway schedule is adjusted.
+Railway evaluates cron schedules in UTC. A six-hour interval is timezone-independent. The cron service still starts every six hours while the admin switch is off, but it only reads the enabled-supplier list and exits without crawling Milk Diller.
 
 The cron service must share the production `DATABASE_URL`, `USE_POSTGRES`, Telegram variables, and optional sync tuning variables. It must exit after each run and should not have a public domain.
+
+The public storefront refreshes its product list once per minute while the tab is visible, and immediately when a hidden tab becomes visible again. Therefore an already-open storefront reflects a completed supplier check without requiring a manual page reload.
 
 ## Optional Tuning
 
