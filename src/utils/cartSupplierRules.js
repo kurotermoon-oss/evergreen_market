@@ -86,7 +86,7 @@ function createInStockGroup(items = []) {
     isMinimumMet: true,
     isValid: true,
     canCheckout: items.length > 0,
-    message: items.length ? "" : "У цьому сегменті немає товарів.",
+    message: items.length ? "" : "У цій групі немає товарів.",
   };
 }
 
@@ -109,7 +109,7 @@ function createSupplierGroup(items = [], supplierId = "") {
     isValid = false;
     message = `Постачальник ${supplierName} зараз вимкнений. Оформити товари під замовлення від нього неможливо.`;
   } else if (missingAmount > 0) {
-    message = `Мінімальне замовлення від ${supplierName} - ${minOrderAmount} грн. Зараз у сегменті ${total} грн. Додайте ще ${missingAmount} грн товарів цього постачальника.`;
+    message = `Мінімальне замовлення від ${supplierName} - ${minOrderAmount} грн. Зараз у групі ${total} грн. Додайте ще ${missingAmount} грн товарів цього постачальника.`;
   }
 
   const isMinimumMet = missingAmount <= 0;
@@ -119,7 +119,7 @@ function createSupplierGroup(items = [], supplierId = "") {
     type: FULFILLMENT_SUPPLIER_ORDER,
     title: supplierName,
     label: `Під замовлення · ${supplierName}`,
-    description: `Окреме замовлення від ${supplierName}. У цей сегмент не додаються товари з вкладки "Є в наявності".`,
+    description: `Окреме замовлення від ${supplierName}. До цієї групи не додаються товари з вкладки "Є в наявності".`,
     items,
     count,
     total,

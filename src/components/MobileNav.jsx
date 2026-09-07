@@ -192,6 +192,7 @@ export default function MobileNav({
                   : "text-emerald-50/85 hover:bg-white/10 hover:text-white"
             }`}
             aria-label={item.label}
+            aria-current={item.isActive && !item.isDialogTrigger ? "page" : undefined}
             aria-haspopup={item.isDialogTrigger ? "dialog" : undefined}
             aria-expanded={item.isDialogTrigger ? item.isExpanded : undefined}
             title={item.label}

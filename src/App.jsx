@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import PageLoader from "./components/PageLoader.jsx";
 import {
   DEFAULT_FORM,
@@ -27,23 +27,25 @@ import Footer from "./components/Footer.jsx";
 import MobileNav from "./components/MobileNav.jsx";
 import FloatingCartButton from "./components/FloatingCartButton.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
-import AdminProductEditModal from "./components/admin/AdminProductEditModal.jsx";
+const AdminProductEditModal = lazy(() => import("./components/admin/AdminProductEditModal.jsx"));
 import BrandLogo from "./components/BrandLogo.jsx";
 import FeedbackButton from "./components/FeedbackButton.jsx";
 
 
 import HomeView from "./views/HomeView.jsx";
-import CatalogView from "./views/CatalogView.jsx";
-import HowItWorksView from "./views/HowItWorksView.jsx";
-import CartView from "./views/CartView.jsx";
-import ContactsView from "./views/ContactsView.jsx";
-import SuccessView from "./views/SuccessView.jsx";
-import AdminView from "./views/AdminView.jsx";
-import AdminLoginView from "./views/AdminLoginView.jsx";
-import ProductDetailsView from "./views/ProductDetailsView.jsx";
+const CatalogView = lazy(() => import("./views/CatalogView.jsx"));
+const HowItWorksView = lazy(() => import("./views/HowItWorksView.jsx"));
+const CartView = lazy(() => import("./views/CartView.jsx"));
+const ContactsView = lazy(() => import("./views/ContactsView.jsx"));
+const SuccessView = lazy(() => import("./views/SuccessView.jsx"));
+const AdminView = lazy(() => import("./views/AdminView.jsx"));
+const AdminLoginView = lazy(() => import("./views/AdminLoginView.jsx"));
+const ProductDetailsView = lazy(() => import("./views/ProductDetailsView.jsx"));
 
-import CustomerAuthView from "./views/CustomerAuthView.jsx";
-import AccountView from "./views/AccountView.jsx";
+const CustomerAuthView = lazy(() => import("./views/CustomerAuthView.jsx"));
+const AccountView = lazy(() => import("./views/AccountView.jsx"));
+
+const HowItWorksPreview = import.meta.env.MODE === "development" ? lazy(() => import("./views/HowItWorksPreview.jsx")) : null;
 
 export default function App() {
   const [route, setRoute] = useState(() =>
@@ -90,16 +92,6 @@ export default function App() {
     loadPublicData,
   } = usePublicData();
 
-
-const [showPageLoader, setShowPageLoader] = useState(true);
-
-useEffect(() => {
-  const timeoutId = window.setTimeout(() => {
-    setShowPageLoader(false);
-  }, 1400);
-
-  return () => window.clearTimeout(timeoutId);
-}, []);
 
 useEffect(() => {
   function handleRouteChange() {
@@ -469,9 +461,10 @@ function applyCustomerToForm(customerData) {
     startEditProduct(adminProduct || product);
   }
 
+  const isHowPage = view === "how-it-works" || view === "how-it-works-preview";
   const shouldShowFeedbackButton =
-    view !== "admin" &&
-    (isDesktopViewport || (view !== "catalog" && view !== "cart"));
+    view !== "admin" && !isHowPage &&
+    (isDesktopViewport || (view !== "catalog" && !isCartRoute(view)));
 
 
 
@@ -534,9 +527,11 @@ function applyCustomerToForm(customerData) {
   }
 
 return (
-  <div className="min-h-screen bg-stone-50 text-stone-950">
-    <PageLoader show={showPageLoader || isAppLoading} />
+  <div className={`min-h-screen ${view === "admin" ? "bg-stone-50 text-stone-950" : "eg-storefront"}`}>
 
+    <PageLoader show={isAppLoading} />
+
+    {import.meta.env.MODE === "development" && import.meta.env.VITE_READONLY_PREVIEW === "1" && <div className="shop-preview-banner">Попередній перегляд · замовлення не надсилаються · <a href="/how-it-works" style={{textDecoration:"underline"}}>Новий гід покупця ↗</a></div>}
     <Header
         view={view}
         setView={setView}
@@ -552,6 +547,7 @@ return (
   }`}
 >
 
+      <Suspense fallback={<div className="shop-loading" role="status">Завантажуємо сторінку…</div>}>
       {view === "home" && (
       <HomeView
         setView={setView}
@@ -615,6 +611,8 @@ return (
           openProduct={openProduct}
         />
       )}
+
+      {view === "how-it-works-preview" && HowItWorksPreview && <HowItWorksPreview setView={setView} />}
 
       {view === "how-it-works" && (
         <HowItWorksView setView={setView} />
@@ -733,8 +731,10 @@ return (
         deleteSubcategory={deleteSubcategory}
       />
       )}
+</Suspense>
 </div>
       {isAdmin && editingProduct && (
+        <Suspense fallback={<div className='shop-loading' role='status'>Відкриваємо редактор…</div>}>
         <AdminProductEditModal
           categories={adminCategories.length ? adminCategories : categories}
           suppliers={adminSuppliers}
@@ -743,18 +743,21 @@ return (
           saveEditedProduct={saveEditedProduct}
           cancelEditProduct={cancelEditProduct}
         />
+        </Suspense>
       )}
 
       {view !== "contacts" &&
-        (view === "home" || view === "how-it-works" || isDesktopViewport) && (
+        (view === "home" || view === "how-it-works" || view === "how-it-works-preview" || isDesktopViewport) && (
         <Footer setView={setView} />
       )}
 
+      {!isHowPage && (
       <FloatingCartButton
         isOpen={isCartDrawerOpen}
         onOpen={openCartDrawer}
         cartCount={cartCount}
       />
+      )}
 
       {shouldShowFeedbackButton && (
         <FeedbackButton

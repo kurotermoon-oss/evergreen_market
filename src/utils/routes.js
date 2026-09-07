@@ -59,6 +59,8 @@ export function getRouteFromLocation(location = window.location) {
     };
   }
 
+  if (import.meta.env?.MODE === "development" && pathname === "/preview/how-it-works") return {view:"how-it-works-preview", path:pathname};
+
   const view = STATIC_VIEW_BY_PATH.get(pathname);
 
   if (view) {

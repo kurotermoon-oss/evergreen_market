@@ -244,6 +244,10 @@ export default function CatalogView({
     );
   }, [products]);
 
+  const hasOnlySupplierProducts =
+    selectedFulfillmentType === "in_stock" &&
+    fulfillmentCounts.inStock === 0 && fulfillmentCounts.supplierOrder > 0;
+
   const supplierFilters = useMemo(() => {
     const suppliersById = new Map();
 
@@ -1732,19 +1736,22 @@ export default function CatalogView({
               className="eg-catalog-results eg-panel rounded-[2rem] border border-dashed border-stone-200 bg-white p-10 text-center shadow-sm"
             >
               <p className="text-xl font-black text-stone-950">
-                Товарів не знайдено
+                {hasOnlySupplierProducts ? "Зараз товари доступні під замовлення" : "Товарів не знайдено"}
               </p>
 
               <p className="mt-2 text-sm leading-6 text-stone-500">
-                Спробуйте змінити пошук або категорію.
+                {hasOnlySupplierProducts ? "Перегляньте каталог і додайте потрібне до найближчої закупівлі." : "Спробуйте змінити пошук або категорію."}
               </p>
 
               <button
                 type="button"
-                onClick={resetAllFilters}
+                onClick={() => {
+                  resetAllFilters();
+                  if (hasOnlySupplierProducts) selectFulfillmentTab("supplier_order");
+                }}
                 className="eg-button eg-sweep mt-5 rounded-2xl bg-emerald-900 px-6 py-3 font-bold text-white hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20"
               >
-                Показати всі товари
+                {hasOnlySupplierProducts ? "Переглянути товари під замовлення" : "Показати всі товари"}
               </button>
             </div>
           )}

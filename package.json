@@ -12,7 +12,7 @@
     "test:milkdiller-live": "node server/scripts/testMilkDillerLive.cjs",
     "test:milkdiller-mapping": "node server/scripts/testSupplierProductAutoMapping.cjs",
     "test:milkdiller-mapping-live": "node server/scripts/testMilkDillerMappingLive.cjs",
-    "build": "vite build",
+    "build": "node scripts/build.mjs",
     "preview": "vite preview",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -22,7 +22,9 @@
     "db:backup:local": "powershell -ExecutionPolicy Bypass -File server/scripts/backup-postgres-local.ps1",
     "db:restore:local": "powershell -ExecutionPolicy Bypass -File server/scripts/restore-postgres-local.ps1",
     "db:backup:remote": "powershell -ExecutionPolicy Bypass -File server/scripts/backup-postgres-remote.ps1",
-    "db:restore:remote": "powershell -ExecutionPolicy Bypass -File server/scripts/restore-postgres-remote.ps1"
+    "db:restore:remote": "powershell -ExecutionPolicy Bypass -File server/scripts/restore-postgres-remote.ps1",
+    "preview:design": "node scripts/preview-design.mjs",
+    "preview:refresh": "node scripts/refresh-preview-data.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1045.0",

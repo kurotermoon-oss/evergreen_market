@@ -3,11 +3,7 @@ import { useMemo, useRef } from "react";
 import ProductCard from "../components/ProductCard.jsx";
 import { getRandomItems } from "../utils/products.js";
 
-import {
-  PickupIcon,
-  PaymentIcon,
-  GuestIcon,
-} from "../components/icons/HomeFeatureIcons.jsx";
+import HomeIntro from "../components/storefront/HomeIntro.jsx";
 
 function getVisibleSubcategories(category) {
   return (category?.subcategories || []).filter((subcategory) => {
@@ -20,26 +16,6 @@ function getSubcategoryLabel(count) {
   if (count === 1) return "1 підкатегорія";
   if (count > 1 && count < 5) return `${count} підкатегорії`;
   return `${count} підкатегорій`;
-}
-
-function HeroStepCard({ number, icon, title, text }) {
-  return (
-    <div className="eg-card rounded-[1.35rem] bg-white/90 p-4 shadow-sm ring-1 ring-emerald-100 hover:bg-emerald-50/60 hover:shadow-md">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-900 text-sm font-black text-white shadow-md shadow-emerald-900/15">
-          {number}
-        </div>
-
-        <div className="grid h-10 w-10 place-items-center rounded-2xl bg-emerald-50 text-emerald-900 ring-1 ring-emerald-100">
-          {icon}
-        </div>
-      </div>
-
-      <p className="mt-3 font-black text-stone-950">{title}</p>
-
-      <p className="mt-1 text-sm leading-6 text-stone-500">{text}</p>
-    </div>
-  );
 }
 
 export default function HomeView({
@@ -81,120 +57,11 @@ export default function HomeView({
 
   return (
     <main>
-      {/* HERO */}
-      <section className="eg-ambient border-b border-emerald-100 bg-gradient-to-b from-emerald-50/70 to-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-20">
-          <div className="eg-page">
-            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-emerald-800 shadow-sm backdrop-blur">
-              Кава та товари поруч
-            </p>
-
-            <h1 className="mt-5 max-w-3xl text-5xl font-black leading-tight text-stone-950 lg:text-6xl">
-              Evergreen coffee
-            </h1>
-
-            <p className="mt-5 max-w-2xl text-base leading-8 text-stone-600">
-              Кава, напої та товари для дому поруч. Замовляйте онлайн і
-              забирайте в кавʼярні на Білицькій, 20 без зайвого очікування.
-            </p>
-
-            <div className="mt-7 flex flex-wrap gap-2 text-sm font-bold text-emerald-950">
-              <span className="rounded-full bg-white/75 px-4 py-2 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
-                Самовивіз на Білицькій, 20
-              </span>
-              <span className="rounded-full bg-white/75 px-4 py-2 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
-                Підтвердимо телефоном або в Telegram
-              </span>
-              <span className="rounded-full bg-white/75 px-4 py-2 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
-                Без обовʼязкової реєстрації
-              </span>
-            </div>
-
-            <div className="mt-5 rounded-[1.35rem] border border-emerald-200 bg-white/80 p-4 text-sm leading-6 text-stone-600 shadow-sm backdrop-blur">
-              <p className="font-black text-emerald-950">
-                Доставка скоро повернеться
-              </p>
-
-              <p className="mt-1">
-                Поки налаштовуємо маршрут, доставку поставили на кавову паузу.
-                Зараз замовлення можна забрати в кавʼярні, а ми підготуємо його
-                після підтвердження.
-              </p>
-            </div>
-
-            <div className="eg-stagger mt-8 grid gap-3 md:grid-cols-3">
-              <HeroStepCard
-                number="1"
-                icon={<GuestIcon />}
-                title="Оберіть товари"
-                text="Кава, напої та товари для дому в одному каталозі."
-              />
-
-              <HeroStepCard
-                number="2"
-                icon={<PaymentIcon />}
-                title="Залиште контакт"
-                text="Швидко підтвердимо замовлення телефоном або в Telegram."
-              />
-
-              <HeroStepCard
-                number="3"
-                icon={<PickupIcon />}
-                title="Заберіть без черги"
-                text="Підготуємо покупку в кавʼярні на Білицькій, 20."
-              />
-            </div>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => setView("catalog")}
-                className="eg-button eg-sweep rounded-2xl bg-emerald-900 px-6 py-4 text-sm font-black text-white hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/20"
-              >
-                Перейти до каталогу
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setView("contacts")}
-                className="eg-button rounded-2xl border border-stone-300 bg-white/80 px-6 py-4 text-sm font-black text-stone-950 backdrop-blur hover:bg-white"
-              >
-                Як нас знайти
-              </button>
-            </div>
-          </div>
-
-          <div className="lg:justify-self-end">
-            <div className="eg-glass eg-premium-card rounded-[2rem] p-4">
-              <div className="overflow-hidden rounded-[1.5rem]">
-                <img
-                  src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop"
-                  alt="Evergreen coffee"
-                  className="h-[340px] w-full object-cover lg:h-[420px]"
-                />
-              </div>
-
-              <div className="eg-panel mt-4 rounded-[1.5rem] bg-emerald-900 p-6 text-white">
-                <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-100">
-                  Самовивіз щодня
-                </p>
-
-                <p className="mt-3 text-2xl font-black">
-                  Білицька, 20 · 09:00-21:00
-                </p>
-
-                <p className="mt-2 text-sm leading-6 text-emerald-50">
-                  Підтвердимо замовлення і підготуємо його до вашого приходу.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HomeIntro setView={setView} />
 
       {/* CATEGORIES */}
       {shownCategories.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+        <section className="shop-home-sections mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
@@ -366,8 +233,7 @@ export default function HomeView({
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50">
                 Заберіть замовлення самостійно в кавʼярні. Карта, графік
-                роботи та контакти вже на окремій сторінці, а доставку ми ще
-                готуємо до повернення.
+                роботи та контакти — на окремій сторінці. Повідомимо, коли ваше замовлення буде готове.
               </p>
             </div>
 

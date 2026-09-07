@@ -9,3 +9,5 @@ server/data/
 server/backups/*.dump
 server/backups/*.sql
 server/backups/*.backup
+# Local read-only design snapshots
+.preview/

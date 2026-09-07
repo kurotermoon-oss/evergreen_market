@@ -1,12 +1,13 @@
 const DEFAULT_META = {
   title: "Evergreen coffee | Кава та маркет поруч",
   description:
-    "Evergreen coffee — локальна кав'ярня та маркет у Києві з онлайн-каталогом, самовивозом і доставкою по ЖК.",
+    "Evergreen coffee — локальна кав'ярня та маркет у Києві з онлайн-каталогом та самовивозом на Білицькій, 20.",
   robots: "index, follow",
 };
 
 const PAGE_META = {
   home: DEFAULT_META,
+  "how-it-works-preview": { title: "Попередній перегляд — Як працює Evergreen Market", description: "Новий гід покупця Evergreen", robots: "noindex, nofollow" },
   catalog: {
     title: "Каталог товарів | Evergreen coffee",
     description:

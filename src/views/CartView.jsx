@@ -350,7 +350,7 @@ function CartOrderGroupCard({
               : "bg-white text-emerald-950 ring-1 ring-emerald-100 hover:bg-emerald-50"
           }`}
         >
-          {isSelected ? "Обрано для оформлення" : "Оформити цей сегмент"}
+          {isSelected ? "Обрано для оформлення" : "Оформити цю групу"}
         </button>
 
         {isSupplierOrder && group.supplierId && (
@@ -493,11 +493,11 @@ export default function CartView({
     const errors = {};
 
     if (!selectedGroup?.items?.length) {
-      errors.cart = "Оберіть сегмент кошика для замовлення";
+      errors.cart = "Оберіть групу кошика для замовлення";
     } else if (!selectedGroup.canCheckout) {
       errors.cart =
         selectedGroup.message ||
-        "Цей сегмент кошика поки не можна оформити.";
+        "Цю групу кошика поки не можна оформити.";
     }
 
     const name = String(form.name || "").trim();
@@ -598,7 +598,7 @@ export default function CartView({
                 {isSegmented && (
                   <p className="mt-2 flex max-w-2xl items-start gap-2 text-sm font-semibold leading-6 text-stone-600">
                     <Layers3 size={17} className="mt-1 shrink-0 text-emerald-800" />
-                    Кошик розділено на окремі сегменти. Можна оформити всі
+                    Кошик розділено на окремі групи. Можна оформити всі
                     товари в наявності разом або окреме замовлення від одного
                     постачальника.
                   </p>
@@ -655,7 +655,7 @@ export default function CartView({
                     </span>
 
                     <span className="mt-1 block text-sm font-black leading-snug sm:text-base">
-                      {selectedGroup?.label || "Оберіть сегмент"}
+                      {selectedGroup?.label || "Оберіть групу"}
                     </span>
                   </div>
 
@@ -667,7 +667,7 @@ export default function CartView({
                 <span className="eg-cart-checkout-action flex items-center justify-between gap-3 rounded-[1.2rem] bg-white/12 px-3.5 py-3 text-sm font-black text-white shadow-inner shadow-white/5 ring-1 ring-white/15 sm:rounded-[1.35rem] sm:px-4">
                   <span className="flex min-w-0 items-center gap-2">
                     <Icon name="send" size={17} />
-                    <span className="eg-cart-checkout-action-copy truncate">Оформити вибраний сегмент</span>
+                    <span className="eg-cart-checkout-action-copy truncate">Оформити обрану групу</span>
                   </span>
 
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-300 text-emerald-950 shadow-lg shadow-black/15 transition group-hover:translate-x-0.5">
@@ -692,7 +692,7 @@ export default function CartView({
                 </p>
 
                 <p className="mt-1 text-lg font-black">
-                  {selectedGroup?.label || "Оберіть сегмент"}
+                  {selectedGroup?.label || "Оберіть групу"}
                 </p>
 
                 <p className="mt-2 text-2xl font-black">
@@ -714,13 +714,13 @@ export default function CartView({
             </p>
 
             <h2 className="mt-2 text-3xl font-black text-stone-950">
-              Куди надіслати замовлення
+              Оформіть замовлення
             </h2>
 
             <div className="mt-5 rounded-[1.6rem] border border-emerald-100 bg-emerald-50/70 p-4 text-sm leading-6 text-emerald-950">
               <p className="font-black">Зараз оформлюється:</p>
               <p className="mt-1 font-semibold">
-                {selectedGroup?.label || "Оберіть сегмент"} ·{" "}
+                {selectedGroup?.label || "Оберіть групу"} ·{" "}
                 {formatUAH(selectedGroup?.total || 0)}
               </p>
               {selectedGroup?.message && (
@@ -867,9 +867,7 @@ export default function CartView({
                   <div>
                     <p className="font-black">Самовивіз з кав'ярні</p>
                     <p className="mt-1 text-emerald-900">
-                      Доставку поки поставили на кавову паузу: маршрут ще
-                      налаштовуємо, а кошики вже нетерпляче чекають. Скоро
-                      повернемо цю можливість.
+                      Доставка поки не активна. Забрати замовлення можна в Evergreen на Білицькій, 20 після підтвердження готовності.
                     </p>
                   </div>
                 </div>
@@ -961,13 +959,13 @@ export default function CartView({
               >
                 <Icon name="send" size={18} />
                 <span className="eg-checkout-submit-copy">
-                  Оформити вибраний сегмент
+                  Оформити обрану групу
                 </span>
               </button>
 
               {!canSubmit && (
                 <p className="text-center text-sm text-stone-500">
-                  Оберіть сегмент, перевірте мінімальну суму, імʼя та телефон
+                  Оберіть групу, перевірте мінімальну суму, імʼя та телефон
                   або Telegram.
                 </p>
               )}
