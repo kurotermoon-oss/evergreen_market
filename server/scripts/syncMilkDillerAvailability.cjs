@@ -11,14 +11,14 @@ async function main() {
   }
 
   const results = await runEnabledSupplierSyncs();
-  const failures = results.filter((result) => result.status === "failed");
+  const failures = results.filter((result) => ["failed", "partial", "blocked", "empty"].includes(result.status));
 
   console.log(
     JSON.stringify(
       {
         ok: failures.length === 0,
         completedAt: new Date().toISOString(),
-        results,
+        results: results.map(({ details, ...summary }) => summary),
       },
       null,
       2

@@ -22,6 +22,8 @@ function getStatusLabel(status) {
     idle: "Ще не запускалась",
     running: "Виконується",
     completed: "Завершено",
+    partial: "Є помилки товарів",
+    empty: "Немає привʼязок",
     dry_run: "Тест завершено",
     blocked: "Потрібне підтвердження",
     failed: "Помилка",
@@ -34,7 +36,7 @@ function getStatusClass(status) {
   if (status === "completed") return "bg-emerald-50 text-emerald-900 ring-emerald-200";
   if (status === "running") return "bg-blue-50 text-blue-800 ring-blue-200";
   if (status === "dry_run") return "bg-sky-50 text-sky-800 ring-sky-200";
-  if (status === "blocked") return "bg-amber-50 text-amber-900 ring-amber-200";
+  if (["blocked", "partial", "empty"].includes(status)) return "bg-amber-50 text-amber-900 ring-amber-200";
   if (status === "failed") return "bg-red-50 text-red-800 ring-red-200";
 
   return "bg-stone-100 text-stone-700 ring-stone-200";
@@ -399,6 +401,13 @@ export default function AdminSupplierSyncPanel({
         </div>
       ) : dashboard ? (
         <>
+          {automaticSyncEnabled && dashboard.schedule?.overdue && (
+            <div role="status" className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950">
+              {dashboard.schedule.lastStartedAt
+                ? "Автоматична перевірка запізнюється: понад 7 годин без запуску. Перевірте службу MilkDiller у Railway; поки що можна запустити перевірку вручну."
+                : "Запусків за розкладом ще немає. Перемикач дозволяє синхронізацію, а її запуск кожні 6 годин виконує окрема служба Railway."}
+            </div>
+          )}
           <div className="eg-glass eg-premium-card rounded-[2rem] p-5 lg:p-6">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex flex-wrap items-center gap-3">
@@ -414,7 +423,7 @@ export default function AdminSupplierSyncPanel({
                 </span>
                 <span className="text-sm text-stone-600">
                   {automaticSyncEnabled
-                    ? "Автоматична перевірка: кожні 6 годин"
+                    ? `Останній запуск за розкладом: ${formatDateTime(dashboard.schedule?.lastStartedAt)}`
                     : "Автоматична перевірка вимкнена"}
                 </span>
               </div>
@@ -809,6 +818,7 @@ export default function AdminSupplierSyncPanel({
                     <tr key={run.id}>
                       <td className="px-3 py-3 text-stone-600">
                         {formatDateTime(run.startedAt)}
+                        <span className="mt-1 block text-xs text-stone-500">{run.trigger === "cron" ? "За розкладом" : run.dryRun ? "Тест вручну" : "Вручну"}</span>
                       </td>
                       <td className="px-3 py-3">
                         <span

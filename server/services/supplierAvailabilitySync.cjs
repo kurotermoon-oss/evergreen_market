@@ -102,7 +102,7 @@ async function getSupplierSyncDashboard(supplierId) {
     throw createHttpError("Постачальника не знайдено.", 404, "SUPPLIER_NOT_FOUND");
   }
 
-  const [products, runs] = await Promise.all([
+  const [products, runs, lastCronRun] = await Promise.all([
     prisma.product.findMany({
       where: {
         supplierId: id,
@@ -126,6 +126,10 @@ async function getSupplierSyncDashboard(supplierId) {
       },
       take: 30,
     }),
+    prisma.supplierSyncRun.findFirst({
+      where: { supplierId: id, trigger: "cron" },
+      orderBy: { startedAt: "desc" },
+    }),
   ]);
 
   const mappedProducts = products.filter((product) => {
@@ -135,6 +139,12 @@ async function getSupplierSyncDashboard(supplierId) {
   return {
     supported: true,
     supplier: mapSupplierSyncSettings(supplier),
+    schedule: {
+      intervalHours: 6,
+      lastStartedAt: toIso(lastCronRun?.startedAt),
+      lastStatus: lastCronRun?.status || "never",
+      overdue: !lastCronRun || Date.now() - new Date(lastCronRun.startedAt).getTime() > 7 * 60 * 60 * 1000,
+    },
     stats: {
       products: products.length,
       mapped: mappedProducts.length,
@@ -240,9 +250,9 @@ async function updateProductSyncMapping(supplierId, productId, payload = {}) {
     },
     data: {
       supplierProductUrl: productUrl,
-      supplierExternalId: cleanString(
-        payload.externalId ?? product.supplierExternalId
-      ),
+      supplierExternalId: productUrl !== milkDillerAdapter.normalizeProductUrl(product.supplierProductUrl)
+        ? ""
+        : cleanString(payload.externalId ?? product.supplierExternalId),
       supplierSyncEnabled:
         payload.syncEnabled === undefined
           ? product.supplierSyncEnabled
@@ -400,12 +410,23 @@ function getMassChangeThreshold() {
 async function resolveMappedProducts(products, catalogResult, options = {}) {
   const resolved = [];
   const missing = [];
+  const byExternalId = new Map();
+  for (const remote of catalogResult.products.values()) {
+    if (!remote.externalId) continue;
+    // Ambiguous IDs are not safe enough to repair a mapping.
+    byExternalId.set(remote.externalId, byExternalId.has(remote.externalId) ? null : remote);
+  }
 
   products.forEach((product) => {
     const normalizedUrl = milkDillerAdapter.normalizeProductUrl(
       product.supplierProductUrl
     );
-    const catalogProduct = catalogResult.products.get(normalizedUrl);
+    const catalogProduct = catalogResult.products.get(normalizedUrl)
+      || (product.supplierExternalId && byExternalId.get(product.supplierExternalId));
+    if (catalogProduct && product.supplierExternalId && catalogProduct.externalId !== product.supplierExternalId) {
+      resolved.push({ product, remote: null, error: "Ідентифікатор товару постачальника змінився. Перевірте привʼязку." });
+      return;
+    }
 
     if (catalogProduct?.status && catalogProduct.status !== "unknown") {
       resolved.push({
@@ -430,6 +451,10 @@ async function resolveMappedProducts(products, catalogResult, options = {}) {
           normalizedUrl,
           options
         );
+
+        if (product.supplierExternalId && remote.externalId !== product.supplierExternalId) {
+          return { product, remote: null, error: "Ідентифікатор у картці не збігається з привʼязкою. Перевірте посилання." };
+        }
 
         if (remote.status === "unknown") {
           return {
@@ -548,7 +573,7 @@ async function runSupplierSync(
             id: run.id,
           },
           data: {
-            status: dryRun ? "dry_run" : "completed",
+            status: "empty",
             completedAt,
             message: "Немає привʼязаних товарів для перевірки.",
           },
@@ -560,9 +585,9 @@ async function runSupplierSync(
           },
           data: {
             availabilitySyncLastRunAt: completedAt,
-            availabilitySyncLastOkAt: completedAt,
+            availabilitySyncLastOkAt: undefined,
             availabilitySyncLastStatus: updatedRun.status,
-            availabilitySyncLastError: "",
+            availabilitySyncLastError: updatedRun.message,
             availabilitySyncLockUntil: null,
           },
         });
@@ -610,15 +635,23 @@ async function runSupplierSync(
       ? "blocked"
       : dryRun
         ? "dry_run"
-        : "completed";
+        : errorCount === products.length
+          ? "failed"
+          : errorCount > 0
+            ? "partial"
+            : "completed";
     const message = massChangeBlocked
       ? `Зміни призупинено: статус змінився у ${changedCount} з ${products.length} товарів.`
       : dryRun
-        ? "Тестову перевірку завершено без запису змін."
-        : "Синхронізацію наявності завершено.";
+        ? `Тест завершено без запису змін. Перевірено ${checkedCount} з ${products.length}; помилок: ${errorCount}.`
+        : errorCount > 0
+          ? `Перевірено ${checkedCount} з ${products.length}. Для ${errorCount} товарів збережено попередню наявність: перевірте помилки привʼязки.`
+          : "Синхронізацію наявності завершено.";
     const details = {
       catalogPages: catalogResult.pageCount,
       catalogAdvertisedProducts: catalogResult.totalCount,
+      repairedLinks: results.filter((result) => !result.error && result.remote?.url && result.remote.url !== milkDillerAdapter.normalizeProductUrl(result.product.supplierProductUrl))
+        .slice(0, RUN_DETAILS_LIMIT).map((result) => ({ productId: result.product.id, from: result.product.supplierProductUrl, to: result.remote.url })),
       changes: results
         .filter((result) => result.changed)
         .slice(0, RUN_DETAILS_LIMIT)
@@ -668,6 +701,7 @@ async function runSupplierSync(
             data: {
               stockStatus: result.nextStockStatus,
               supplierRemoteStatus: result.remoteStatus,
+              supplierProductUrl: result.remote?.url || result.product.supplierProductUrl,
               supplierExternalId:
                 result.product.supplierExternalId || result.remote?.externalId || "",
               supplierLastCheckedAt: now,
@@ -713,9 +747,9 @@ async function runSupplierSync(
         },
         data: {
           availabilitySyncLastRunAt: completedAt,
-          availabilitySyncLastOkAt: massChangeBlocked ? undefined : completedAt,
+          availabilitySyncLastOkAt: finalStatus === "completed" ? completedAt : undefined,
           availabilitySyncLastStatus: finalStatus,
-          availabilitySyncLastError: massChangeBlocked ? message : "",
+          availabilitySyncLastError: massChangeBlocked || errorCount > 0 ? message : "",
           availabilitySyncLockUntil: null,
         },
       });

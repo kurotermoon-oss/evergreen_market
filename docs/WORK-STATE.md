@@ -1,16 +1,15 @@
 # Evergreen: checkpoint
 
-Updated 09.09.2026. This is resumable state, not an instruction to repeat finished work. Check Git before relying on it.
+Updated 10.09.2026. Canonical repository: `C:/Users/Trap/Desktop/evergreen_market`, `kurotermoon-oss/evergreen_market`, branch `main`.
 
-- Canonical repository: `C:/Users/Trap/Desktop/evergreen_market`, `kurotermoon-oss/evergreen_market`, branch `main`.
-- Whole-site and admin redesign completed and uploaded: `8ed0927cc55ca661ab0c19ae9e7c6a381e483513`. Includes public pages, eight admin sections, responsive controls/dialogs and safe DEV previews.
-- Verified for that code version: production build, four preview-safety tests, relevant public/admin screens at 320/390/768/1280, interactions and keyboard focus. Details/limitations: `REDESIGN.md`. No need to repeat this matrix for documentation or unrelated small edits.
-- Real login/order/admin writes were not exercised in the read-only preview. A GitHub upload does not establish deployment status on the public domain.
-- Current documentation pass: smaller root rules, verified code map, closed redesign brief, task-sized checks, sequential stages, updated Astra guidance. These files do not switch the actual reasoning setting.
-- Current UI addition: local working prototype of Зернятко, a voluntary mascot guide. First-visit invitation, contextual catalog/product/cart/checkout/pickup advice, persistent dismissal, safe storage fallback. No new dependencies or AI API. Owner approved GitHub publication. Kept in a dedicated feature commit for straightforward removal later; deployment on the public domain requires separate verification.
-- Mascot checks: production build; 10 guide-logic tests plus 4 preview-safety tests; 320/390/768/1280 layout, keyboard closure/focus, reload dismissal, product → cart, live minimum updates, supplier shortcut, empty cart and success preview. Real order submission was not performed.
-- Next: collect owner feedback after release; modify or remove the mascot if requested. Its dedicated commit is titled `Add optional Zerniatko shopping companion`. Previous whole-site redesign remains completed.
-- No known code blocker. This conversation still starts in the old prototype workspace; future tasks should open the canonical project. Its files may require sandbox approval in an old workspace.
-- GitHub transport: connector upload worked. Direct Git authentication was unavailable; public remote reads worked with allowed network access. If unchanged, use the known connector path instead of retrying device login. Never force-push to resolve a transport problem.
-
-For a future substantial stage, replace the relevant bullets with its outcome, next step, checks and blocker. Keep this file compact and free of credentials/customer data.
+- Completed earlier: whole-site/admin responsive redesign, compact agent workflow and optional Зернятко companion. Mascot is a separate published commit `4d88fbe`; do not redo these tasks. No new redesign requested.
+- Current task: repair MilkDiller automatic sync and storefront availability; supplier-order catalog default; registration audit/proposal.
+- Root cause observed in production Railway: web + PostgreSQL existed, no Cron service. Admin automatic flag was enabled but history showed irregular manual runs, not six-hour checks.
+- Code fix: public API excludes supplier-order out_of_stock while retaining active/admin records; waiting phrases recognized; permanent HTTP errors fail promptly; stable supplier IDs can repair moved URLs; partial/failed/empty results are explicit and cannot advance last successful sync; admin warns on missing/late cron activity. Manual overrides and mass-change guard remain.
+- Catalog default and primary navigation now select supplier_order; explicit in-stock selection and contextual back links remain usable.
+- Checks: 11 isolated sync tests; existing parser/mapping tests; production build; catalog default and repeated desktop/mobile navigation; no horizontal overflow at 320/390/768/1280. Live read-only parser check before fixes: 661 products, 453 available, 208 unavailable, 0 unknown, 23 pages.
+- Deployment in progress: new `milkdiller-sync` service in existing Railway project `striking-surprise` (service `b2623c42-6271-46fe-a045-af19b209650d`). Finish source/variables/six-hour schedule, upload reviewed changes, inspect execution and public API after web deployment. New Railway Config-as-Code adoption is disabled; use service UI settings documented in SUPPLIER_AVAILABILITY_SYNC.md.
+- Three old supplier product links returned HTTP 404 before this release. Check whether stable-ID repair resolves them in the first run; do not replace mappings by similar product names. Unknown/fetch errors intentionally preserve previous availability.
+- Registration review/proposal: `docs/REGISTRATION-REVIEW.md`. Guest checkout already exists. Propose shorter form and optional official Telegram login; no auth migration or real test-account/order creation in this task.
+- GitHub transport: connected GitHub create_tree/create_commit/update_ref works; direct Git authentication unavailable, public reads work. Never force-push. Verify deployment separately from upload.
+- This task still starts in the old prototype workspace; canonical project writes require sandbox approval. No known code blocker.

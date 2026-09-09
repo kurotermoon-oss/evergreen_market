@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { PUBLIC_AVAILABILITY_WHERE } = require("../utils/publicProductVisibility.cjs");
 
 const prisma = require("../database/prisma.cjs");
 const categoriesRepository = require("./categoriesRepository.cjs");
@@ -180,6 +181,7 @@ async function getPublicProducts() {
   const products = await prisma.product.findMany({
     where: {
       active: true,
+      ...PUBLIC_AVAILABILITY_WHERE,
       category: {
         active: true,
       },

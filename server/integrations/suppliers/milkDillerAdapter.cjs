@@ -55,7 +55,7 @@ function parseAvailability(statusElement) {
   if (
     classTokens.includes("outstock") ||
     classTokens.includes("out-of-stock") ||
-    text.includes("очікується надходження") ||
+    /очіку(?:є|ється|ють|ються)\s+(?:на\s+)?(?:надходження|постачання|поставку)/u.test(text) ||
     text.includes("немає в наявності") ||
     text.includes("немає у наявності") ||
     text.includes("відсутній") ||
@@ -169,7 +169,9 @@ async function fetchHtml(
   {
     fetchImpl = global.fetch,
     timeoutMs = toPositiveInt(process.env.MILKDILLER_FETCH_TIMEOUT_MS, DEFAULT_TIMEOUT_MS),
-    retries = toPositiveInt(process.env.MILKDILLER_FETCH_RETRIES, DEFAULT_RETRIES),
+    retries = process.env.MILKDILLER_FETCH_RETRIES === "0"
+      ? 0
+      : toPositiveInt(process.env.MILKDILLER_FETCH_RETRIES, DEFAULT_RETRIES),
   } = {}
 ) {
   if (typeof fetchImpl !== "function") {
@@ -189,19 +191,23 @@ async function fetchHtml(
           "Accept-Language": "uk-UA,uk;q=0.9",
           "User-Agent":
             process.env.SUPPLIER_SYNC_USER_AGENT ||
-            "EvergreenMarket-AvailabilitySync/1.0 (+https://evergreen-market.com.ua)",
+            "EvergreenMarket-AvailabilitySync/1.0 (+https://evergreenmarket.com.ua)",
         },
         redirect: "follow",
         signal: controller.signal,
       });
 
       if (!response.ok) {
-        throw new Error(`Milk Diller returned HTTP ${response.status} for ${url}`);
+        const error = new Error(`Milk Diller returned HTTP ${response.status} for ${url}`);
+        error.status = response.status;
+        throw error;
       }
 
       return await response.text();
     } catch (error) {
       lastError = error;
+      // A removed URL will not recover on an immediate retry. Keep retries for transient failures.
+      if (error.status >= 400 && error.status < 500 && ![408, 429].includes(error.status)) throw error;
 
       if (attempt < retries) {
         await wait(400 * (attempt + 1));

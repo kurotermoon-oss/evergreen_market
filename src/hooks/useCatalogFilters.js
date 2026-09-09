@@ -23,7 +23,7 @@ export function useCatalogFilters({
   const [selectedStockStatuses, setSelectedStockStatuses] = useState([]);
   const [showPopularOnly, setShowPopularOnly] = useState(false);
   const [selectedFulfillmentType, setSelectedFulfillmentType] =
-    useState("in_stock");
+    useState("supplier_order");
   const [selectedSupplierId, setSelectedSupplierId] = useState("");
 
   useEffect(() => {

@@ -6,7 +6,7 @@ Evergreen Market synchronizes supplier-order availability from Milk Diller's pub
 
 - Only products with `fulfillmentType = supplier_order`, a Milk Diller URL, and `supplierSyncEnabled = true` are checked.
 - `В наявності` maps to `stockStatus = preorder`.
-- `Очікується надходження` maps to `stockStatus = out_of_stock`.
+- Waiting for supply (including `Очікується надходження` / `Очікує на постачання`) maps to `stockStatus = out_of_stock`. Public API excludes these supplier-order products; admin records and `active` stay unchanged. Availability returning restores them automatically.
 - Network errors, missing markup, and unknown statuses keep the previous `stockStatus`.
 - `supplierStatusOverride` values `available` and `unavailable` override the remote status. `auto` follows Milk Diller.
 - Synchronization never changes `active`.
@@ -31,6 +31,7 @@ If more than 30% of at least ten mapped products would change at once, the run i
 ## Commands
 
 ```bash
+node --test server/scripts/testSupplierAvailabilitySync.cjs
 npm run test:milkdiller-parser
 npm run test:milkdiller-mapping
 npm run test:milkdiller-live
@@ -49,7 +50,17 @@ Do not put real environment values into source control or logs.
 
 ## Railway Cron
 
-Create a separate Railway service from the same repository after the web service has deployed the Prisma migration.
+Create a separate Railway service from the same repository after the web service has deployed the Prisma migration. Use the service UI settings: Railway currently disallows new Config-as-Code adoption (deprecated), so do not add a cron schedule to the web service or rely on a new railway.json.
+
+- Source: same GitHub repository, main branch, root directory empty.
+- Build command: `npx prisma generate` (no storefront build needed).
+- Start command: `npm run sync:milkdiller`.
+- Schedule: `0 */6 * * *`; restart policy: Never.
+- No public domain, volume, healthcheck or pre-deploy migration command.
+- Variables: `USE_POSTGRES=true`, `DATABASE_URL=${{Postgres-nEsF.DATABASE_URL}}` via Railway reference. Optional existing Telegram variables can also be references; never copy secrets into Git.
+- Deploy once and inspect run logs; verify the admin history contains a cron-triggered run. A service deployment/manual trigger proves job execution, not that the next timed invocation has happened.
+
+Reference: https://docs.railway.com/cron-jobs
 
 Start command:
 
@@ -83,5 +94,9 @@ The public storefront refreshes its product list once per minute while the tab i
 - A concurrent run is rejected while the supplier lock is active.
 - A lock expires after 20 minutes if a process terminates unexpectedly.
 - Fatal and mass-change-blocked runs are recorded and trigger a best-effort Telegram alert.
-- Product-level request errors are stored per product and shown in the admin panel.
+- Product-level errors are stored per product. Partial runs use `partial`, all failed products use `failed`, no mappings use `empty`. Dry runs and partial results never advance last successful sync.
+- Cron exits nonzero for failed, partial, blocked or empty runs. It prints summary counts without the full product detail list; Never restart avoids rapid retries.
+- Permanent HTTP errors such as 404 are not retried. Transient failures retain bounded retries; setting retry count to zero is supported.
+- A missing catalog URL can be repaired only by a unique matching supplier product ID. Conflicting/ambiguous IDs and unknown statuses retain previous availability and require mapping review.
+- Dashboard shows the latest actual cron run independently of manual history. An enabled switch with no cron history or more than seven hours without a run displays a warning.
 - The admin panel shows the latest 30 runs; PostgreSQL retains the full history until a future cleanup policy is added.

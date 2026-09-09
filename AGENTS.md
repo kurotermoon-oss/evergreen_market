@@ -25,6 +25,7 @@ Canonical project: `C:/Users/Trap/Desktop/evergreen_market`. Owner: Russian; cus
 - Pickup: Kyiv, Білицька, 20, 09:00–21:00. Delivery disabled.
 - `in_stock`: one group, no supplier minimum. `supplier_order`: separate supplier groups with their own minima; submit only one group. Preserve guest checkout, sessions, stock validation; Telegram failure must not prevent order creation.
 - Supplier filter is optional; categories cover all supplier-order goods. Clear incompatible supplier selection on category change; show supplier + minimum (including no-minimum label). Sort orderable goods first before pagination/related lists.
+- Catalog defaults to supplier_order. Supplier-order out_of_stock goods are excluded from the public API without changing active; admin must still list them.
 - Public catalog refresh: every minute while visible and on return; never scrape suppliers on customer page views.
 - Milk Diller: Railway Cron every six hours, no in-process interval. Preserve `availabilitySyncEnabled`, immediate check when enabled, manual overrides and `stockStatus` versus merchandising `active`.
 - Read `docs/BUSINESS_LOGIC.md` or `docs/SUPPLIER_AVAILABILITY_SYNC.md` only for affected rules.

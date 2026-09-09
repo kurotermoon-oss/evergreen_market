@@ -25,6 +25,7 @@ const {
 
 const settingsRepository = require("./repositories/settingsRepository.cjs");
 const productsRepository = require("./repositories/productsRepository.cjs");
+const { isPublicProductVisible } = require("./utils/publicProductVisibility.cjs");
 const suppliersRepository = require("./repositories/suppliersRepository.cjs");
 const categoriesRepository = require("./repositories/categoriesRepository.cjs");
 const ordersRepository = require("./repositories/ordersRepository.cjs");
@@ -1817,7 +1818,7 @@ app.get("/api/products", async (req, res) => {
 
     const products = Array.isArray(db.products)
       ? db.products
-        .filter((product) => product.active !== false)
+        .filter(isPublicProductVisible)
         .map((product) => {
           const { costPrice, priceMode, ...safeProduct } = product;
 

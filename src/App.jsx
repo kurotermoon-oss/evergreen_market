@@ -215,6 +215,15 @@ const {
 });
 
 
+  const navigateMain = useCallback((nextView, options) => {
+    if (nextView === "catalog") {
+      setSelectedFulfillmentType("supplier_order");
+      setSelectedStockStatuses([]);
+      setCurrentPage(1);
+    }
+    setView(nextView, options);
+  }, [setView, setSelectedFulfillmentType, setSelectedStockStatuses, setCurrentPage]);
+
   const [isAppLoading, setIsAppLoading] = useState(true);
   const [appError, setAppError] = useState("");
 
@@ -539,7 +548,7 @@ return (
     {import.meta.env.MODE === "development" && import.meta.env.VITE_READONLY_PREVIEW === "1" && <div className="shop-preview-banner">Попередній перегляд · замовлення не надсилаються · <a href="/how-it-works" style={{textDecoration:"underline"}}>Новий гід покупця ↗</a></div>}
     {!isAdminArea && <Header
         view={view}
-        setView={setView}
+        setView={navigateMain}
         onContactsClick={openContacts}
         isAdmin={isAdmin}
         customer={customer}
@@ -567,8 +576,9 @@ return (
       {DesignPreview && ["admin-preview", "account-preview", "success-preview"].includes(view) && <DesignPreview mode={view.replace("-preview", "")} products={products} categories={categories} setView={setView} />}
       {view === "home" && (
       <HomeView
-        setView={setView}
+        setView={navigateMain}
         openCategory={(categoryId) => {
+          setSelectedFulfillmentType("supplier_order");
           setSelectedCategory(categoryId);
           setSelectedSubcategory("all");
           setCurrentPage(1);
@@ -632,7 +642,7 @@ return (
       {view === "how-it-works-preview" && HowItWorksPreview && <HowItWorksPreview setView={setView} />}
 
       {view === "how-it-works" && (
-        <HowItWorksView setView={setView} />
+        <HowItWorksView setView={navigateMain} />
       )}
      
       {view === "product" && (
@@ -766,7 +776,7 @@ return (
 
       {!isAdminArea && view !== "contacts" &&
         (view === "home" || view === "how-it-works" || view === "how-it-works-preview" || isDesktopViewport) && (
-        <Footer setView={setView} />
+        <Footer setView={navigateMain} />
       )}
 
       {!isAdminArea && !isHowPage && !isCartRoute(view) && (
@@ -788,7 +798,7 @@ return (
 
       {!isAdminArea && <MobileNav
         view={view}
-        setView={setView}
+        setView={navigateMain}
         onContactsClick={openContacts}
         onCartOpen={openCartDrawer}
         onSearchOpen={() => {
