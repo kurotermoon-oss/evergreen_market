@@ -1,18 +1,19 @@
 # Документация Evergreen
 
-Основной проект: `C:/Users/Trap/Desktop/evergreen_market`.
+Основной проект: `C:/Users/Trap/Desktop/evergreen_market`. Читайте только справку по текущей задаче.
 
-- `../AGENTS.md` — короткие рабочие правила и команды.
-- `INTERFACE-BRIEF.md` — аудит, текущее ТЗ и критерии готовности для всего интерфейса.
-- `REDESIGN.md` — изменения дизайна, проверка и запуск предпросмотра.
-- `PROJECT_OVERVIEW.md` — архитектура React/Express/Prisma.
-- `BUSINESS_LOGIC.md` — группы корзины, закупки, минимумы.
-- `DESIGN_SYSTEM.md` — общие принципы бренда; актуальные стили в `src/styles/storefront.css`.
-- `UX_COPY.md`, `SEO_REQUIREMENTS.md` — тексты и метаданные.
-- `SUPPLIER_AVAILABILITY_SYNC.md` — синхронизация поставщика.
-- `MODEL-NOTES.md` — работа с Astra 6 и границы настроек.
-- `HOW_IT_WORKS_REDESIGN_BRIEF.md`, `HOW_IT_WORKS_PAGE.md` — предыдущие требования к странице. По новому запросу владельца раздел `/how-it-works` полностью заменён в локальном проекте. Предыдущий этап загружен в GitHub коммитом `ab9d867`.
+| Файл | Когда нужен |
+| --- | --- |
+| [AGENTS.md](../AGENTS.md) | Рабочие правила, команды и критерии объёма проверок |
+| [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) | Карта: какой экран, компонент или стиль менять |
+| [WORK-STATE.md](WORK-STATE.md) | Продолжение работы: сделано, следующий шаг, проверки, препятствия |
+| [REDESIGN.md](REDESIGN.md) | Результат редизайна и безопасный локальный просмотр |
+| [INTERFACE-BRIEF.md](INTERFACE-BRIEF.md) | Выполненное ТЗ редизайна; не новая очередь работ |
+| [BUSINESS_LOGIC.md](BUSINESS_LOGIC.md) | Заказы, группы корзины и минимумы |
+| [SUPPLIER_AVAILABILITY_SYNC.md](SUPPLIER_AVAILABILITY_SYNC.md) | Синхронизация поставщика |
+| [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | Общие принципы бренда; текущие стили перечислены в карте проекта |
+| [UX_COPY.md](UX_COPY.md), [SEO_REQUIREMENTS.md](SEO_REQUIREMENTS.md) | Покупательские тексты и метаданные |
+| [MODEL-NOTES.md](MODEL-NOTES.md) | Astra, effort, расход и постановка задач |
 
-Перенесённые материалы первого прототипа: `SITE-REVIEW.md`, `INTEGRATION.md`, `LANDING-AGENTS-INITIAL.md`. Они описывают самостоятельный HTML-лендинг из предыдущей папки и сохранены как история. Для текущей работы использовать React-компоненты основного проекта и `REDESIGN.md`.
-
-Полная прежняя версия инструкций сохранена в `archive/AGENTS-before-2026-09-07.md`. Её не нужно целиком читать на каждой задаче.
+История, только при конкретной необходимости: `HOW_IT_WORKS_REDESIGN_BRIEF.md`, `HOW_IT_WORKS_PAGE.md`, `archive/`.
+Материалы старого HTML-прототипа: `SITE-REVIEW.md`, `INTEGRATION.md`, `LANDING-AGENTS-INITIAL.md`. Они не задают архитектуру текущего React-проекта.
