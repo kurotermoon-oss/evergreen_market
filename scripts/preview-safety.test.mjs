@@ -40,5 +40,7 @@ test('existing routes survive and the draft route requires development mode', ()
   }
   const productId='test / молоко';
   assert.equal(getRouteFromLocation({pathname:getProductPath(productId)}).productId,productId);
-  assert.equal(getRouteFromLocation({pathname:'/preview/how-it-works'}).isNotFound,true);
+  for (const pathname of ['/preview/how-it-works','/preview/admin','/preview/account','/preview/success']) {
+    assert.equal(getRouteFromLocation({pathname}).isNotFound,true);
+  }
 });

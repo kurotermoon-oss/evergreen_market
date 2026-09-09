@@ -1,3 +1,4 @@
+import Modal from "./Modal.jsx";
 import { useState } from "react";
 import {
   AlertTriangle,
@@ -58,6 +59,7 @@ function getInputClass(hasError) {
 }
 
 export default function FeedbackButton({
+  inline = false,
   customer = null,
   setView,
   isProductView = false,
@@ -144,7 +146,7 @@ export default function FeedbackButton({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className={`eg-floating-feedback eg-button group fixed z-[85] flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.2rem] border text-white shadow-2xl ring-4 ring-white/70 md:z-[155] md:h-[4.9rem] md:w-[4.9rem] md:rounded-[1.55rem] ${
+        className={`${inline ? "eg-feedback-inline" : ""} eg-floating-feedback eg-button group fixed z-[85] flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.2rem] border text-white shadow-2xl ring-4 ring-white/70 md:z-[155] md:h-[4.9rem] md:w-[4.9rem] md:rounded-[1.55rem] ${
           isProductView ? "eg-floating-feedback-product" : ""
         } ${
           isOpen
@@ -162,16 +164,12 @@ export default function FeedbackButton({
           className="relative z-10 h-6 w-6 drop-shadow-sm md:h-8 md:w-8"
           strokeWidth={2.1}
         />
+        {inline && <span>Зворотний зв’язок</span>}
       </button>
 
       {isOpen && (
-        <div
-          className="eg-overlay fixed inset-0 z-[1300] flex items-end justify-center bg-stone-950/50 px-3 py-4 backdrop-blur-sm sm:items-center sm:px-5"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="feedback-title"
-        >
-          <div className="eg-panel w-full max-w-2xl overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-2xl shadow-stone-950/20">
+        <Modal className="eg-storefront" maxWidth={672} label="Зворотний зв’язок" onClose={closeModal}>
+          <div className="eg-dialog-surface eg-panel w-full max-w-2xl overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-2xl shadow-stone-950/20">
             <div className="flex items-start justify-between gap-4 border-b border-stone-100 bg-stone-50/80 p-5 sm:p-6">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-800">
@@ -333,7 +331,7 @@ export default function FeedbackButton({
               </form>
             )}
           </div>
-        </div>
+        </Modal>
       )}
     </>
   );

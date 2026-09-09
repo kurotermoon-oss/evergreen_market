@@ -1319,10 +1319,11 @@ export default function CatalogView({
       </section>
 
       <section className="mb-6 hidden sm:mb-8 md:block">
-        <div className="eg-glass eg-premium-card grid gap-2 rounded-[1.35rem] border border-white/80 bg-white/90 p-1.5 shadow-lg shadow-emerald-950/5 sm:grid-cols-2 sm:rounded-[1.7rem] sm:p-2">
+        <div className="eg-fulfillment-tabs eg-glass eg-premium-card grid gap-2 rounded-[1.35rem] border border-white/80 bg-white/90 p-1.5 shadow-lg shadow-emerald-950/5 sm:grid-cols-2 sm:rounded-[1.7rem] sm:p-2">
           <button
             type="button"
             onClick={() => selectFulfillmentTab("in_stock")}
+            aria-pressed={selectedFulfillmentType === "in_stock"}
             className={`eg-button min-h-[62px] rounded-[1.05rem] border px-4 text-left transition sm:rounded-[1.35rem] sm:px-5 ${
               selectedFulfillmentType === "in_stock"
                 ? "border-emerald-900 bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
@@ -1346,6 +1347,7 @@ export default function CatalogView({
           <button
             type="button"
             onClick={() => selectFulfillmentTab("supplier_order")}
+            aria-pressed={selectedFulfillmentType === "supplier_order"}
             className={`eg-button min-h-[62px] rounded-[1.05rem] border px-4 text-left transition sm:rounded-[1.35rem] sm:px-5 ${
               selectedFulfillmentType === "supplier_order"
                 ? "border-emerald-900 bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
@@ -1369,7 +1371,7 @@ export default function CatalogView({
 
         {selectedFulfillmentType === "supplier_order" &&
           supplierFilters.length > 0 && (
-            <div className="mt-3 min-w-0 rounded-[1.35rem] border border-emerald-100/80 bg-emerald-50/55 p-2 shadow-inner shadow-emerald-950/[0.03]">
+            <div className="eg-supplier-filters mt-3 min-w-0 rounded-[1.35rem] border border-emerald-100/80 bg-emerald-50/55 p-2 shadow-inner shadow-emerald-950/[0.03]">
               <div className="modal-scrollbar flex gap-2 overflow-x-auto pb-1">
                 <button
                   type="button"
@@ -1449,7 +1451,7 @@ export default function CatalogView({
         </div>
 
         <div className="mb-4 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center">
-          <h1 className="text-[1.72rem] font-extrabold uppercase leading-[1.08] tracking-normal text-stone-950 sm:text-4xl">
+          <h1 className="eg-catalog-heading">
             {pageTitle}
           </h1>
 
@@ -1459,7 +1461,7 @@ export default function CatalogView({
         </div>
 
         {selectedFulfillmentType === "supplier_order" && (
-          <div className="mb-5 flex max-w-4xl items-start gap-3 rounded-[1.25rem] border border-blue-100 bg-blue-50/75 px-4 py-3.5 text-blue-950 sm:mb-7 sm:px-5 sm:py-4">
+          <details className="eg-supplier-explanation mb-4 max-w-4xl"><summary>Умови замовлення</summary><div className="mt-3 flex items-start gap-3">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white text-blue-800 shadow-sm ring-1 ring-blue-100">
               <Truck size={18} />
             </span>
@@ -1480,7 +1482,7 @@ export default function CatalogView({
                   : "Постачальник і його мінімальна сума вказані на кожній картці товару."}
               </p>
             </div>
-          </div>
+          </div></details>
         )}
 
         {query.trim() && (
@@ -1555,7 +1557,7 @@ export default function CatalogView({
       </section>
 
       <section className="relative z-30 mb-6 space-y-2.5 md:hidden">
-        <div className="eg-glass eg-premium-card rounded-[1.45rem] border border-emerald-100/80 bg-white/92 p-2 shadow-lg shadow-emerald-950/8">
+        <div className="eg-mobile-fulfillment eg-glass eg-premium-card rounded-[1.45rem] border border-emerald-100/80 bg-white/92 p-2 shadow-lg shadow-emerald-950/8">
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"

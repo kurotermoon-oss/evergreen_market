@@ -216,7 +216,7 @@ function CartLineItem({
   }
 
   return (
-    <div className="eg-card flex gap-3 rounded-[1.35rem] border border-stone-200 bg-white/90 p-3 backdrop-blur hover:border-emerald-100 hover:shadow-md hover:shadow-emerald-900/10 sm:gap-4 sm:rounded-[1.65rem] sm:p-4">
+    <div className="eg-cart-line eg-card flex gap-3 rounded-[1.35rem] border border-stone-200 bg-white/90 p-3 backdrop-blur hover:border-emerald-100 hover:shadow-md hover:shadow-emerald-900/10 sm:gap-4 sm:rounded-[1.65rem] sm:p-4">
       <img
         src={item.image || logoEvergreen}
         alt={item.name}
@@ -239,7 +239,7 @@ function CartLineItem({
           {formatUAH(item.price)} за одиницю
         </p>
 
-        <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,9rem)_auto] sm:items-center sm:justify-between">
+        <div className="eg-cart-line-controls mt-4 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,9rem)_auto] sm:items-center sm:justify-between">
           <QuantityControl
             value={quantity}
             onChange={handleQuantityChange}
@@ -312,7 +312,7 @@ function CartOrderGroupCard({
             </h2>
 
             <p className="mt-1 text-sm font-semibold leading-6 text-stone-600">
-              {group.description}
+              {isSupplierOrder ? "Товари цього постачальника оформлюються окремо." : group.description}
             </p>
           </div>
         </div>
@@ -557,7 +557,7 @@ export default function CartView({
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-3 pb-36 pt-5 sm:px-6 sm:py-10 lg:px-8">
+    <main className="eg-cart-page mx-auto max-w-7xl px-3 pb-36 pt-5 sm:px-6 sm:py-10 lg:px-8">
       {isEmpty ? (
         <div className="space-y-5">
           <div className="eg-glass eg-premium-card mx-auto max-w-2xl rounded-[2.5rem] px-16 py-24 text-center">
@@ -585,7 +585,7 @@ export default function CartView({
       ) : (
         <div className="eg-stagger grid gap-5 sm:gap-8 lg:grid-cols-[1fr_0.88fr]">
           <section className="eg-glass eg-premium-card rounded-[1.7rem] p-4 sm:rounded-[2.2rem] sm:p-6 lg:p-8">
-            <div className="mb-5 flex items-start justify-between gap-3 sm:mb-6 sm:items-center sm:gap-4">
+            <div className="eg-cart-heading mb-5 flex items-start justify-between gap-3 sm:mb-6 sm:items-center sm:gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
                   Кошик
@@ -677,7 +677,7 @@ export default function CartView({
               </div>
             </button>
 
-            <div className="eg-premium-card mt-6 hidden overflow-hidden rounded-[2rem] bg-emerald-950 p-7 text-white shadow-xl shadow-emerald-950/20 lg:block">
+            <div className="eg-cart-total mt-6 hidden overflow-hidden rounded-[2rem] bg-emerald-950 p-7 text-white shadow-xl shadow-emerald-950/20 lg:block">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_40%)]" />
 
               <div className="relative z-10 flex items-center justify-between gap-4">

@@ -617,7 +617,7 @@ function ProfileEditor({
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="eg-profile-actions flex flex-col gap-2 sm:flex-row">
           <button
             type="button"
             onClick={handleSave}
@@ -681,11 +681,11 @@ export default function AccountView({
   }
 
   return (
-    <main className="eg-ambient mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <main className="eg-account-page eg-ambient mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <section className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-emerald-800 shadow-sm backdrop-blur">
+            <p className="shop-eyebrow">
               Особистий кабінет
             </p>
 
@@ -698,11 +698,11 @@ export default function AccountView({
               {customer.telegram ? `@${customer.telegram}` : "—"}
             </p>
 
-            <p className="mt-1 text-sm text-stone-500">
+            {(customer.building || customer.apartment) && <p className="mt-1 text-sm text-stone-500">
               Адреса: буд. {customer.building || "—"}, підʼїзд{" "}
               {customer.entrance || "—"}, поверх {customer.floor || "—"}, кв.{" "}
               {customer.apartment || "—"}
-            </p>
+            </p>}
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row">

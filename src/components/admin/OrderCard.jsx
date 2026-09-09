@@ -42,7 +42,7 @@ export default function OrderCard({ order, updateOrderAction }) {
   }
 
   return (
-    <div className="eg-card eg-premium-card rounded-[2rem] border border-stone-200 bg-white/85 p-5 backdrop-blur hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10">
+    <div className="eg-order-card eg-card eg-premium-card rounded-[2rem] border border-stone-200 bg-white/85 p-5 backdrop-blur hover:border-emerald-100 hover:shadow-lg hover:shadow-emerald-900/10">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0">
           <p className="text-sm font-black text-emerald-700">
@@ -54,8 +54,8 @@ export default function OrderCard({ order, updateOrderAction }) {
           </h3>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            <InfoPill>Телефон: {order.customerPhone || "—"}</InfoPill>
-            <InfoPill>Telegram: {order.customerTelegram || "—"}</InfoPill>
+            {order.customerPhone && <InfoPill>Телефон: {order.customerPhone}</InfoPill>}
+            {order.customerTelegram && <InfoPill>Telegram: {order.customerTelegram}</InfoPill>}
             <InfoPill>
               {order.deliveryType === "pickup"
                 ? "Самовивіз"
@@ -75,7 +75,7 @@ export default function OrderCard({ order, updateOrderAction }) {
           )}
         </div>
 
-        <div className="shrink-0 rounded-[1.7rem] bg-stone-50/90 p-5 text-left shadow-sm ring-1 ring-stone-100 xl:min-w-[220px] xl:text-right">
+        <div className="eg-order-total shrink-0 rounded-[1.7rem] bg-stone-50/90 p-5 text-left shadow-sm ring-1 ring-stone-100 xl:min-w-[220px] xl:text-right">
           <p className="text-xs font-black uppercase tracking-wide text-stone-400">
             Сума
           </p>
@@ -104,7 +104,7 @@ export default function OrderCard({ order, updateOrderAction }) {
         </div>
       </div>
 
-      <div className="eg-panel mt-5 rounded-[1.7rem] bg-stone-50/90 p-5">
+      <div className="eg-order-items eg-panel mt-5 rounded-[1.7rem] bg-stone-50/90 p-5">
         <p className="mb-3 text-sm font-black text-stone-800">
           Склад замовлення
         </p>

@@ -52,7 +52,7 @@ function CustomerBadge({ children, className = "" }) {
   );
 }
 
-export default function AdminCustomersPanel() {
+export default function AdminCustomersPanel({ apiClient = api }) {
   const [customers, setCustomers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -66,7 +66,7 @@ export default function AdminCustomersPanel() {
   setActionMessage("");
 
   try {
-    const response = await api.getAdminCustomers({
+    const response = await apiClient.getAdminCustomers({
       search: nextSearch,
     });
 
@@ -78,7 +78,7 @@ export default function AdminCustomersPanel() {
   } finally {
     setIsLoading(false);
   }
-}, []);
+}, [apiClient]);
 
 useEffect(() => {
   const timeoutId = window.setTimeout(() => {
@@ -109,7 +109,7 @@ async function handleSearch(event) {
     setLoadingOrdersId(customerId);
 
     try {
-      const response = await api.getAdminCustomerOrders(customerId);
+      const response = await apiClient.getAdminCustomerOrders(customerId);
 
       setCustomerOrders((current) => ({
         ...current,
@@ -133,7 +133,7 @@ async function handleSearch(event) {
     if (reason === null) return;
 
     try {
-      await api.createBlockedCustomer({
+      await apiClient.createBlockedCustomer({
         type,
         value,
         reason,
@@ -154,7 +154,7 @@ async function handleSearch(event) {
     if (!confirmed) return;
 
     try {
-      await api.deleteBlockedCustomer(blockedItem.id);
+      await apiClient.deleteBlockedCustomer(blockedItem.id);
 
       setActionMessage("Блокування видалено.");
       await loadCustomers(searchQuery);
@@ -191,13 +191,9 @@ async function handleSearch(event) {
       <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 shadow-sm ring-1 ring-stone-100 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-800 shadow-sm backdrop-blur">
-              Адмінка
-            </p>
-
-            <h2 className="mt-4 text-4xl font-black leading-tight text-stone-950">
+            <h1 className="eg-admin-panel-title">
               Клієнти
-            </h2>
+            </h1>
 
             <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-500">
               Зареєстровані користувачі, статус підтвердження, історія
@@ -234,7 +230,7 @@ async function handleSearch(event) {
             </form>
         </div>
 
-        <div className="eg-stagger mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="eg-admin-stats eg-stagger mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
           <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-black uppercase text-stone-400">
               Клієнтів
@@ -316,7 +312,7 @@ async function handleSearch(event) {
                     : "border-stone-200 bg-white/80 hover:border-emerald-100 hover:shadow-emerald-900/10"
                   }`}
                 >
-                  <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr_1fr_auto] xl:items-start">
+                  <div className="grid gap-4 eg-admin-customer-row xl:grid-cols-[1.2fr_1fr_1fr_auto] xl:items-start">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-2xl font-black tracking-tight text-stone-950">

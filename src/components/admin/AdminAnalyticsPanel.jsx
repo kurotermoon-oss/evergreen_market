@@ -32,13 +32,9 @@ export default function AdminAnalyticsPanel({
   return (
     <section className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
       <div>
-        <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-800 shadow-sm backdrop-blur">
-          Dashboard
-        </p>
-
-        <h2 className="mt-4 text-4xl font-black leading-tight text-stone-950">
+        <h1 className="eg-admin-panel-title">
           Аналітика
-        </h2>
+        </h1>
 
         <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-600">
           Дивіться оборот, собівартість, прибуток та динаміку замовлень за
@@ -126,7 +122,7 @@ export default function AdminAnalyticsPanel({
 
       {analytics && (
         <>
-          <div className="eg-stagger mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="eg-admin-stats eg-stagger mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <KpiCard
               label="Завершених"
               value={analytics.completedOrdersCount}

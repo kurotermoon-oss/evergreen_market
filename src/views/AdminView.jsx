@@ -1,15 +1,19 @@
-import { useMemo, useState } from "react";
+import { ShoppingBag, Package, Truck, RefreshCw, Users, MessageSquare, ShieldCheck, ChartNoAxesCombined, ArrowUpRight, LogOut } from "lucide-react";
+import logo from "../img/logo_evergreen.webp";
+import { api } from "../api/client.js";
+import { lazy, Suspense, useMemo, useState } from "react";
 
-import AdminOrdersPanel from "../components/admin/AdminOrdersPanel.jsx";
-import AdminAnalyticsPanel from "../components/admin/AdminAnalyticsPanel.jsx";
-import AdminCatalogPanel from "../components/admin/AdminCatalogPanel.jsx";
-import AdminCustomersPanel from "../components/admin/AdminCustomersPanel.jsx";
-import AdminFeedbackPanel from "../components/admin/AdminFeedbackPanel.jsx";
-import AdminSecurityPanel from "../components/admin/AdminSecurityPanel.jsx";
-import AdminSuppliersPanel from "../components/admin/AdminSuppliersPanel.jsx";
-import AdminSupplierSyncPanel from "../components/admin/AdminSupplierSyncPanel.jsx";
+const AdminOrdersPanel = lazy(() => import("../components/admin/AdminOrdersPanel.jsx"));
+const AdminAnalyticsPanel = lazy(() => import("../components/admin/AdminAnalyticsPanel.jsx"));
+const AdminCatalogPanel = lazy(() => import("../components/admin/AdminCatalogPanel.jsx"));
+const AdminCustomersPanel = lazy(() => import("../components/admin/AdminCustomersPanel.jsx"));
+const AdminFeedbackPanel = lazy(() => import("../components/admin/AdminFeedbackPanel.jsx"));
+const AdminSecurityPanel = lazy(() => import("../components/admin/AdminSecurityPanel.jsx"));
+const AdminSuppliersPanel = lazy(() => import("../components/admin/AdminSuppliersPanel.jsx"));
+const AdminSupplierSyncPanel = lazy(() => import("../components/admin/AdminSupplierSyncPanel.jsx"));
 
 export default function AdminView({
+  adminApi = api,
   categories,
   products,
   suppliers = [],
@@ -119,103 +123,23 @@ export default function AdminView({
     },
   ];
 
+  const tabIcons = { orders: ShoppingBag, catalog: Package, suppliers: Truck, "supplier-sync": RefreshCw, customers: Users, feedback: MessageSquare, security: ShieldCheck, analytics: ChartNoAxesCombined };
   return (
-    <main className="eg-ambient mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <section className="eg-glass eg-premium-card mb-8 overflow-hidden rounded-[2.5rem] p-6 lg:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-emerald-800 shadow-sm backdrop-blur">
-              Адмін-панель
-            </p>
-
-            <h1 className="mt-4 text-4xl font-black leading-tight text-stone-950">
-              Керування магазином
-            </h1>
-
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600">
-              Керуйте замовленнями, каталогом товарів, клієнтами, безпекою та
-              аналітикою Evergreen coffee.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={logoutAdmin}
-            className="eg-button rounded-2xl border border-stone-300 bg-white/80 px-5 py-3 font-black text-stone-900 backdrop-blur hover:bg-white"
-          >
-            Вийти
-          </button>
-        </div>
-
-        <div className="eg-stagger mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="eg-card rounded-[1.6rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 hover:bg-emerald-50/60">
-            <p className="text-xs font-black uppercase tracking-wide text-stone-400">
-              Товарів
-            </p>
-            <p className="mt-2 text-3xl font-black text-stone-950">
-              {stats.products}
-            </p>
-          </div>
-
-          <div className="eg-card rounded-[1.6rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 hover:bg-emerald-50/60">
-            <p className="text-xs font-black uppercase tracking-wide text-stone-400">
-              Активних
-            </p>
-            <p className="mt-2 text-3xl font-black text-emerald-900">
-              {stats.activeProducts}
-            </p>
-          </div>
-
-          <div className="eg-card rounded-[1.6rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 hover:bg-amber-50/70">
-            <p className="text-xs font-black uppercase tracking-wide text-stone-400">
-              Прихованих
-            </p>
-            <p className="mt-2 text-3xl font-black text-amber-800">
-              {stats.hiddenProducts}
-            </p>
-          </div>
-
-          <div className="eg-card rounded-[1.6rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 hover:bg-emerald-50/60">
-            <p className="text-xs font-black uppercase tracking-wide text-stone-400">
-              Категорій / підкатегорій
-            </p>
-            <p className="mt-2 text-3xl font-black text-stone-950">
-              {stats.categories} / {stats.subcategories}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <div className="eg-glass eg-premium-card mb-8 overflow-x-auto rounded-[2rem] p-2">
-        <div className="flex min-w-max gap-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setAdminTab(tab.id)}
-              className={`eg-button whitespace-nowrap rounded-[1.4rem] px-5 py-3 text-sm font-black ${
-                adminTab === tab.id
-                  ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
-                  : "text-stone-700 hover:bg-white/80 hover:text-emerald-900"
-              }`}
-            >
-              {tab.label}
-              {typeof tab.count === "number" && (
-                <span
-                  className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
-                    adminTab === tab.id
-                      ? "bg-white/20 text-white"
-                      : "bg-stone-100 text-stone-600"
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
+    <div className="eg-admin eg-admin-shell">
+      <header className="eg-admin-topbar">
+        <a href="/" className="eg-admin-brand" aria-label="Evergreen coffee — до магазину"><img src={logo} alt="Evergreen coffee" /><span>Керування магазином</span></a>
+        <div className="eg-admin-topbar-actions"><a href="/">До магазину <ArrowUpRight size={17} /></a><button type="button" onClick={logoutAdmin}><LogOut size={17} />Вийти</button></div>
+      </header>
+      <div className="eg-admin-layout">
+        <aside className="eg-admin-sidebar">
+          <p>РОБОЧИЙ ПРОСТІР</p>
+          <nav className="eg-admin-nav" aria-label="Розділи адмін-панелі">
+            {tabs.map(tab => { const TabIcon = tabIcons[tab.id]; return <button key={tab.id} type="button" onClick={() => setAdminTab(tab.id)} aria-current={adminTab === tab.id ? "page" : undefined}><TabIcon size={18} aria-hidden="true" /><span>{tab.label}</span>{typeof tab.count === "number" && <span className="eg-admin-count">{tab.count}</span>}</button>; })}
+          </nav>
+        </aside>
+        <label className="eg-admin-mobile-nav">Розділ панелі<select value={adminTab} onChange={event => setAdminTab(event.target.value)}>{tabs.map(tab => <option key={tab.id} value={tab.id}>{tab.label}{typeof tab.count === "number" ? ' · ' + tab.count : ''}</option>)}</select></label>
+        <main className="eg-admin-content" id="admin-content">
+          <Suspense fallback={<div className="shop-loading" role="status">Завантажуємо розділ…</div>}>
       {adminTab === "orders" && (
         <AdminOrdersPanel
           orders={orders}
@@ -257,13 +181,14 @@ export default function AdminView({
 
       {adminTab === "supplier-sync" && (
         <AdminSupplierSyncPanel
+          apiClient={adminApi}
           suppliers={suppliers}
           refreshAdminData={refreshAdminData}
           refreshPublicData={refreshPublicData}
         />
       )}
 
-      {adminTab === "customers" && <AdminCustomersPanel />}
+      {adminTab === "customers" && <AdminCustomersPanel apiClient={adminApi} />}
 
       {adminTab === "feedback" && (
         <AdminFeedbackPanel
@@ -272,7 +197,7 @@ export default function AdminView({
         />
       )}
 
-      {adminTab === "security" && <AdminSecurityPanel />}
+      {adminTab === "security" && <AdminSecurityPanel apiClient={adminApi} />}
 
       {adminTab === "analytics" && (
         <AdminAnalyticsPanel
@@ -282,6 +207,9 @@ export default function AdminView({
         />
       )}
 
-    </main>
+          </Suspense>
+        </main>
+      </div>
+    </div>
   );
 }

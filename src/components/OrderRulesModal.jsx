@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
+import Modal from "./Modal.jsx";
 
 function RuleBlock({ title, children }) {
   return (
@@ -23,33 +23,11 @@ function LimitRow({ title, value, note }) {
 export default function OrderRulesModal() {
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-
-    function handleEscape(event) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    }
-
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-      window.addEventListener("keydown", handleEscape);
-    }
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpen]);
 
   const modal = (
-    <div
-      className="eg-overlay fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm sm:p-6"
-      onClick={() => setIsOpen(false)}
-    >
+    <Modal className="eg-storefront" maxWidth={900} label="Правила замовлення" onClose={() => setIsOpen(false)}>
       <div
-        className="eg-panel my-6 w-full max-w-5xl rounded-[2rem] bg-white p-6 shadow-2xl sm:p-8"
+        className="eg-dialog-surface eg-panel w-full max-w-5xl rounded-[2rem] bg-white p-6 shadow-2xl sm:p-8"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
@@ -161,7 +139,7 @@ export default function OrderRulesModal() {
         </button>
       </div>
       </div>
-    </div>
+    </Modal>
   );
 
   return (
@@ -174,7 +152,7 @@ export default function OrderRulesModal() {
         Правила та умови замовлення
       </button>
 
-      {isOpen && createPortal(modal, document.body)}
+      {isOpen && modal}
     </>
   );
 }

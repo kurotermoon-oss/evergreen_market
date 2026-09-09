@@ -59,17 +59,12 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
     <section className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
-            Адмінка
-          </p>
-
-          <h2 className="mt-2 text-3xl font-black text-stone-950">
+          <h1 className="eg-admin-panel-title">
             Замовлення
-          </h2>
+          </h1>
 
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500">
-            Активні замовлення можна рухати тільки кнопками. Завершені та
-            скасовані переходять в історію.
+            Підтверджуйте нові замовлення та позначайте готові до видачі.
           </p>
         </div>
 
@@ -105,12 +100,13 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           className="eg-field w-full rounded-[1.4rem] border border-stone-200 bg-white/85 px-5 py-3.5 outline-none backdrop-blur focus:border-emerald-700 focus:bg-white"
-          placeholder="Пошук за номером, імʼям, телефоном або Telegram..."
+          aria-label="Пошук замовлень за номером або контактом"
+          placeholder="Номер або контакт покупця"
         />
       </div>
 
       {section === "active" && (
-        <div className="mt-5 flex gap-2 overflow-x-auto pb-2">
+        <div className="mt-5"><label className="grid gap-2 text-sm text-stone-600 md:hidden">Статус замовлення<select className="eg-field w-full border border-stone-200 px-3 py-3" value={activeStatus} onChange={event => setActiveStatus(event.target.value)}>{ACTIVE_ORDER_STATUSES.map(status => <option key={status} value={status}>{status === "all" ? "Усі активні" : getOrderStatusLabel(status)} · {status === "all" ? activeOrders.length : activeOrders.filter(order => normalizeOrderStatus(order.status) === status).length}</option>)}</select></label><div className="hidden flex-wrap gap-2 md:flex">
           {ACTIVE_ORDER_STATUSES.map((status) => {
             const count =
               status === "all"
@@ -135,7 +131,7 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
               </button>
             );
           })}
-        </div>
+        </div></div>
       )}
 
       {!visibleOrders.length && (

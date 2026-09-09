@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { createPortal } from "react-dom";
+import Modal from "../Modal.jsx";
 
 import ProductBenefitsEditor from "./ProductBenefitsEditor.jsx";
 import ProductImageCropUploader from "./ProductImageCropUploader.jsx";
@@ -43,6 +42,7 @@ function TextInput({
       onChange={onChange}
       type={type}
       placeholder={placeholder}
+      aria-label={placeholder}
       className={getFieldClass(className)}
       {...props}
     />
@@ -55,6 +55,7 @@ function TextArea({ value, onChange, placeholder, rows = 3 }) {
       value={value || ""}
       onChange={onChange}
       rows={rows}
+      aria-label={placeholder}
       placeholder={placeholder}
       className={getFieldClass("resize-y")}
     />
@@ -104,14 +105,6 @@ export default function AdminProductEditModal({
   saveEditedProduct,
   cancelEditProduct,
 }) {
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
 
   function updateField(field, value) {
     setEditingProduct((current) => ({
@@ -159,13 +152,9 @@ export default function AdminProductEditModal({
     });
   }
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/55 p-3 backdrop-blur-md"
-      onClick={cancelEditProduct}
-    >
+  return <Modal label="Редагування товару" maxWidth={1260} onClose={cancelEditProduct}>
       <div
-        className="eg-glass flex h-[96dvh] w-[94vw] max-w-[1260px] flex-col overflow-hidden rounded-[1.6rem] bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.22)]"
+        className="eg-dialog-surface eg-glass flex h-[96dvh] w-[94vw] max-w-[1260px] flex-col overflow-hidden rounded-[1.6rem] bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.22)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="shrink-0 border-b border-stone-200 bg-white/95 px-5 py-3 backdrop-blur-xl sm:px-6">
@@ -188,6 +177,7 @@ export default function AdminProductEditModal({
             <button
               type="button"
               onClick={cancelEditProduct}
+              aria-label="Закрити вікно"
               className="eg-icon-button flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-stone-100 text-xl font-black text-stone-600 hover:bg-stone-200"
             >
               ×
@@ -582,7 +572,5 @@ export default function AdminProductEditModal({
           </div>
         </div>
       </div>
-    </div>,
-    document.body
-  );
+    </Modal>;
 }

@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 
 export default function AdminLoginView({ loginAdmin }) {
@@ -17,13 +18,13 @@ export default function AdminLoginView({ loginAdmin }) {
   }
 
   return (
-    <main className="mx-auto flex min-h-[70vh] max-w-xl items-center px-4 py-14 sm:px-6 lg:px-8">
+    <main className="eg-admin-login"><a href="/"><ArrowLeft size={17} />До магазину</a>
       <form
         onSubmit={handleSubmit}
         className="w-full rounded-[2rem] bg-white p-8 shadow-sm"
       >
         <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
-          Admin login
+          Evergreen coffee
         </p>
 
         <h1 className="mt-2 text-3xl font-black text-stone-950">
@@ -41,6 +42,8 @@ export default function AdminLoginView({ loginAdmin }) {
             </span>
 
             <input
+              autoComplete="username"
+              required
               value={login}
               onChange={(event) => setLogin(event.target.value)}
               className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
@@ -57,13 +60,15 @@ export default function AdminLoginView({ loginAdmin }) {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               type="password"
+              autoComplete="current-password"
+              required
               className="w-full rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-emerald-700"
               placeholder="Ваш пароль"
             />
           </label>
 
           {error && (
-            <div className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">
+            <div role="alert" className="rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">
               {error}
             </div>
           )}

@@ -111,7 +111,7 @@ function ActionButton({ children, tone = "stone", onClick }) {
   );
 }
 
-export default function AdminSecurityPanel() {
+export default function AdminSecurityPanel({ apiClient = api }) {
   const [guests, setGuests] = useState([]);
   const [blockedCustomers, setBlockedCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -126,8 +126,8 @@ export default function AdminSecurityPanel() {
 
     try {
       const [guestResponse, blockedResponse] = await Promise.all([
-        api.getAdminGuestActivity(),
-        api.getAdminSecurityBlockedCustomers(),
+        apiClient.getAdminGuestActivity(),
+        apiClient.getAdminSecurityBlockedCustomers(),
       ]);
 
       setGuests(guestResponse.guests || []);
@@ -141,7 +141,7 @@ export default function AdminSecurityPanel() {
 
   useEffect(() => {
     loadSecurityData();
-  }, []);
+  }, [apiClient]);
 
   async function createBlock(
     type,
@@ -158,7 +158,7 @@ export default function AdminSecurityPanel() {
     if (reason === null) return;
 
     try {
-      await api.createAdminSecurityBlockedCustomer({
+      await apiClient.createAdminSecurityBlockedCustomer({
         type,
         value,
         reason,
@@ -179,7 +179,7 @@ export default function AdminSecurityPanel() {
     if (!confirmed) return;
 
     try {
-      await api.deleteAdminSecurityBlockedCustomer(item.id);
+      await apiClient.deleteAdminSecurityBlockedCustomer(item.id);
 
       setMessage("Блокування видалено.");
       await loadSecurityData();
@@ -261,13 +261,9 @@ export default function AdminSecurityPanel() {
       <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 shadow-sm ring-1 ring-stone-100 lg:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-800 shadow-sm backdrop-blur">
-              Адмінка
-            </p>
-
-            <h2 className="mt-4 text-4xl font-black leading-tight text-stone-950">
+            <h1 className="eg-admin-panel-title">
               Безпека
-            </h2>
+            </h1>
 
             <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600">
               Гостьові замовлення, підозріла активність, IP, контакти та ручні
@@ -285,7 +281,7 @@ export default function AdminSecurityPanel() {
           </button>
         </div>
 
-        <div className="eg-stagger mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="eg-admin-stats eg-stagger mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
           <StatCard label="Гостей" value={stats.total} />
           <StatCard label="Замовлень" value={stats.orders} />
           <StatCard label="Активні" value={stats.active} tone="blue" />
@@ -384,7 +380,7 @@ export default function AdminSecurityPanel() {
                         : "border-stone-200 bg-white/80 hover:border-emerald-100 hover:shadow-emerald-900/10"
                     }`}
                   >
-                    <div className="grid gap-5 xl:grid-cols-[1.25fr_1fr_1fr_auto]">
+                    <div className="grid gap-5 eg-admin-security-row xl:grid-cols-[1.25fr_1fr_1fr_auto]">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="text-2xl font-black tracking-tight text-stone-950">

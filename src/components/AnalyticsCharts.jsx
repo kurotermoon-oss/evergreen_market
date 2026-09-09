@@ -67,6 +67,7 @@ export default function AnalyticsCharts({ analytics }) {
             <YAxis tick={{ fontSize: 12 }} stroke="#78716c" />
             <Tooltip content={<CustomTooltip />} />
             <Line
+              isAnimationActive={false}
               name="Прибуток"
               type="monotone"
               dataKey="profit"
@@ -95,6 +96,7 @@ export default function AnalyticsCharts({ analytics }) {
             <YAxis tick={{ fontSize: 12 }} stroke="#78716c" />
             <Tooltip content={<CustomTooltip />} />
             <Bar
+              isAnimationActive={false}
               name="Виручка"
               dataKey="revenue"
               fill="#065f46"

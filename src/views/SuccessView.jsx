@@ -48,7 +48,7 @@ export default function SuccessView({
         </h1>
 
         {orderNumber && (
-          <div className="eg-premium-card mx-auto mt-6 w-fit overflow-hidden rounded-[1.5rem] bg-emerald-950 px-6 py-4 text-2xl font-black text-white shadow-xl shadow-emerald-950/20">
+          <div className="mx-auto mt-6 w-fit overflow-hidden rounded-[1.5rem] bg-emerald-950 px-6 py-4 text-2xl font-black text-white shadow-xl shadow-emerald-950/20">
             <span className="relative z-10">#{orderNumber}</span>
           </div>
         )}

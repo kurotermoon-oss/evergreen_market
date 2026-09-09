@@ -68,6 +68,7 @@ function StatCard({ label, value, tone = "stone" }) {
 }
 
 export default function AdminSupplierSyncPanel({
+  apiClient = api,
   suppliers = [],
   refreshAdminData,
   refreshPublicData,
@@ -106,7 +107,7 @@ export default function AdminSupplierSyncPanel({
     setError("");
 
     try {
-      const response = await api.getAdminSupplierSync(id);
+      const response = await apiClient.getAdminSupplierSync(id);
       setDashboard(response);
       setDrafts(
         Object.fromEntries(
@@ -157,7 +158,7 @@ export default function AdminSupplierSyncPanel({
     setNotice("");
 
     try {
-      await api.updateAdminSupplierSyncSettings(supplierId, payload);
+      await apiClient.updateAdminSupplierSyncSettings(supplierId, payload);
       await Promise.all([loadDashboard(), refreshAdminData?.()]);
       setNotice("Налаштування синхронізації збережено.");
     } catch (requestError) {
@@ -184,7 +185,7 @@ export default function AdminSupplierSyncPanel({
     setNotice("");
 
     try {
-      const response = await api.runAdminSupplierSync(supplierId, {
+      const response = await apiClient.runAdminSupplierSync(supplierId, {
         dryRun,
         force,
       });
@@ -216,7 +217,7 @@ export default function AdminSupplierSyncPanel({
     setNotice("");
 
     try {
-      const response = await api.autoMapAdminSupplierProducts(supplierId, {
+      const response = await apiClient.autoMapAdminSupplierProducts(supplierId, {
         apply,
         enableSync: true,
       });
@@ -251,7 +252,7 @@ export default function AdminSupplierSyncPanel({
     setNotice("");
 
     try {
-      await api.updateAdminSupplierSyncSettings(supplierId, {
+      await apiClient.updateAdminSupplierSyncSettings(supplierId, {
         adapter: ADAPTER_ID,
         enabled: nextEnabled,
         paused: false,
@@ -261,7 +262,7 @@ export default function AdminSupplierSyncPanel({
       let immediateRun = null;
 
       if (nextEnabled) {
-        const response = await api.runAdminSupplierSync(supplierId, {
+        const response = await apiClient.runAdminSupplierSync(supplierId, {
           dryRun: false,
           force: false,
         });
@@ -308,7 +309,7 @@ export default function AdminSupplierSyncPanel({
     setNotice("");
 
     try {
-      await api.updateAdminSupplierSyncProduct(supplierId, productId, draft);
+      await apiClient.updateAdminSupplierSyncProduct(supplierId, productId, draft);
       setAutoMapResult(null);
       await Promise.all([loadDashboard(), refreshAdminData?.()]);
       setNotice("Привʼязку товару збережено.");
@@ -351,12 +352,9 @@ export default function AdminSupplierSyncPanel({
       <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
-              Автоматизація наявності
-            </p>
-            <h2 className="mt-2 text-3xl font-black text-stone-950">
+            <h1 className="eg-admin-panel-title">
               Синхронізація Milk Diller
-            </h2>
+            </h1>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600">
               Автоматичний режим перевіряє каталог кожні 6 годин через короткі
               запуски Railway Cron. Помилка сайту постачальника не змінює
@@ -364,7 +362,7 @@ export default function AdminSupplierSyncPanel({
             </p>
           </div>
 
-          <label className="block min-w-64">
+          <label className="eg-sync-supplier block min-w-64">
             <span className="mb-2 block text-xs font-black uppercase tracking-wide text-stone-500">
               Постачальник
             </span>
@@ -506,7 +504,7 @@ export default function AdminSupplierSyncPanel({
             )}
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="eg-admin-stats grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard label="Товарів" value={dashboard.stats.products} />
             <StatCard label="Привʼязано" value={dashboard.stats.mapped} tone="green" />
             <StatCard label="Доступно" value={dashboard.stats.available} tone="green" />
@@ -558,7 +556,7 @@ export default function AdminSupplierSyncPanel({
 
               {autoMapResult && (
                 <div className="mt-5 space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                  <div className="eg-admin-stats grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                     <StatCard
                       label="Вже привʼязано"
                       value={autoMapResult.summary.alreadyMapped}
@@ -742,7 +740,7 @@ export default function AdminSupplierSyncPanel({
                         )}
                       </div>
 
-                      <div className="mt-4 grid gap-3 xl:grid-cols-[minmax(280px,1fr)_160px_170px_auto] xl:items-center">
+                      <div className="mt-4 eg-sync-product-fields grid gap-3 xl:grid-cols-[minmax(280px,1fr)_160px_170px_auto] xl:items-center">
                         <input
                           value={draft.productUrl || ""}
                           onChange={(event) =>

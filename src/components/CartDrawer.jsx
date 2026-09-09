@@ -53,7 +53,7 @@ function CartItem({
   }
 
   return (
-    <div className="eg-card flex gap-3 rounded-[1.2rem] border border-stone-200 bg-white p-3 shadow-sm hover:border-emerald-100 hover:shadow-md hover:shadow-emerald-900/10">
+    <div className="eg-drawer-item eg-card flex gap-3 rounded-[1.2rem] border border-stone-200 bg-white p-3 shadow-sm hover:border-emerald-100 hover:shadow-md hover:shadow-emerald-900/10">
       <img
         src={item.image || logoEvergreen}
         alt={item.name}
@@ -72,7 +72,7 @@ function CartItem({
           </p>
         )}
 
-        <div className="mt-3 grid min-w-0 grid-cols-[minmax(0,7.75rem)_auto] items-center gap-2">
+        <div className="eg-drawer-item-controls mt-3 grid min-w-0 grid-cols-[minmax(0,7.75rem)_auto] items-center gap-2">
           <QuantityControl
             value={quantity}
             onChange={handleQuantityChange}
@@ -85,7 +85,7 @@ function CartItem({
           />
 
           <div className="flex min-w-0 items-center justify-end gap-2">
-            <p className="min-w-0 truncate text-sm font-black text-stone-950">
+            <p className="min-w-0 text-sm font-black text-stone-950">
               {formatUAH(itemTotal)}
             </p>
 
@@ -274,7 +274,7 @@ export default function CartDrawer({
   }
 
   return (
-    <div className="fixed inset-0 z-[900]" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[900]" role="dialog" aria-modal="true" aria-label="Ваші покупки">
       <div
         aria-hidden="true"
         className="absolute inset-0 cursor-default bg-stone-950/45 backdrop-blur-sm"
@@ -283,7 +283,7 @@ export default function CartDrawer({
 
       <aside
         ref={drawerRef}
-        className="eg-panel absolute bottom-0 right-0 flex h-[min(92vh,760px)] w-full flex-col overflow-hidden rounded-t-[1.6rem] border border-white/70 bg-stone-50 shadow-[0_-22px_70px_rgba(2,44,34,0.28)] sm:bottom-4 sm:right-4 sm:h-[calc(100vh-2rem)] sm:max-h-[760px] sm:w-[430px] sm:rounded-[1.8rem]"
+        className="eg-cart-drawer eg-panel absolute bottom-0 right-0 flex h-[min(92vh,760px)] w-full flex-col overflow-hidden rounded-t-[1.6rem] border border-white/70 bg-stone-50 shadow-[0_-22px_70px_rgba(2,44,34,0.28)] sm:bottom-4 sm:right-4 sm:h-[calc(100vh-2rem)] sm:max-h-[760px] sm:w-[430px] sm:rounded-[1.8rem]"
       >
         <div className="relative overflow-hidden bg-emerald-950 px-4 pb-4 pt-5 text-white sm:px-5 sm:pb-5">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_10%,rgba(255,255,255,0.16),transparent_34%),radial-gradient(circle_at_92%_88%,rgba(251,191,36,0.16),transparent_32%)]" />
@@ -402,7 +402,7 @@ export default function CartDrawer({
                   onClick={onClose}
                   className="eg-button rounded-2xl border border-stone-300 px-4 py-3 text-sm font-black text-stone-800 hover:bg-stone-100"
                 >
-                  Продовжити
+                  До покупок
                 </button>
 
                 <button

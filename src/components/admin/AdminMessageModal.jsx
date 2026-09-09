@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { createPortal } from "react-dom";
+import Modal from "../Modal.jsx";
 
 export default function AdminMessageModal({
   type = "warning",
@@ -12,14 +11,6 @@ export default function AdminMessageModal({
   isLoading = false,
   showCancel = true,
 }) {
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
 
   const styles = {
     warning: {
@@ -57,13 +48,9 @@ export default function AdminMessageModal({
     onCancel?.();
   }
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/55 p-4 backdrop-blur-md"
-      onClick={handleOverlayClick}
-    >
+  return <Modal label={title} maxWidth={512} onClose={handleOverlayClick}>
       <div
-        className="eg-glass eg-premium-card w-full max-w-lg overflow-hidden rounded-[2rem] bg-white/95 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.25)]"
+        className="eg-dialog-surface eg-glass eg-premium-card w-full max-w-lg overflow-hidden rounded-[2rem] bg-white/95 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.25)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start gap-4">
@@ -112,7 +99,5 @@ export default function AdminMessageModal({
           </button>
         </div>
       </div>
-    </div>,
-    document.body
-  );
+    </Modal>;
 }

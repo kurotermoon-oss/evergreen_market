@@ -47,11 +47,14 @@ const AccountView = lazy(() => import("./views/AccountView.jsx"));
 
 const HowItWorksPreview = import.meta.env.MODE === "development" ? lazy(() => import("./views/HowItWorksPreview.jsx")) : null;
 
+const DesignPreview = import.meta.env.MODE === "development" && import.meta.env.VITE_READONLY_PREVIEW === "1" ? lazy(() => import("./views/DesignPreview.jsx")) : null;
+
 export default function App() {
   const [route, setRoute] = useState(() =>
     getRouteFromLocation(window.location)
   );
   const view = route.view;
+  const isAdminArea = view === "admin" || view === "admin-preview";
   const setView = useCallback((nextView, options = {}) => {
     const targetPath = getPathForView(nextView, options);
     const currentPath = `${normalizePathname(window.location.pathname)}${
@@ -527,20 +530,20 @@ function applyCustomerToForm(customerData) {
   }
 
 return (
-  <div className={`min-h-screen ${view === "admin" ? "bg-stone-50 text-stone-950" : "eg-storefront"}`}>
+  <div className={`min-h-screen ${isAdminArea ? "eg-admin" : "eg-storefront"}`}>
 
     <PageLoader show={isAppLoading} />
 
     {import.meta.env.MODE === "development" && import.meta.env.VITE_READONLY_PREVIEW === "1" && <div className="shop-preview-banner">Попередній перегляд · замовлення не надсилаються · <a href="/how-it-works" style={{textDecoration:"underline"}}>Новий гід покупця ↗</a></div>}
-    <Header
+    {!isAdminArea && <Header
         view={view}
         setView={setView}
         onContactsClick={openContacts}
         isAdmin={isAdmin}
         customer={customer}
-      />
+      />}
 <div
-  className={`eg-page pb-24 md:pb-0 ${
+  className={`${isAdminArea ? "" : "eg-page pb-24 md:pb-0"} ${
     view === "catalog" ? "eg-catalog-page" : ""
   } ${
     view === "product" ? "eg-fixed-actions-page" : ""
@@ -548,6 +551,7 @@ return (
 >
 
       <Suspense fallback={<div className="shop-loading" role="status">Завантажуємо сторінку…</div>}>
+      {DesignPreview && ["admin-preview", "account-preview", "success-preview"].includes(view) && <DesignPreview mode={view.replace("-preview", "")} products={products} categories={categories} setView={setView} />}
       {view === "home" && (
       <HomeView
         setView={setView}
@@ -746,12 +750,12 @@ return (
         </Suspense>
       )}
 
-      {view !== "contacts" &&
+      {!isAdminArea && view !== "contacts" &&
         (view === "home" || view === "how-it-works" || view === "how-it-works-preview" || isDesktopViewport) && (
         <Footer setView={setView} />
       )}
 
-      {!isHowPage && (
+      {!isAdminArea && !isHowPage && !isCartRoute(view) && (
       <FloatingCartButton
         isOpen={isCartDrawerOpen}
         onOpen={openCartDrawer}
@@ -759,15 +763,16 @@ return (
       />
       )}
 
-      {shouldShowFeedbackButton && (
+      {!isAdminArea && shouldShowFeedbackButton && (
         <FeedbackButton
+          inline={isCartRoute(view) || ["customer-auth", "account", "account-preview"].includes(view)}
           customer={customer}
           setView={setView}
           isProductView={view === "product"}
         />
       )}
 
-      <MobileNav
+      {!isAdminArea && <MobileNav
         view={view}
         setView={setView}
         onContactsClick={openContacts}
@@ -783,7 +788,7 @@ return (
         cartCount={cartCount}
         isAdmin={isAdmin}
         customer={customer}
-      />
+      />}
 
       <CartDrawer
         isOpen={isCartDrawerOpen}

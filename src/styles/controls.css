@@ -1,0 +1,91 @@
+/* Shared visual language for the storefront and the separate admin workspace. */
+:is(.eg-storefront, .eg-admin) {
+  --color-emerald-950: #203e30;
+  --color-emerald-900: #385d48;
+  --color-emerald-800: #416d53;
+  --color-emerald-700: #487859;
+  --color-emerald-100: #e2ebdc;
+  --color-emerald-50: #f0f4eb;
+  --color-stone-400: #73776f;
+  --color-stone-500: #656c63;
+  --color-stone-950: #26352d;
+  --color-stone-50: #fafaf6;
+  color: #26352d;
+  font-family: "Segoe UI", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+:is(.eg-storefront, .eg-admin) .font-black { font-weight: 650; }
+:is(.eg-storefront, .eg-admin) :is(button, input, select, textarea) { font-family: inherit; }
+:is(.eg-storefront, .eg-admin) :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #9e752b;
+  outline-offset: 3px;
+}
+:is(.eg-storefront, .eg-admin) :is(.eg-field, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]), select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 10px;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+:is(.eg-storefront, .eg-admin) :is(.eg-field, select, textarea) { background-image: none; }
+:is(.eg-storefront, .eg-admin) :is(.eg-button, .eg-icon-button) {
+  border-radius: 10px;
+  transition: background-color .16s, border-color .16s, color .16s;
+  box-shadow: none;
+}
+:is(.eg-storefront, .eg-admin) :is(button, a)[disabled] { cursor: not-allowed; }
+:is(.eg-storefront, .eg-admin) :is(.eg-glass, .eg-premium-card, .eg-panel) {
+  border-radius: 20px;
+  border-color: #dfe4da;
+  box-shadow: 0 2px 6px #213c2805;
+  backdrop-filter: none;
+}
+:is(.eg-storefront, .eg-admin) :is(.eg-card, .eg-button, .eg-icon-button):hover {
+  transform: none;
+  box-shadow: none;
+}
+:is(.eg-storefront, .eg-admin) .eg-card { border-radius: 14px; }
+:is(.eg-storefront, .eg-admin) :is(.eg-ambient, .eg-sweep, .eg-steam, .eg-premium-card)::before,
+:is(.eg-storefront, .eg-admin) :is(.eg-ambient, .eg-sweep, .eg-steam)::after { display: none; }
+:is(.eg-storefront, .eg-admin) :is(.eg-ambient, .eg-steam, .eg-glass) { background-image: none; }
+:is(.eg-storefront, .eg-admin) [class*="blur-3xl"] { display: none; }
+:is(.eg-storefront, .eg-admin) :is(h1, h2, h3) { letter-spacing: -.025em; text-wrap: balance; }
+:is(.eg-storefront, .eg-admin) .eg-quantity-control { box-shadow: none; }
+
+.eg-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: calc(100% - 32px);
+  max-width: var(--dialog-width, 1260px);
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid #dfe4da;
+  border-radius: 20px;
+  background: #fff;
+  overflow: auto;
+  box-shadow: 0 24px 80px #172b3029;
+}
+.eg-dialog::backdrop { background: #192c286b; }
+.eg-dialog > .eg-dialog-surface { width: 100%; max-height: calc(100dvh - 34px); border: 0; border-radius: 0; }
+.eg-dialog-header { background: #fff; }
+.eg-dialog :is(.modal-scrollbar, .overflow-y-auto) { overscroll-behavior: contain; }
+
+@media (max-width: 639px) {
+  :is(.eg-storefront, .eg-admin) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) { font-size: 16px; }
+  :is(.eg-storefront, .eg-admin) :is(.eg-button, .eg-icon-button) { min-height: 44px; }
+  :is(.eg-storefront, .eg-admin) :is(.eg-glass, .eg-premium-card).p-6,
+  :is(.eg-storefront, .eg-admin) :is(.eg-glass, .eg-premium-card).p-8 { padding: 18px; }
+  .eg-dialog { width: calc(100% - 16px); max-height: calc(100dvh - 16px); border-radius: 16px; }
+  .eg-dialog > .eg-dialog-surface { max-height: calc(100dvh - 18px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.eg-storefront, .eg-admin) *, :is(.eg-storefront, .eg-admin) *::before, :is(.eg-storefront, .eg-admin) *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

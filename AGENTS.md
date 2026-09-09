@@ -15,7 +15,7 @@ Read this file first. Keep it concise; open linked references only for the task 
 - Batch independent reads. No subagents unless explicitly requested. After successful relevant checks, repeat only for new changes or new failures. Avoid tests that merely repeat markup.
 - Never expose `.env` or credentials. Preserve user edits, data, logs, backups and production behavior. Do not bulk-format or upgrade dependencies without task need.
 - `AGENTS.md` does not change model, effort or billing. For Astra-specific guidance read `docs/MODEL-NOTES.md`; default suggestion is low for small edits, medium for features, high for hard diagnosis. These are heuristics, not measured savings.
-- Current design review: the owner explicitly requested a full replacement of the "Як це працює" section. The simplified guide now lives at `/how-it-works` in the local project; the old DEV preview path aliases it. Publishing or pushing remains a separate step; the live site has not been updated.
+- Current design request (09.09.2026): improve all existing public and admin UI, responsiveness and push the completed work to GitHub. The earlier storefront/guide work was uploaded as `ab9d867`. Current scope and acceptance criteria: `docs/INTERFACE-BRIEF.md`.
 
 ## Business contract
 - Café wholesale purchases offered to neighbors with a small markup; no invented savings, prices, reviews, stock or deadlines.
@@ -32,7 +32,7 @@ Read this file first. Keep it concise; open linked references only for the task 
 - `src/App.jsx`: route/state wiring; `src/utils/routes.js`: URLs; `src/utils/pageMeta.js`: metadata. Public route changes may also require `server/seoRoutes.cjs`.
 - `src/views/`: screens. `src/components/storefront/`: public page components. `src/hooks/`: state/workflows. `src/api/client.js`: frontend requests. Reuse existing utilities.
 - Admin view and product editor are lazy-loaded. Keep heavy admin dependencies outside the initial public bundle.
-- `src/index.css`: style imports. `src/styles/legacy.css`: preserved shared controls, overlays and admin behavior. `src/styles/storefront.css`: calm public theme scoped to `.eg-storefront`; `shopping-guide.css`: guide styling. Do not append duplicate style systems to the entry file.
+- `src/index.css`: style imports. `src/styles/legacy.css`: preserved shared controls, overlays and admin behavior. `src/styles/storefront.css`: calm public theme scoped to `.eg-storefront`; `shopping-guide.css`: guide styling; `controls.css`: shared controls and modal styling; `admin.css`: separate admin workspace. Do not append duplicate style systems to the entry file.
 - Use readable text, neutral surfaces, muted green, restrained shadows, clear actions and subtle motion. Avoid continuous glow, decorative gradients and heavy visual effects. Preserve meaningful availability/error colors.
 - Mobile grids use `minmax(0,1fr)`; allow long names/prices to wrap. Keep quantity controls and actions tappable. Test 320/390/768/1280 widths, sticky header, navigation, drawer, cart and reduced motion for substantial public UX changes.
 - Fixed UI uses existing `--eg-*` safe-area/stack tokens. Do not fix overflow by hiding content or raising every z-index.

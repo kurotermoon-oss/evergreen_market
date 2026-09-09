@@ -41,11 +41,11 @@ export default function Header({ view, setView, onContactsClick, isAdmin = false
         <div className="shop-header-actions">
           <a href="/catalog" onClick={event => navigate(event, 'catalog')} className="shop-button shop-header-catalog">Каталог <ArrowUpRight size={17} /></a>
           <a className="shop-account" href={getPathForView(accountView)} onClick={event => navigate(event, accountView)} aria-label={customer ? 'Особистий кабінет' : 'Увійти'}><UserRound size={20} /><span>{customer ? 'Кабінет' : 'Увійти'}</span></a>
-          {isAdmin && <a className="shop-icon-button" href="/admin" onClick={event => navigate(event, 'admin')} aria-label="Адмін-панель"><Settings size={20} /></a>}
+          {isAdmin && <a className="shop-icon-button shop-admin-link" href="/admin" onClick={event => navigate(event, 'admin')} aria-label="Адмін-панель"><Settings size={20} /></a>}
           <button ref={toggleRef} className="shop-icon-button shop-menu-toggle" type="button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-controls="shop-mobile-menu" aria-label={menuOpen ? 'Закрити меню' : 'Відкрити меню'}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
         </div>
       </div>
-      {menuOpen && <nav id="shop-mobile-menu" className="shop-mobile-menu" aria-label="Мобільне меню">{[...items, [accountView, customer ? 'Кабінет' : 'Увійти']].map(([target, label]) => <a key={target} href={getPathForView(target)} onClick={event => navigate(event, target)} aria-current={view === target ? 'page' : undefined}>{label}<ArrowUpRight size={17} /></a>)}<a href="https://t.me/EvergreeenCofee" target="_blank" rel="noopener noreferrer">Написати в Telegram <ArrowUpRight size={17} /></a></nav>}
+      {menuOpen && <nav id="shop-mobile-menu" className="shop-mobile-menu" aria-label="Мобільне меню">{[...items, ...(isAdmin ? [["admin", "Адмін-панель"]] : []), [accountView, customer ? 'Кабінет' : 'Увійти']].map(([target, label]) => <a key={target} href={getPathForView(target)} onClick={event => navigate(event, target)} aria-current={view === target ? 'page' : undefined}>{label}<ArrowUpRight size={17} /></a>)}<a href="https://t.me/EvergreeenCofee" target="_blank" rel="noopener noreferrer">Написати в Telegram <ArrowUpRight size={17} /></a></nav>}
     </header>
   );
 }

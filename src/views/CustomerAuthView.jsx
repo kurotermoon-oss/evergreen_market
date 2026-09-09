@@ -1,3 +1,4 @@
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 
 function normalizePhone(value) {
@@ -79,7 +80,8 @@ function PasswordInput({
           type={showPassword ? "text" : "password"}
           className={`${getInputClass(Boolean(error))} pr-14`}
           placeholder={placeholder}
-          autoComplete="current-password"
+          aria-label={placeholder}
+          autoComplete={placeholder?.includes("Повтор") ? "new-password" : "current-password"}
         />
 
         <button
@@ -88,7 +90,7 @@ function PasswordInput({
           className="eg-icon-button absolute right-3 top-1/2 -translate-y-1/2 rounded-xl px-2 py-1 text-lg hover:bg-stone-100"
           aria-label={showPassword ? "Приховати пароль" : "Показати пароль"}
         >
-          {showPassword ? "🙈" : "👁️"}
+          {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
         </button>
       </div>
 
@@ -302,14 +304,14 @@ export default function CustomerAuthView({
   }
 
   return (
-    <main className="eg-ambient mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+    <main className="eg-auth-page eg-ambient mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <section className="eg-glass eg-premium-card overflow-hidden rounded-[2.5rem] p-6 sm:p-8">
-        <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-emerald-800 shadow-sm backdrop-blur">
+        <p className="shop-eyebrow">
           Особистий кабінет
         </p>
 
         <h1 className="mt-5 text-4xl font-black leading-tight text-stone-950">
-          {mode === "login" ? "Вхід для клієнта" : "Реєстрація клієнта"}
+          {mode === "login" ? "Вітаємо знову" : "Створити акаунт"}
         </h1>
 
         <p className="mt-3 max-w-2xl text-base leading-7 text-stone-600">

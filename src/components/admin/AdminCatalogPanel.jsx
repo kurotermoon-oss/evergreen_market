@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useMemo, useRef, useState } from "react";
+import Modal from "../Modal.jsx";
 
 import AdminProductForm from "./AdminProductForm.jsx";
 import AdminProductsPanel from "./AdminProductsPanel.jsx";
@@ -164,13 +164,9 @@ function CsvImportDialog({ dialog, onClose, onPrimary }) {
     error: "×",
   };
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[1400] flex items-center justify-center bg-stone-950/55 px-4 py-6 backdrop-blur-md"
-      onClick={onClose}
-    >
+  return <Modal label={dialog.title} maxWidth={576} onClose={onClose}>
       <div
-        className="eg-glass eg-premium-card w-full max-w-xl overflow-hidden rounded-[2rem] bg-white/95 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.28)]"
+        className="eg-dialog-surface eg-glass eg-premium-card w-full max-w-xl overflow-hidden rounded-[2rem] bg-white/95 p-6 shadow-[0_30px_90px_rgba(0,0,0,0.28)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start gap-4">
@@ -237,9 +233,7 @@ function CsvImportDialog({ dialog, onClose, onPrimary }) {
           </button>
         </div>
       </div>
-    </div>,
-    document.body
-  );
+    </Modal>;
 }
 
 export default function AdminCatalogPanel({
@@ -264,6 +258,7 @@ export default function AdminCatalogPanel({
   updateSubcategory,
   deleteSubcategory,
 }) {
+  const [categoryNavOpen, setCategoryNavOpen] = useState(() => window.matchMedia("(min-width: 1400px)").matches);
   const [showAddProductForm, setShowAddProductForm] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [catalogQuery, setCatalogQuery] = useState("");
@@ -284,17 +279,6 @@ export default function AdminCatalogPanel({
     label: "Усі товари",
   });
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-
-    if (showAddProductForm || showCategoryManager || importDialog) {
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [showAddProductForm, showCategoryManager, importDialog]);
 
   const visibleCategories = useMemo(() => {
     return getVisibleCategories(categories);
@@ -521,18 +505,12 @@ export default function AdminCatalogPanel({
       <div className="eg-glass eg-premium-card overflow-hidden rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-800 shadow-sm backdrop-blur">
-              Каталог
-            </p>
-
-            <h2 className="mt-4 text-4xl font-black leading-tight text-stone-950">
+            <h1 className="eg-admin-panel-title">
               Керування каталогом
-            </h2>
+            </h1>
 
             <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
-              Оберіть категорію зліва, щоб швидко переглянути повʼязані товари.
-              Редагування категорій винесено в окремий режим, щоб сторінка не
-              була перевантаженою.
+              Знаходьте товари, оновлюйте ціни та керуйте видимістю в магазині.
             </p>
           </div>
 
@@ -551,6 +529,9 @@ export default function AdminCatalogPanel({
                 : "Керування категоріями"}
             </button>
 
+            <details className="eg-admin-csv">
+              <summary>Імпорт / експорт CSV</summary>
+              <div className="mt-2 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={handleDownloadTemplate}
@@ -584,6 +565,11 @@ export default function AdminCatalogPanel({
               {importStatus.isLoading ? "Імпортуємо..." : "Імпорт CSV"}
             </button>
 
+              </div>
+              <p className="mt-3 text-xs leading-5 text-stone-600">
+                Для нових товарів використовуйте шаблон без id. Для оновлення — експортований файл з id.
+              </p>
+            </details>
             <button
               type="button"
               onClick={() => setShowAddProductForm(true)}
@@ -600,13 +586,8 @@ export default function AdminCatalogPanel({
           </div>
         )}
 
-        <p className="mt-4 rounded-[1.3rem] bg-emerald-50/70 px-4 py-3 text-sm leading-6 text-emerald-950 ring-1 ring-emerald-100">
-          Для створення нових товарів використовуйте шаблон CSV без id. id
-          потрібен тільки в експортованому файлі, якщо ви хочете оновити вже
-          існуючі товари.
-        </p>
 
-        <div className="eg-stagger mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="eg-admin-stats eg-stagger mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
             <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
               Товарів
@@ -733,13 +714,9 @@ export default function AdminCatalogPanel({
       </div>
 
 {showCategoryManager &&
-  createPortal(
-    <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/55 p-3 backdrop-blur-md"
-      onClick={() => setShowCategoryManager(false)}
-    >
+  <Modal label="Категорії та підкатегорії" maxWidth={1260} onClose={() => setShowCategoryManager(false)}>
       <div
-        className="eg-glass flex h-[96dvh] w-[96vw] max-w-[1500px] flex-col overflow-hidden rounded-[1.6rem] bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.22)]"
+        className="eg-dialog-surface eg-glass flex h-[96dvh] w-[96vw] max-w-[1500px] flex-col overflow-hidden rounded-[1.6rem] bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.22)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="shrink-0 border-b border-stone-200 bg-white/95 px-5 py-3 backdrop-blur-xl sm:px-6">
@@ -761,6 +738,7 @@ export default function AdminCatalogPanel({
             <button
               type="button"
               onClick={() => setShowCategoryManager(false)}
+              aria-label="Закрити вікно"
               className="eg-icon-button flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-stone-100 text-xl font-black text-stone-600 hover:bg-stone-200"
             >
               ×
@@ -782,12 +760,10 @@ export default function AdminCatalogPanel({
           />
         </div>
       </div>
-    </div>,
-    document.body
-  )}
+    </Modal>}
 
-      <div className="grid gap-5 xl:grid-cols-[310px_1fr] xl:items-start">
-        <aside className="eg-glass eg-premium-card sticky top-24 rounded-[2rem] p-4">
+      <div className="eg-catalog-workspace">
+        <details open={categoryNavOpen} onToggle={event => setCategoryNavOpen(event.currentTarget.open)} className="eg-catalog-categories eg-glass eg-premium-card sticky top-24 rounded-[2rem] p-4"><summary className="eg-category-summary">Категорії · {catalogFilter.label}</summary><div className="mt-4">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
@@ -929,10 +905,11 @@ export default function AdminCatalogPanel({
               );
             })}
           </div>
-        </aside>
+        </div></details>
 
         <div className="min-w-0 overflow-hidden">
           <AdminProductsPanel
+            showSearch={false}
             products={visibleProducts}
             categories={categories}
             startEditProduct={startEditProduct}
@@ -943,13 +920,9 @@ export default function AdminCatalogPanel({
       </div>
 
 {showAddProductForm &&
-  createPortal(
-    <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/55 p-3 backdrop-blur-md"
-      onClick={() => setShowAddProductForm(false)}
-    >
+  <Modal label="Додати товар" maxWidth={1260} onClose={() => setShowAddProductForm(false)}>
       <div
-        className="eg-glass flex h-[96dvh] w-[94vw] max-w-[1260px] flex-col overflow-hidden rounded-[1.6rem] bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.22)]"
+        className="eg-dialog-surface eg-glass flex h-[96dvh] w-[94vw] max-w-[1260px] flex-col overflow-hidden rounded-[1.6rem] bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.22)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="shrink-0 border-b border-stone-200 bg-white/95 px-5 py-3 backdrop-blur-xl sm:px-6">
@@ -971,6 +944,7 @@ export default function AdminCatalogPanel({
             <button
               type="button"
               onClick={() => setShowAddProductForm(false)}
+              aria-label="Закрити вікно"
               className="eg-icon-button flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-stone-100 text-xl font-black text-stone-600 hover:bg-stone-200"
             >
               ×
@@ -988,9 +962,7 @@ export default function AdminCatalogPanel({
           />
         </div>
       </div>
-    </div>,
-    document.body
-  )}
+    </Modal>}
 
       <CsvImportDialog
         dialog={importDialog}

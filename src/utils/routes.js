@@ -61,6 +61,8 @@ export function getRouteFromLocation(location = window.location) {
 
   if (import.meta.env?.MODE === "development" && pathname === "/preview/how-it-works") return {view:"how-it-works-preview", path:pathname};
 
+  if (import.meta.env?.MODE === "development" && import.meta.env?.VITE_READONLY_PREVIEW === "1" && ["/preview/admin", "/preview/account", "/preview/success"].includes(pathname)) return { view: `${pathname.split("/").pop()}-preview`, path: pathname };
+
   const view = STATIC_VIEW_BY_PATH.get(pathname);
 
   if (view) {

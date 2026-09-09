@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import Modal from "../Modal.jsx";
 import Cropper from "react-easy-crop";
 
 function createImage(src) {
@@ -101,16 +101,6 @@ export default function ProductImageCropUploader({
     };
   }, [sourceImage]);
 
-  useEffect(() => {
-    if (!sourceImage) return undefined;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [sourceImage]);
 
   const onCropComplete = useCallback((_, nextCroppedAreaPixels) => {
     setCroppedAreaPixels(nextCroppedAreaPixels);
@@ -193,15 +183,9 @@ export default function ProductImageCropUploader({
 
   const cropperModal =
     sourceImage &&
-    createPortal(
-      <div
-        className="fixed inset-0 z-[1300] flex items-center justify-center bg-black/60 p-3 backdrop-blur-md"
-        onClick={() => {
-          if (!isUploading) closeCropper();
-        }}
-      >
+    <Modal label="Кадрування фото" maxWidth={980} onClose={() => { if (!isUploading) closeCropper(); }}>
         <div
-          className="eg-glass flex h-[92dvh] w-[92vw] max-w-[980px] flex-col overflow-hidden rounded-[1.6rem] bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.28)]"
+          className="eg-dialog-surface eg-glass flex h-[92dvh] w-[92vw] max-w-[980px] flex-col overflow-hidden rounded-[1.6rem] bg-white/95 shadow-[0_30px_80px_rgba(0,0,0,0.28)]"
           onClick={(event) => event.stopPropagation()}
         >
           <div className="shrink-0 border-b border-stone-200 bg-white/95 px-5 py-3 backdrop-blur-xl">
@@ -223,6 +207,7 @@ export default function ProductImageCropUploader({
               <button
                 type="button"
                 onClick={closeCropper}
+                aria-label="Закрити кадрування"
                 disabled={isUploading}
                 className="eg-icon-button flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-stone-100 text-xl font-black text-stone-600 hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -233,7 +218,7 @@ export default function ProductImageCropUploader({
 
           <div className="modal-scrollbar min-h-0 flex-1 overflow-y-auto bg-stone-50/60 p-4">
             <div className="grid min-h-full gap-4 lg:grid-cols-[1fr_280px]">
-              <div className="relative min-h-[420px] overflow-hidden rounded-[1.4rem] bg-stone-950 shadow-inner lg:min-h-0">
+              <div className="relative min-h-[260px] sm:min-h-[420px] overflow-hidden rounded-[1.4rem] bg-stone-950 shadow-inner lg:min-h-0">
                 <Cropper
                   image={sourceImage}
                   crop={crop}
@@ -255,6 +240,7 @@ export default function ProductImageCropUploader({
 
                   <input
                     type="range"
+                    aria-label="Масштаб фото"
                     min={1}
                     max={3}
                     step={0.01}
@@ -300,9 +286,7 @@ export default function ProductImageCropUploader({
             </div>
           </div>
         </div>
-      </div>,
-      document.body
-    );
+      </Modal>;
 
   return (
     <div className="space-y-2">

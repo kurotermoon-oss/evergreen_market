@@ -221,13 +221,9 @@ export default function AdminFeedbackPanel({
       <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
-              Зворотний зв'язок
-            </p>
-
-            <h2 className="mt-2 text-3xl font-black text-stone-950">
+            <h1 className="eg-admin-panel-title">
               Звернення користувачів
-            </h2>
+            </h1>
           </div>
 
           <div className="relative w-full lg:w-96">

@@ -85,6 +85,7 @@ function ProductActionButton({ children, label, tone = "neutral", onClick }) {
 }
 
 export default function AdminProductsPanel({
+  showSearch = true,
   products,
   categories,
   startEditProduct,
@@ -129,9 +130,6 @@ export default function AdminProductsPanel({
     <section className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
-            Адмінка
-          </p>
 
           <h2 className="mt-2 text-3xl font-black text-stone-950">
             Список товарів
@@ -143,14 +141,14 @@ export default function AdminProductsPanel({
         </span>
       </div>
 
-      <div className="mt-6">
+      {showSearch && <div className="mt-6">
         <input
           value={adminProductQuery}
           onChange={(event) => setAdminProductQuery(event.target.value)}
           className="eg-field w-full rounded-[1.4rem] border border-stone-200 bg-white/85 px-5 py-3.5 outline-none backdrop-blur focus:border-emerald-700 focus:bg-white"
           placeholder="Пошук товарів в адмінці..."
         />
-      </div>
+      </div>}
 
       {!filteredAdminProducts.length && (
         <div className="eg-panel mt-6 rounded-[2rem] bg-stone-50/90 p-8 text-center text-stone-500">

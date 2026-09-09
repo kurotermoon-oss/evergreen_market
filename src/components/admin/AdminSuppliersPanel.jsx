@@ -171,13 +171,9 @@ export default function AdminSuppliersPanel({
       <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.22em] text-emerald-700">
-              Постачальники
-            </p>
-
-            <h2 className="mt-2 text-3xl font-black text-stone-950">
+            <h1 className="eg-admin-panel-title">
               Мінімальні замовлення
-            </h2>
+            </h1>
           </div>
 
           <span className="w-fit rounded-full bg-emerald-100 px-4 py-2 text-sm font-black text-emerald-950">
