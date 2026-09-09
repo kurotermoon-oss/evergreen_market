@@ -394,6 +394,7 @@ export default function CartView({
   submitOrder,
   onShowSupplierProducts,
   startCheckoutOpen = false,
+  onGuideGroupChange,
 }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
@@ -439,6 +440,10 @@ export default function CartView({
     orderGroups.find((group) => group.id === selectedGroupId) ||
     orderGroups[0] ||
     null;
+
+  useEffect(() => {
+    onGuideGroupChange?.(selectedGroup?.id || "");
+  }, [selectedGroup?.id, onGuideGroupChange]);
 
   const needsDelivery =
     DELIVERY_ORDERS_ENABLED && form.deliveryType === "building";

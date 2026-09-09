@@ -24,6 +24,7 @@ import { useOrderSubmit } from "./hooks/useOrderSubmit.js";
 
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
+import ShoppingAssistant from "./components/ShoppingAssistant.jsx";
 import MobileNav from "./components/MobileNav.jsx";
 import FloatingCartButton from "./components/FloatingCartButton.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
@@ -84,6 +85,7 @@ export default function App() {
     });
   }, []);
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
+  const [guideGroupId, setGuideGroupId] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isDesktopViewport, setIsDesktopViewport] = useState(() => {
     return window.matchMedia("(min-width: 768px)").matches;
@@ -542,6 +544,17 @@ return (
         isAdmin={isAdmin}
         customer={customer}
       />}
+{!isAdminArea && !isAppLoading && <ShoppingAssistant
+      view={view}
+      product={selectedProduct}
+      groups={cartOrderGroups}
+      groupId={guideGroupId}
+      cartCount={cartCount}
+      catalogCount={filteredProducts.length}
+      completed={Boolean(createdOrder) || view === "success-preview"}
+      onNavigate={setView}
+      onSupplier={showSupplierProducts}
+    />}
 <div
   className={`${isAdminArea ? "" : "eg-page pb-24 md:pb-0"} ${
     view === "catalog" ? "eg-catalog-page" : ""
@@ -660,6 +673,7 @@ return (
           customer={customer}
           onShowSupplierProducts={showSupplierProducts}
           startCheckoutOpen={view === "checkout"}
+          onGuideGroupChange={setGuideGroupId}
         />
       )}
 
