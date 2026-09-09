@@ -100,3 +100,15 @@ The public storefront refreshes its product list once per minute while the tab i
 - A missing catalog URL can be repaired only by a unique matching supplier product ID. Conflicting/ambiguous IDs and unknown statuses retain previous availability and require mapping review.
 - Dashboard shows the latest actual cron run independently of manual history. An enabled switch with no cron history or more than seven hours without a run displays a warning.
 - The admin panel shows the latest 30 runs; PostgreSQL retains the full history until a future cleanup policy is added.
+
+## Production verification — 10 September 2026
+
+The web release is live; the separate Railway service is configured and a control invocation through Railway Run now completed in ~9 seconds (01:27 Kyiv). It checked 310/313 mapped goods and applied 11 status changes. The public API then returned 182 products and no supplier-order out_of_stock entries. A future timed invocation was not observed during this session.
+
+Three mapping errors remain. These exact products could not be confirmed in the current 661-product catalog; similar volume/variant replacements were deliberately not applied:
+
+- Milk 2.0%, 0.95l СМАЧНЕ МОЛОКО — old mapping points to a different Professional Line variant: https://milkdiller.ua/moloko-ta-vershki/pitne-moloko/moloko-z-krishkoju-ultrapas-2-5-1-l-tm-professional-line-12-sht-jasch
+- Cherry Red and Black puree, 1150g: https://milkdiller.ua/fruktovi-pjure-dlja-limonadiv/fruktove-pjure-kontsentrat-chaju-vishnja-red-and-black-1150g
+- MEAL TIME assorted lemonade, 24 x 60g: https://milkdiller.ua/chaj/kontsentrovani-chaji-ta-limonadi/limonad-meal-time-asorti-kontsentrovanij-60-g-kontejner-upakovka-24-sht
+
+All three URLs return 404. Their previous effective stock statuses are preserved; the two latter goods remain available until corrected or deliberately marked unavailable by the owner. The run is partial in Evergreen and failed in Railway (exit 1), so these errors remain visible. This does not disable future scheduled runs. An admin can correct a URL after identifying the exact product or explicitly set its manual unavailable override.

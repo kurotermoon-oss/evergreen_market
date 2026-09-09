@@ -14,6 +14,7 @@ const prisma = {
   },
   product: {
     findMany: async () => products,
+    findFirst: async ({ where }) => products.find(p => Object.entries(where).every(([key, value]) => p[key] === value)),
     update: async ({ where, data }) => {
       writes.push({ id: where.id, data });
       return assignDefined(products.find(p => p.id === where.id), data);
@@ -29,7 +30,7 @@ const prisma = {
 };
 require.cache[require.resolve('../database/prisma.cjs')] = { exports: prisma };
 require.cache[require.resolve('../services/supplierSyncNotifications.cjs')] = { exports: { notifySupplierSyncIssue: async () => ({ skipped: true }) } };
-const { runSupplierSync, runEnabledSupplierSyncs, getSupplierSyncDashboard } = require('../services/supplierAvailabilitySync.cjs');
+const { runSupplierSync, runEnabledSupplierSyncs, getSupplierSyncDashboard, updateProductSyncMapping } = require('../services/supplierAvailabilitySync.cjs');
 const realFetchHtml = adapter.fetchHtml;
 function product(id, extra = {}) {
   return { id, name: `Product ${id}`, active: true, fulfillmentType: 'supplier_order', supplierId: 'milk', supplierSyncEnabled: true, supplierExternalId: id, supplierProductUrl: `https://milkdiller.ua/product-${id}`, supplierStatusOverride: 'auto', supplierRemoteStatus: 'available', stockStatus: 'preorder', ...extra };
@@ -75,6 +76,17 @@ test('404 and unknown statuses preserve availability and do not count as a succe
   assert.equal(supplier.availabilitySyncLastOkAt, 'previous-success');
   remoteProducts.length = 0;
   assert.equal((await runSupplierSync('milk')).status, 'failed');
+});
+test('unknown card markup cannot change the last known availability', async () => {
+  remoteProducts[0].status = 'unknown';
+  adapter.fetchProductAvailability = async () => remote(products[0], 'unknown');
+  assert.equal((await runSupplierSync('milk')).status, 'partial');
+  assert.equal(products[0].stockStatus, 'preorder');
+});
+test('an intentional admin URL replacement clears the previous supplier ID', async () => {
+  await updateProductSyncMapping('milk', '1', { productUrl: 'https://milkdiller.ua/replacement', externalId: '1' });
+  assert.equal(products[0].supplierExternalId, '');
+  assert.equal(products[0].supplierProductUrl, 'https://milkdiller.ua/replacement');
 });
 test('dry run reports changes but does not modify products or last successful sync', async () => {
   remoteProducts[0].status = 'unavailable';
