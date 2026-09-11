@@ -155,3 +155,14 @@ test('catalog refresh clamps a removed last page while preserving valid pages', 
     currentPage: 1, totalProductPages: 1, paginatedProducts: [],
   });
 });
+
+test('profile history can distinguish an unavailable service from an empty account', async (t) => {
+  t.mock.method(console, 'warn', () => {});
+  const unavailable = new Error('history unavailable');
+  t.mock.method(api, 'getCustomerOrders', async () => { throw unavailable; });
+  const session = renderHook(() => useCustomerSession());
+  await assert.rejects(session.loadCustomerOrders({ throwOnError: true }), unavailable);
+  assert.deepEqual(await session.loadCustomerOrders(), []);
+  api.getCustomerOrders.mock.mockImplementation(async () => ({ orders: [] }));
+  assert.deepEqual(await session.loadCustomerOrders({ throwOnError: true }), []);
+});

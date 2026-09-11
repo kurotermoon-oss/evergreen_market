@@ -16,7 +16,7 @@ Paths below are relative to the repository root.
 | Catalog/filtering | `src/views/CatalogView.jsx`, `src/hooks/useCatalogFilters.js` | `src/components/catalog/CatalogSidebar.jsx`, `src/components/catalog/CatalogCategoryDialog.jsx`, `src/styles/catalog-categories.css`, `src/utils/products.js` |
 | Product/card | `src/views/ProductDetailsView.jsx`, `src/components/ProductCard.jsx` | `src/components/QuantityControl.jsx` |
 | Cart/checkout | `src/views/CartView.jsx`, `src/components/CartDrawer.jsx` | `src/hooks/useCart.js`, `src/hooks/useOrderSubmit.js`, `src/utils/cartSupplierRules.js` |
-| Customer account/login | `src/views/AccountView.jsx`, `src/views/CustomerAuthView.jsx` | `src/hooks/useCustomerSession.js` |
+| Customer account/login | `src/views/AccountView.jsx`, `src/views/CustomerAuthView.jsx` | `src/hooks/useCustomerSession.js`, `src/styles/account.css` |
 | Contacts/confirmation | `src/views/ContactsView.jsx`, `src/views/SuccessView.jsx` | `src/components/Footer.jsx` |
 | Header/mobile navigation | `src/components/Header.jsx`, `src/components/MobileNav.jsx` | `src/components/FloatingCartButton.jsx` |
 | Dialogs/feedback | `src/components/Modal.jsx`, `src/styles/controls.css` | `src/components/FeedbackButton.jsx`, `src/components/OrderRulesModal.jsx` |

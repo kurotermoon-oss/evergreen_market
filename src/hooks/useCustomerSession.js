@@ -30,7 +30,7 @@ export function useCustomerSession({ applyCustomerToForm } = {}) {
     }
   }
 
-  async function loadCustomerOrders() {
+  async function loadCustomerOrders({ throwOnError = false } = {}) {
     try {
       const response = await api.getCustomerOrders();
 
@@ -42,6 +42,7 @@ export function useCustomerSession({ applyCustomerToForm } = {}) {
 
       setCustomerOrders([]);
 
+      if (throwOnError) throw error;
       return [];
     }
   }
