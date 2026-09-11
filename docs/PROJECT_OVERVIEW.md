@@ -13,7 +13,7 @@ Paths below are relative to the repository root.
 | Device/GitHub synchronization | `docs/DEVICE-WORKFLOW.md`, `scripts/sync-workspace.mjs` | `AGENTS.md`, `docs/WORK-STATE.md` |
 | Home | `src/views/HomeView.jsx`, `src/components/storefront/HomeIntro.jsx` | `src/components/HeroSection.jsx` |
 | How it works | `src/views/HowItWorksView.jsx`, `src/styles/shopping-guide.css` | `docs/UX_COPY.md` |
-| Catalog/filtering | `src/views/CatalogView.jsx`, `src/hooks/useCatalogFilters.js` | `src/components/catalog/CatalogSidebar.jsx`, `src/utils/products.js` |
+| Catalog/filtering | `src/views/CatalogView.jsx`, `src/hooks/useCatalogFilters.js` | `src/components/catalog/CatalogSidebar.jsx`, `src/components/catalog/CatalogCategoryDialog.jsx`, `src/styles/catalog-categories.css`, `src/utils/products.js` |
 | Product/card | `src/views/ProductDetailsView.jsx`, `src/components/ProductCard.jsx` | `src/components/QuantityControl.jsx` |
 | Cart/checkout | `src/views/CartView.jsx`, `src/components/CartDrawer.jsx` | `src/hooks/useCart.js`, `src/hooks/useOrderSubmit.js`, `src/utils/cartSupplierRules.js` |
 | Customer account/login | `src/views/AccountView.jsx`, `src/views/CustomerAuthView.jsx` | `src/hooks/useCustomerSession.js` |

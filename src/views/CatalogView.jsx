@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import BrandLogo from "../components/BrandLogo.jsx";
+import CatalogCategoryDialog from "../components/catalog/CatalogCategoryDialog.jsx";
 import ProductCard from "../components/ProductCard.jsx";
 import logoEvergreen from "../img/logo_evergreen.webp";
 import { formatUAH } from "../utils/formatUAH.js";
@@ -138,9 +138,6 @@ export default function CatalogView({
   const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
   const [isCatalogToolbarPinned, setIsCatalogToolbarPinned] = useState(false);
   const [catalogToolbarHeight, setCatalogToolbarHeight] = useState(0);
-  const [hoveredCategoryId, setHoveredCategoryId] = useState(null);
-  const [mobileCategoryId, setMobileCategoryId] = useState(null);
-  const [catalogMenuTop, setCatalogMenuTop] = useState(96);
 
   const catalogScopeProducts = useMemo(() => {
     return products.filter((product) => {
@@ -176,40 +173,6 @@ export default function CatalogView({
 
   const activeSubcategory = activeCategory?.subcategories?.find(
     (subcategory) => subcategory.id === selectedSubcategory
-  );
-
-  const previewCategoryId =
-    hoveredCategoryId ||
-    (selectedCategory !== "all" ? selectedCategory : catalogCategories[0]?.id);
-
-  const previewCategory = categories.find(
-    (category) => category.id === previewCategoryId
-  );
-
-  const previewSubcategories = (previewCategory?.subcategories || []).filter(
-    (subcategory) =>
-      subcategory.active !== false &&
-      catalogScopeProducts.some((product) => {
-        return (
-          product.category === previewCategory?.id &&
-          product.subcategory === subcategory.id
-        );
-      })
-  );
-
-  const mobileCategory = categories.find(
-    (category) => category.id === mobileCategoryId
-  );
-
-  const mobileSubcategories = (mobileCategory?.subcategories || []).filter(
-    (subcategory) =>
-      subcategory.active !== false &&
-      catalogScopeProducts.some((product) => {
-        return (
-          product.category === mobileCategory?.id &&
-          product.subcategory === subcategory.id
-        );
-      })
   );
 
   const activeSubcategories = (activeCategory?.subcategories || []).filter(
@@ -456,40 +419,6 @@ export default function CatalogView({
   }, []);
 
   useEffect(() => {
-    if (!isCatalogMenuOpen) return undefined;
-
-    const lockedScrollY = window.scrollY;
-    const previousOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    const previousPosition = document.body.style.position;
-    const previousTop = document.body.style.top;
-    const previousLeft = document.body.style.left;
-    const previousRight = document.body.style.right;
-    const previousWidth = document.body.style.width;
-
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${lockedScrollY}px`;
-    document.body.style.left = "0";
-    document.body.style.right = "0";
-    document.body.style.width = "100%";
-    document.body.classList.add("eg-catalog-open");
-
-    return () => {
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      document.body.style.overflow = previousOverflow;
-      document.body.style.position = previousPosition;
-      document.body.style.top = previousTop;
-      document.body.style.left = previousLeft;
-      document.body.style.right = previousRight;
-      document.body.style.width = previousWidth;
-      document.body.classList.remove("eg-catalog-open");
-      window.scrollTo({ top: lockedScrollY, behavior: "auto" });
-    };
-  }, [isCatalogMenuOpen]);
-
-  useEffect(() => {
     if (!isMobileSearchOpen) return undefined;
 
     if (isCatalogMenuOpen) {
@@ -565,38 +494,6 @@ export default function CatalogView({
   }, [isSortMenuOpen]);
 
   useEffect(() => {
-    if (!isCatalogMenuOpen) return undefined;
-
-    function handleKeyDown(event) {
-      if (event.key !== "Escape") return;
-
-      closeCatalogMenu();
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isCatalogMenuOpen]);
-
-  useEffect(() => {
-    if (!isCatalogMenuOpen) return undefined;
-
-    updateCatalogMenuMetrics();
-
-    window.addEventListener("resize", updateCatalogMenuMetrics);
-    window.addEventListener("scroll", updateCatalogMenuMetrics, {
-      passive: true,
-    });
-
-    return () => {
-      window.removeEventListener("resize", updateCatalogMenuMetrics);
-      window.removeEventListener("scroll", updateCatalogMenuMetrics);
-    };
-  }, [isCatalogMenuOpen]);
-
-  useEffect(() => {
     function handleOpenCatalogMenu() {
       setIsMobileSearchOpen(false);
       openCatalogMenu();
@@ -609,46 +506,13 @@ export default function CatalogView({
     };
   }, [catalogCategories, selectedCategory, setIsMobileSearchOpen]);
 
-  function updateCatalogMenuMetrics() {
-    const toolbarRect = catalogToolbarRef.current?.getBoundingClientRect();
-    const toolbarBottom = toolbarRect?.bottom || 84;
-    const nextTop = Math.max(8, Math.round(toolbarBottom + 8));
-
-    setCatalogMenuTop(nextTop);
-  }
-
   function closeCatalogMenu() {
     setIsCatalogMenuOpen(false);
-    setHoveredCategoryId(null);
-    setMobileCategoryId(null);
   }
 
   function openCatalogMenu() {
-    updateCatalogMenuMetrics();
+    setIsSortMenuOpen(false);
     setIsCatalogMenuOpen(true);
-    setMobileCategoryId(null);
-    setHoveredCategoryId(
-      selectedCategory !== "all"
-        ? selectedCategory
-        : catalogCategories[0]?.id || null
-    );
-  }
-
-  function showCategoryPreview(categoryId) {
-    setHoveredCategoryId(categoryId);
-  }
-
-  function openMobileCategory(category) {
-    const visibleSubcategories = (category.subcategories || []).filter(
-      (subcategory) => subcategory.active !== false
-    );
-
-    if (visibleSubcategories.length > 0) {
-      setMobileCategoryId(category.id);
-      return;
-    }
-
-    selectCategory(category.id);
   }
 
   function resetCatalogFilters() {
@@ -796,6 +660,7 @@ export default function CatalogView({
                 isCatalogMenuOpen ? closeCatalogMenu() : openCatalogMenu()
               }
               aria-expanded={isCatalogMenuOpen}
+              aria-haspopup="dialog"
               aria-controls="catalog-menu-panel"
               className="eg-button eg-sweep hidden min-h-[58px] w-full items-center justify-center gap-3 rounded-[1.7rem] bg-emerald-900 px-7 py-3 text-base font-black text-white shadow-sm shadow-emerald-900/20 hover:bg-emerald-800 hover:shadow-md hover:shadow-emerald-900/25 md:flex"
             >
@@ -1015,306 +880,18 @@ export default function CatalogView({
         )}
 
         {isCatalogMenuOpen && (
-          <>
-            <div className="eg-mobile-catalog-panel fixed inset-0 z-[120] overflow-hidden bg-stone-50 text-stone-950 md:hidden">
-              <div className="flex h-16 items-center justify-between border-b border-emerald-100/70 bg-white/95 px-4 shadow-sm shadow-emerald-950/5 backdrop-blur-xl">
-                <BrandLogo
-                  size="sm"
-                  showText={false}
-                  animated={false}
-                  className="gap-0"
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    mobileCategory ? setMobileCategoryId(null) : closeCatalogMenu()
-                  }
-                  className="eg-button min-h-10 min-w-[120px] rounded-full bg-emerald-900 px-5 text-sm font-black text-white shadow-sm shadow-emerald-900/20 hover:bg-emerald-800"
-                >
-                  Каталог
-                </button>
-
-                <div className="h-11 w-11 shrink-0" aria-hidden="true" />
-              </div>
-
-              {mobileCategory ? (
-                <div className="flex h-[calc(100dvh-4rem)] min-h-0 flex-col">
-                  <div className="flex min-h-14 shrink-0 items-center gap-3 border-b border-emerald-100/70 bg-white px-5 text-left">
-                    <button
-                      type="button"
-                      onClick={() => setMobileCategoryId(null)}
-                      aria-label="Назад до категорій"
-                      className="eg-icon-button grid h-10 w-10 shrink-0 place-items-center rounded-xl text-emerald-950 hover:bg-emerald-50"
-                    >
-                      <ChevronLeft size={22} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => selectCategory(mobileCategory.id)}
-                      className="min-w-0 text-left text-base font-black uppercase tracking-normal text-emerald-950"
-                    >
-                      {mobileCategory.name}
-                    </button>
-                  </div>
-
-                  <div className="eg-catalog-mobile-scroll modal-scrollbar min-h-0 flex-1 overflow-y-auto bg-stone-50 py-2">
-                    <button
-                      type="button"
-                      onClick={() => selectCategory(mobileCategory.id)}
-                      className="flex min-h-14 w-full items-center border-b border-stone-100/80 bg-white px-7 text-left text-sm font-black uppercase tracking-wide text-emerald-950 hover:bg-emerald-50"
-                    >
-                      Усі товари категорії
-                    </button>
-
-                    {mobileSubcategories.map((subcategory) => (
-                      <button
-                        key={subcategory.id}
-                        type="button"
-                        onClick={() =>
-                          selectSubcategory(mobileCategory.id, subcategory.id)
-                        }
-                        className="flex min-h-14 w-full items-center border-b border-stone-100/80 bg-white px-7 text-left text-sm font-semibold uppercase tracking-wide text-stone-950 hover:bg-emerald-50 hover:text-emerald-950"
-                      >
-                        {subcategory.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="eg-catalog-mobile-scroll modal-scrollbar h-[calc(100dvh-4rem)] overflow-y-auto bg-white px-5 py-4">
-                  <button
-                    type="button"
-                    onClick={resetCatalogFilters}
-                    className="flex min-h-14 w-full items-center rounded-2xl px-4 text-left text-base font-black uppercase text-emerald-950 hover:bg-emerald-50"
-                  >
-                    <span className="min-w-0 flex-1">Усі товари</span>
-                  </button>
-
-                  {catalogCategories.map((category) => {
-                    const visibleSubcategories = (
-                      category.subcategories || []
-                    ).filter((subcategory) => subcategory.active !== false);
-                    const hasSubcategories = visibleSubcategories.length > 0;
-
-                    return (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => openMobileCategory(category)}
-                        className="flex min-h-14 w-full items-center gap-3 rounded-2xl px-4 text-left text-base font-semibold uppercase text-stone-800 hover:bg-emerald-50 hover:text-emerald-950"
-                      >
-                        <span className="min-w-0 flex-1 truncate leading-5">
-                          {category.name}
-                        </span>
-
-                        {hasSubcategories && (
-                          <ChevronRight
-                            size={21}
-                            className="shrink-0 text-emerald-800/70"
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div
-              className="eg-overlay fixed inset-0 z-[80] hidden bg-stone-950/35 backdrop-blur-[6px] md:block"
-              style={{ top: `${Math.max(catalogMenuTop - 8, 0)}px` }}
-              onClick={closeCatalogMenu}
-            />
-
-            <div
-              id="catalog-menu-panel"
-              className="eg-menu eg-glass fixed inset-x-3 z-[90] mx-auto hidden max-w-7xl overflow-hidden rounded-[1.6rem] border border-white/80 bg-white/95 shadow-2xl shadow-emerald-950/20 sm:inset-x-4 sm:rounded-[2rem] md:block"
-              style={{
-                top: `${catalogMenuTop}px`,
-                height: `calc(100dvh - ${catalogMenuTop + 12}px)`,
-              }}
-            >
-              <div className="eg-catalog-sheet-grid">
-                <div className="flex min-h-0 flex-col border-b border-stone-100 bg-stone-50/90 p-3 backdrop-blur sm:p-5 lg:border-b-0 lg:border-r">
-                  <div className="mb-3 flex shrink-0 items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={resetCatalogFilters}
-                      className={`eg-button flex min-h-12 min-w-0 flex-1 items-center justify-between rounded-[1.05rem] px-4 text-left text-sm font-black sm:min-h-[58px] sm:rounded-[1.45rem] sm:px-5 sm:text-base ${
-                        selectedCategory === "all"
-                          ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
-                          : "bg-white text-stone-950 shadow-sm shadow-stone-900/[0.04] hover:bg-emerald-50"
-                      }`}
-                    >
-                      <span>Усі товари</span>
-                      {selectedCategory === "all" && <span>✓</span>}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={closeCatalogMenu}
-                      aria-label="Закрити каталог"
-                      className="eg-icon-button grid h-12 w-12 shrink-0 place-items-center rounded-[1.05rem] bg-white text-emerald-900 shadow-sm ring-1 ring-stone-100 hover:bg-emerald-50 sm:h-[58px] sm:w-[58px] sm:rounded-[1.45rem]"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-
-                  <div className="modal-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1">
-                    {catalogCategories.map((category) => {
-                      const isPreviewed = previewCategoryId === category.id;
-                      const categoryCount =
-                        productCounts.categories[category.id] || 0;
-                      const hasSubcategories =
-                        (category.subcategories || []).filter(
-                          (subcategory) => subcategory.active !== false
-                        ).length > 0;
-
-                      return (
-                        <button
-                          key={category.id}
-                          type="button"
-                          onMouseEnter={() =>
-                            showCategoryPreview(category.id)
-                          }
-                          onFocus={() => showCategoryPreview(category.id)}
-                          onClick={() => selectCategory(category.id)}
-                          className={`eg-button flex min-h-[58px] w-full items-center justify-between rounded-[1.05rem] px-4 py-3 text-left sm:rounded-[1.35rem] sm:px-5 ${
-                            isPreviewed
-                              ? "bg-emerald-100 text-emerald-950 shadow-sm shadow-emerald-900/5"
-                              : "text-stone-900 hover:bg-white"
-                          }`}
-                        >
-                          <span className="min-w-0 flex-1 truncate whitespace-nowrap text-sm font-black uppercase leading-5 tracking-wide">
-                            {category.name}
-                          </span>
-
-                          <span className="ml-2 flex shrink-0 items-center gap-2 sm:ml-3">
-                            <span className="hidden rounded-full bg-white/70 px-2 py-1 text-[10px] font-black text-stone-500 sm:inline">
-                              {categoryCount}
-                            </span>
-
-                            {hasSubcategories && (
-                              <ChevronRight
-                                size={18}
-                                className="text-stone-400"
-                              />
-                            )}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="modal-scrollbar min-h-0 overflow-y-auto bg-white/95 p-4 backdrop-blur sm:p-6 lg:p-7">
-                  {previewCategory ? (
-                    <>
-                      <div className="mb-5 flex flex-col gap-4 sm:mb-7 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <p className="text-xs font-black uppercase tracking-[0.22em] text-stone-400">
-                            Підкатегорії
-                          </p>
-
-                          <h2 className="mt-1 text-2xl font-black text-stone-950 sm:mt-2 sm:text-3xl">
-                            {previewCategory.name}
-                          </h2>
-
-                          <p className="mt-1 text-sm font-semibold text-stone-500">
-                            {productCounts.categories[previewCategory.id] || 0}{" "}
-                            {getProductWord(
-                              productCounts.categories[previewCategory.id] || 0
-                            )}
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => selectCategory(previewCategory.id)}
-                          className="eg-button min-h-12 rounded-[1.15rem] bg-stone-50 px-5 py-3 text-sm font-black text-stone-950 shadow-sm ring-1 ring-stone-100 hover:bg-emerald-50 sm:rounded-[1.35rem]"
-                        >
-                          Усі товари категорії
-                        </button>
-                      </div>
-
-                      {previewSubcategories.length > 0 ? (
-                        <div className="eg-stagger grid gap-3 sm:grid-cols-2 lg:gap-4 xl:grid-cols-3">
-                          {previewSubcategories.map((subcategory) => {
-                            const isActive =
-                              selectedCategory === previewCategory.id &&
-                              selectedSubcategory === subcategory.id;
-                            const subcategoryCount =
-                              productCounts.subcategories[
-                                `${previewCategory.id}:${subcategory.id}`
-                              ] || 0;
-
-                            return (
-                              <button
-                                key={subcategory.id}
-                                type="button"
-                                onClick={() =>
-                                  selectSubcategory(
-                                    previewCategory.id,
-                                    subcategory.id
-                                  )
-                                }
-                                className={`eg-button eg-premium-card flex min-h-[74px] items-center justify-between gap-3 rounded-[1.35rem] px-5 py-4 text-left text-sm font-black uppercase tracking-wide sm:min-h-[78px] ${
-                                  isActive
-                                    ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
-                                    : "bg-stone-50 text-stone-950 shadow-sm ring-1 ring-stone-100 hover:bg-emerald-50"
-                                }`}
-                              >
-                                <span className="min-w-0 leading-5">
-                                  {subcategory.name}
-                                </span>
-
-                                <span
-                                  className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black ${
-                                    isActive
-                                      ? "bg-white/15 text-white"
-                                      : "bg-white text-stone-500"
-                                  }`}
-                                >
-                                  {subcategoryCount}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="eg-panel flex min-h-[220px] items-center justify-center rounded-[1.6rem] border border-dashed border-stone-200 bg-stone-50 px-6 text-center sm:min-h-[260px] sm:px-8">
-                          <div>
-                            <p className="text-lg font-black text-stone-950">
-                              У цій категорії поки немає підкатегорій
-                            </p>
-
-                            <p className="mt-2 text-sm leading-6 text-stone-500">
-                              Натисніть “Усі товари категорії”, щоб переглянути
-                              товари з цього розділу.
-                            </p>
-
-                            <button
-                              type="button"
-                              onClick={() => selectCategory(previewCategory.id)}
-                              className="eg-button mt-5 rounded-[1.1rem] bg-emerald-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-900/15 hover:bg-emerald-800"
-                            >
-                              Показати товари
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-stone-500">
-                      Оберіть категорію
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </>
+          <CatalogCategoryDialog
+            categories={catalogCategories}
+            counts={productCounts}
+            selectedCategory={selectedCategory}
+            selectedSubcategory={selectedSubcategory}
+            totalCount={catalogScopeProducts.length}
+            fulfillmentType={selectedFulfillmentType}
+            onSelectCategory={selectCategory}
+            onSelectSubcategory={selectSubcategory}
+            onShowAll={resetCatalogFilters}
+            onClose={closeCatalogMenu}
+          />
         )}
       </section>
 
@@ -1557,6 +1134,17 @@ export default function CatalogView({
       </section>
 
       <section className="relative z-30 mb-6 space-y-2.5 md:hidden">
+        <button
+          type="button"
+          onClick={openCatalogMenu}
+          aria-haspopup="dialog"
+          aria-expanded={isCatalogMenuOpen}
+          aria-controls="catalog-menu-panel"
+          className="eg-button flex min-h-[54px] w-full items-center justify-between gap-3 rounded-[1.25rem] bg-emerald-900 px-4 text-left text-[15px] font-semibold text-white"
+        >
+          <span className="flex min-w-0 items-center gap-2.5"><Menu size={20} className="shrink-0" />Категорії товарів</span>
+          <ChevronRight size={20} className="shrink-0" />
+        </button>
         <div className="eg-mobile-fulfillment eg-glass eg-premium-card rounded-[1.45rem] border border-emerald-100/80 bg-white/92 p-2 shadow-lg shadow-emerald-950/8">
           <div className="grid grid-cols-2 gap-2">
             <button
