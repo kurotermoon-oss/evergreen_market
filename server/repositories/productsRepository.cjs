@@ -405,10 +405,18 @@ async function buildProductData(payload, existingProduct = null) {
     existingProduct?.categoryId
   );
 
-  const subcategoryId = await resolveSubcategoryId(
-    payload.newSubcategoryName || payload.subcategory || payload.subcategoryId,
-    categoryId
-  );
+  // PATCH may update only price/content. Omission must preserve the relation;
+  // an explicit empty/null value clears it, and a new parent resets it.
+  const subcategoryValue =
+    toCleanString(payload.newSubcategoryName) ||
+    (payload.subcategory !== undefined
+      ? payload.subcategory
+      : payload.subcategoryId !== undefined
+        ? payload.subcategoryId
+        : categoryId === existingProduct?.categoryId
+          ? existingProduct.subcategoryId
+          : null);
+  const subcategoryId = await resolveSubcategoryId(subcategoryValue, categoryId);
 
   const fulfillmentType = normalizeFulfillmentType(
     payload.fulfillmentType ?? existingProduct?.fulfillmentType,
@@ -468,7 +476,7 @@ async function buildProductData(payload, existingProduct = null) {
 
     price: toInt(payload.price ?? existingProduct?.price, 0, "Ціна"),
     oldPrice: toNullableInt(
-      payload.oldPrice ?? existingProduct?.oldPrice,
+      payload.oldPrice !== undefined ? payload.oldPrice : existingProduct?.oldPrice,
       "Стара ціна"
     ),
     costPrice: toInt(
