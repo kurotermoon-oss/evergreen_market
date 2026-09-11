@@ -90,6 +90,14 @@
   letter-spacing: -.025em;
 }
 
+.eg-storefront .eg-product-card-actions {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 132px), 1fr));
+}
+
+.eg-storefront .eg-product-card-actions > * {
+  min-height: 44px;
+}
+
 .eg-storefront .eg-mobile-nav {
   background: #fff!important;
   border: 1px solid #d9e0d5;
@@ -824,6 +832,8 @@
   .eg-storefront .eg-cart-heading h1 { font-size: 28px; }
 }
 @media (max-width: 359px) {
+  .eg-storefront .eg-mobile-fulfillment > .grid > button > span { flex-direction: column; align-items: flex-start; }
+  .eg-storefront .eg-mobile-fulfillment > .grid > button > span > span:first-child { overflow-wrap: normal; word-break: normal; }
   .eg-storefront .eg-catalog-results { grid-template-columns: minmax(0,1fr); }
   .eg-storefront .eg-product-card-media { aspect-ratio: 4 / 3; }
 }

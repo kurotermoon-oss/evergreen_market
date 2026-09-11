@@ -1,6 +1,6 @@
 # Evergreen: code map
 
-Canonical project: `C:/Users/Trap/Desktop/evergreen_market`. Checked 09.09.2026. Use only the row needed; confirm paths before editing. Update a row when ownership changes.
+Canonical source: `kurotermoon-oss/evergreen_market`, branch `main`; use the current device's clone. Checked 11.09.2026. Use only the row needed; confirm paths before editing. Update a row when ownership changes.
 
 Evergreen connects the café’s wholesale purchases to neighbors buying goods for home pickup. Customer explanation: «Ми закуповуємо товари для кавʼярні напряму у постачальників. Частину цих товарів ви можете замовити для себе і забрати в Evergreen». Keep the experience local, warm, honest and simple; delivery is not active.
 
@@ -10,6 +10,7 @@ Paths below are relative to the repository root.
 
 | Task | Start here | Follow only when needed |
 | --- | --- | --- |
+| Device/GitHub synchronization | `docs/DEVICE-WORKFLOW.md`, `scripts/sync-workspace.mjs` | `AGENTS.md`, `docs/WORK-STATE.md` |
 | Home | `src/views/HomeView.jsx`, `src/components/storefront/HomeIntro.jsx` | `src/components/HeroSection.jsx` |
 | How it works | `src/views/HowItWorksView.jsx`, `src/styles/shopping-guide.css` | `docs/UX_COPY.md` |
 | Catalog/filtering | `src/views/CatalogView.jsx`, `src/hooks/useCatalogFilters.js` | `src/components/catalog/CatalogSidebar.jsx`, `src/utils/products.js` |

@@ -392,6 +392,7 @@ export default function CartView({
   setCart,
   setView,
   submitOrder,
+  isSubmitting = false,
   onShowSupplierProducts,
   startCheckoutOpen = false,
   onGuideGroupChange,
@@ -740,8 +741,8 @@ export default function CartView({
                 <p className="font-black">Можна замовити без реєстрації</p>
 
                 <p className="mt-1 leading-6">
-                  Але після входу сайт запамʼятає ваше імʼя, контакти, адресу
-                  доставки та покаже історію замовлень.
+                  Після входу сайт запамʼятає ваше імʼя й контакти та покаже
+                  історію замовлень.
                 </p>
 
                 <button
@@ -789,6 +790,9 @@ export default function CartView({
                         }
                       }}
                       className={getInputClass(Boolean(fieldErrors.phone))}
+                      type="tel"
+                      autoComplete="tel"
+                      aria-label="Телефон"
                       placeholder="+380XXXXXXXXX"
                     />
 
@@ -814,6 +818,7 @@ export default function CartView({
                         }
                       }}
                       className={getInputClass(Boolean(fieldErrors.telegram))}
+                      aria-label="Telegram"
                       placeholder="@username"
                     />
 
@@ -959,12 +964,13 @@ export default function CartView({
               <button
                 type="button"
                 onClick={handleSubmitOrder}
-                disabled={!canSubmit}
+                disabled={!canSubmit || isSubmitting}
+                aria-busy={isSubmitting}
                 className="eg-checkout-submit-button eg-button eg-sweep flex w-full items-center justify-center gap-2 rounded-[1.4rem] bg-emerald-900 px-6 py-4 font-black text-white hover:bg-emerald-800 hover:shadow-lg hover:shadow-emerald-900/20 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <Icon name="send" size={18} />
                 <span className="eg-checkout-submit-copy">
-                  Оформити обрану групу
+                  {isSubmitting ? "Надсилаємо…" : "Оформити обрану групу"}
                 </span>
               </button>
 

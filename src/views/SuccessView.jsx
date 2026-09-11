@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Icon from "../components/Icon.jsx";
+import { getRecentOrders } from "../utils/recentOrders.js";
 
 export default function SuccessView({
   createdOrder,
@@ -12,6 +13,9 @@ export default function SuccessView({
   const [copyMessage, setCopyMessage] = useState("");
 
   const orderNumber = createdOrder?.orderNumber;
+  const isSavedLocally = getRecentOrders().some(
+    (order) => String(order.orderNumber) === String(orderNumber)
+  );
 
   function returnToCatalog() {
     setOrderMessage("");
@@ -61,13 +65,13 @@ export default function SuccessView({
         {orderNumber && (
           <div className="eg-panel mt-7 rounded-[2rem] bg-emerald-50/80 p-5 text-left ring-1 ring-emerald-100">
             <p className="font-black text-emerald-950">
-              Номер замовлення збережено
+              {isSavedLocally ? "Номер замовлення збережено" : "Збережіть номер замовлення"}
             </p>
 
             <p className="mt-2 text-sm leading-6 text-emerald-900">
-              Ми зберегли це замовлення на цьому пристрої. Пізніше його можна
-              буде знайти у кошику в блоці “Останні замовлення на цьому
-              пристрої”.
+              {isSavedLocally
+                ? "Ми зберегли це замовлення на цьому пристрої. Пізніше його можна буде знайти у кошику в блоці “Останні замовлення на цьому пристрої”."
+                : "Замовлення прийнято, але браузер не зберіг його на цьому пристрої. Скопіюйте або запишіть номер, щоб мати його під рукою."}
             </p>
 
             {customer && (

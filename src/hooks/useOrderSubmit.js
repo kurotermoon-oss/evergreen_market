@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { api } from "../api/client.js";
 import { saveRecentOrder } from "../utils/recentOrders.js";
 
@@ -37,8 +37,25 @@ export function useOrderSubmit({
 }) {
   const [orderMessage, setOrderMessage] = useState("");
   const [createdOrder, setCreatedOrder] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const pendingSubmission = useRef(null);
 
-  async function submitOrder(itemsToSubmit = cartItems) {
+  function submitOrder(itemsToSubmit = cartItems) {
+    // A ref closes the gap before React renders the disabled submit button.
+    if (pendingSubmission.current) return pendingSubmission.current;
+
+    setIsSubmitting(true);
+    const request = performSubmitOrder(itemsToSubmit);
+    pendingSubmission.current = request;
+    const finish = () => {
+      pendingSubmission.current = null;
+      setIsSubmitting(false);
+    };
+    request.then(finish, finish);
+    return request;
+  }
+
+  async function performSubmitOrder(itemsToSubmit) {
     const selectedItems = Array.isArray(itemsToSubmit)
       ? itemsToSubmit.filter(Boolean)
       : cartItems;
@@ -87,15 +104,16 @@ export function useOrderSubmit({
         clearCart?.();
       }
 
-      if (isAdmin) {
-        await loadAdminData?.();
-      }
-
-      if (customer) {
-        await loadCustomerOrders?.();
-      }
-
       setView("success");
+
+      // Optional history refreshes cannot turn a confirmed order into a failure
+      // or delay confirmation when one of the history endpoints is unavailable.
+      for (const refresh of [isAdmin && loadAdminData, customer && loadCustomerOrders]) {
+        if (typeof refresh !== "function") continue;
+        Promise.resolve().then(() => refresh()).catch(() => {
+          console.warn("Замовлення створено, але не вдалося оновити історію.");
+        });
+      }
 
       return {
         ok: true,
@@ -117,6 +135,7 @@ export function useOrderSubmit({
     setOrderMessage,
     createdOrder,
     setCreatedOrder,
+    isSubmitting,
     submitOrder,
   };
 }

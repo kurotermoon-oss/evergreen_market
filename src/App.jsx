@@ -306,6 +306,7 @@ const {
   setOrderMessage,
   createdOrder,
   setCreatedOrder,
+  isSubmitting,
   submitOrder,
 } = useOrderSubmit({
   cart,
@@ -680,6 +681,7 @@ return (
           setCart={setCart}
           setView={setView}
           submitOrder={submitOrder}
+          isSubmitting={isSubmitting}
           customer={customer}
           onShowSupplierProducts={showSupplierProducts}
           startCheckoutOpen={view === "checkout"}

@@ -253,7 +253,7 @@ export default function ProductDetailsView({
         className={`grid min-w-0 gap-2 ${
           isFloating
             ? "grid-cols-[7.25rem_minmax(0,1fr)]"
-            : "grid-cols-[minmax(0,9rem)_minmax(0,1fr)] sm:gap-3"
+            : "grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:grid-cols-[minmax(0,9rem)_minmax(0,1fr)] sm:gap-3"
         }`}
       >
         <QuantityControl
@@ -273,9 +273,10 @@ export default function ProductDetailsView({
           onClick={cartQty > 0 ? handleOpenCart : handleAdd}
           disabled={!available && cartQty <= 0}
           className={buttonClassName}
+          aria-label={cartQty > 0 ? "Перейти до кошика" : available ? "Додати в кошик" : "Немає в наявності"}
         >
           <span className="flex min-w-0 items-center justify-center gap-2">
-            <ShoppingBasket size={isFloating ? 17 : 19} strokeWidth={2.05} />
+            <ShoppingBasket className="shrink-0" size={isFloating ? 17 : 19} strokeWidth={2.05} />
             {cartQty > 0 ? (
               <>
                 <span className="truncate sm:hidden">У кошик</span>
@@ -284,9 +285,15 @@ export default function ProductDetailsView({
                 </span>
               </>
             ) : available ? (
-              <span className="truncate">Додати в кошик</span>
+              <>
+                <span className="sm:hidden">Додати</span>
+                <span className="hidden sm:inline">Додати в кошик</span>
+              </>
             ) : (
-              <span className="truncate">Немає в наявності</span>
+              <>
+                <span className="sm:hidden">Немає</span>
+                <span className="hidden sm:inline">Немає в наявності</span>
+              </>
             )}
           </span>
         </button>

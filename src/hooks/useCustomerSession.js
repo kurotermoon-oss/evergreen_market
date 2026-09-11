@@ -52,8 +52,7 @@ export function useCustomerSession({ applyCustomerToForm } = {}) {
     setCustomer(response.customer);
     applyCustomerToForm?.(response.customer);
 
-    const ordersResponse = await api.getCustomerOrders();
-    setCustomerOrders(ordersResponse.orders || []);
+    await loadCustomerOrders();
 
     return response.customer;
   }
@@ -64,8 +63,7 @@ export function useCustomerSession({ applyCustomerToForm } = {}) {
     setCustomer(response.customer);
     applyCustomerToForm?.(response.customer);
 
-    const ordersResponse = await api.getCustomerOrders();
-    setCustomerOrders(ordersResponse.orders || []);
+    await loadCustomerOrders();
 
     return response.customer;
   }

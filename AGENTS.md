@@ -1,9 +1,11 @@
 # Evergreen Market
 
-Canonical project: `C:/Users/Trap/Desktop/evergreen_market`. Owner: Russian; customer copy: Ukrainian.
+Canonical source: `https://github.com/kurotermoon-oss/evergreen_market`, branch `main`. Work in the current device's clone; no hard-coded canonical local path. Owner: Russian; customer copy: Ukrainian.
 
 ## Start and scope
 - Run `git status --short`. Read `docs/WORK-STATE.md` only when resuming; use the relevant row of `docs/PROJECT_OVERVIEW.md` when file locations are unknown. Verify against code; these are a map and checkpoint, not a second instruction set.
+- Before edits, fetch `origin/main` and compare with HEAD. Fast-forward a clean main; preserve and reconcile local changes or divergent commits before proceeding. `npm run sync` performs the safe clean-main path; `npm run sync:check` reports differences. Never overwrite work to match GitHub. ZIP downloads are not working clones; see `docs/DEVICE-WORKFLOW.md`.
+- For the owner's authorized GitHub/site updates, finish with reviewed task files committed and pushed, then verify remote main and deployment separately. Fetch again before publishing to include work from other devices; never force-push or upload secrets, local snapshots or unrelated files.
 - Open only the files needed for the current step. Use scoped `rg -n` / `rg --files`, bounded output and batched independent reads. Do not reread unchanged files, whole docs, history, generated bundles or logs without a reason.
 - For a broad request, state the outcome and 3–5 sequential stages. Finish one coherent screen/workflow, check it, then continue. Shared foundations come first. Keep the whole requested outcome; do not require owner approval between routine stages.
 - Before visual changes state the affected area and direction. Choose one design direction from existing tokens and customer needs. Finish at the acceptance criteria; avoid speculative alternatives and unrelated refactors.

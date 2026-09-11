@@ -5,6 +5,16 @@ import {
   getPopularProducts,
 } from "../utils/products.js";
 
+export function paginateProducts(products, requestedPage, productsPerPage) {
+  const totalProductPages = Math.max(1, Math.ceil(products.length / productsPerPage));
+  const currentPage = Math.min(totalProductPages, Math.max(1, requestedPage));
+  return {
+    currentPage,
+    totalProductPages,
+    paginatedProducts: products.slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage),
+  };
+}
+
 export function useCatalogFilters({
   products = [],
   categories = [],
@@ -13,7 +23,7 @@ export function useCatalogFilters({
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState("all");
   const [query, setQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [requestedPage, setCurrentPage] = useState(1);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [sortBy, setSortBy] = useState("default");
@@ -266,13 +276,13 @@ export function useCatalogFilters({
     selectedSupplierId,
   ]);
 
-  const totalProductPages =
-    Math.ceil(filteredProducts.length / productsPerPage) || 1;
-
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * productsPerPage,
-    currentPage * productsPerPage
+  const { currentPage, totalProductPages, paginatedProducts } = paginateProducts(
+    filteredProducts, requestedPage, productsPerPage
   );
+
+  useEffect(() => {
+    if (requestedPage !== currentPage) setCurrentPage(currentPage);
+  }, [requestedPage, currentPage]);
 
   const popularProducts = useMemo(() => {
     return getPopularProducts(products, 6);

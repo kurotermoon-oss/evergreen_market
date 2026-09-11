@@ -1,14 +1,20 @@
 const RECENT_ORDERS_STORAGE_KEY = "evergreen_recent_orders";
 const MAX_RECENT_ORDERS = 8;
 
-function canUseStorage() {
-  return typeof window !== "undefined" && window.localStorage;
+function getStorage() {
+  try {
+    return typeof window !== "undefined" ? window.localStorage : null;
+  } catch {
+    return null;
+  }
 }
 
 function safeParseOrders(value) {
   try {
     const parsed = JSON.parse(value || "[]");
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((item) => item && typeof item === "object" && item.orderNumber)
+      : [];
   } catch {
     return [];
   }
@@ -23,19 +29,24 @@ function normalizeTelegram(value) {
 }
 
 export function getRecentOrders() {
-  if (!canUseStorage()) return [];
-
-  return safeParseOrders(localStorage.getItem(RECENT_ORDERS_STORAGE_KEY));
+  try {
+    return safeParseOrders(getStorage()?.getItem(RECENT_ORDERS_STORAGE_KEY));
+  } catch {
+    return [];
+  }
 }
 
 export function clearRecentOrders() {
-  if (!canUseStorage()) return;
-
-  localStorage.removeItem(RECENT_ORDERS_STORAGE_KEY);
+  try {
+    getStorage()?.removeItem(RECENT_ORDERS_STORAGE_KEY);
+  } catch {
+    // Browser history is optional; storage restrictions must not block shopping.
+  }
 }
 
 export function saveRecentOrder(order, { form, customer } = {}) {
-  if (!canUseStorage() || !order?.orderNumber) return;
+  const storage = getStorage();
+  if (!storage || !order?.orderNumber) return;
 
   const phone = order.customerPhone || form?.phone || customer?.phone || "";
   const telegram =
@@ -62,5 +73,9 @@ export function saveRecentOrder(order, { form, customer } = {}) {
     MAX_RECENT_ORDERS
   );
 
-  localStorage.setItem(RECENT_ORDERS_STORAGE_KEY, JSON.stringify(nextOrders));
+  try {
+    storage.setItem(RECENT_ORDERS_STORAGE_KEY, JSON.stringify(nextOrders));
+  } catch {
+    // The server has already created the order, even if local history is full.
+  }
 }
