@@ -30,7 +30,7 @@ export default function AdminAnalyticsPanel({
   ];
 
   return (
-    <section className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
+    <section className="eg-admin-page eg-admin-analytics eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
       <div>
         <h1 className="eg-admin-panel-title">
           Аналітика
@@ -51,6 +51,7 @@ export default function AdminAnalyticsPanel({
           {periods.map((period) => (
             <button
               key={period.id}
+              aria-pressed={analyticsFilters?.preset === period.id}
               type="button"
               onClick={() =>
                 updateAnalyticsFilters({
@@ -70,10 +71,10 @@ export default function AdminAnalyticsPanel({
         </div>
 
         {analyticsFilters?.preset === "custom" && (
-          <div className="eg-panel mt-4 grid gap-3 rounded-[1.6rem] bg-white/70 p-4 sm:grid-cols-[1fr_1fr_auto]">
+          <div className="eg-panel mt-4 grid gap-3 rounded-[1.6rem] bg-white/70 p-4 eg-analytics-dates">
             <input
               type="date"
-              value={analyticsFilters.from || ""}
+              aria-label="Дата початку" max={analyticsFilters.to || undefined} value={analyticsFilters.from || ""}
               onChange={(event) =>
                 updateAnalyticsFilters({
                   ...analyticsFilters,
@@ -86,7 +87,7 @@ export default function AdminAnalyticsPanel({
 
             <input
               type="date"
-              value={analyticsFilters.to || ""}
+              aria-label="Дата завершення" min={analyticsFilters.from || undefined} value={analyticsFilters.to || ""}
               onChange={(event) =>
                 updateAnalyticsFilters({
                   ...analyticsFilters,

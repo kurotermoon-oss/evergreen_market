@@ -4,7 +4,7 @@ import ProductPriceFields from "./ProductPriceFields.jsx";
 
 function FormSection({ title, description, children }) {
   return (
-    <div className="eg-panel eg-premium-card rounded-[2rem] bg-stone-50/90 p-5 backdrop-blur">
+    <div className="eg-product-form-section eg-panel eg-premium-card rounded-[2rem] bg-stone-50/90 p-5 backdrop-blur">
       <div className="mb-4">
         <p className="font-black text-stone-900">{title}</p>
 
@@ -38,6 +38,7 @@ function TextInput({
       onChange={onChange}
       type={type}
       placeholder={placeholder}
+      aria-label={placeholder}
       className={getFieldClass(className)}
       {...props}
     />
@@ -51,6 +52,7 @@ function TextArea({ value, onChange, placeholder, rows = 4 }) {
       onChange={onChange}
       rows={rows}
       placeholder={placeholder}
+      aria-label={placeholder}
       className={getFieldClass()}
     />
   );
@@ -118,24 +120,9 @@ export default function AdminProductForm({
   }
 
   return (
-    <section className="mx-auto max-w-4xl">
-      <div className="eg-glass eg-premium-card rounded-[2.2rem] p-5 sm:p-6">
-        <div>
-          <p className="w-fit rounded-full border border-emerald-200 bg-white/70 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-emerald-800 shadow-sm backdrop-blur">
-            Каталог
-          </p>
-
-          <h2 className="mt-4 text-3xl font-black text-stone-950">
-            Новий товар
-          </h2>
-
-          <p className="mt-2 text-sm leading-6 text-stone-500">
-            Заповніть основні дані товару. Поля з описом, складом та умовами
-            зберігання будуть використані на сторінці товару.
-          </p>
-        </div>
-
-        <div className="mt-6 space-y-5">
+    <section className="eg-product-create-form mx-auto max-w-4xl">
+      <div>
+        <div className="space-y-4">
           <FormSection
             title="Основна інформація"
             description="Назва, бренд, тип товару та походження."

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../api/client.js";
+import { getOrderStatusLabel } from "./orderUiConfig.js";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -257,7 +258,7 @@ export default function AdminSecurityPanel({ apiClient = api }) {
   }, [blockedCustomers, searchQuery]);
 
   return (
-    <section className="eg-ambient space-y-6">
+    <section className="eg-admin-page eg-admin-security eg-ambient space-y-6">
       <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 shadow-sm ring-1 ring-stone-100 lg:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -293,10 +294,10 @@ export default function AdminSecurityPanel({ apiClient = api }) {
 
       <div className="eg-glass eg-premium-card rounded-[2rem] p-3">
         <div className="grid gap-3 lg:grid-cols-[auto_1fr] lg:items-center">
-          <div className="flex gap-2 overflow-x-auto">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setActiveView("guests")}
+              aria-pressed={activeView === "guests"} onClick={() => setActiveView("guests")}
               className={`eg-button whitespace-nowrap rounded-[1.3rem] px-5 py-3 text-sm font-black ${
                 activeView === "guests"
                   ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
@@ -308,7 +309,7 @@ export default function AdminSecurityPanel({ apiClient = api }) {
 
             <button
               type="button"
-              onClick={() => setActiveView("blocked")}
+              aria-pressed={activeView === "blocked"} onClick={() => setActiveView("blocked")}
               className={`eg-button whitespace-nowrap rounded-[1.3rem] px-5 py-3 text-sm font-black ${
                 activeView === "blocked"
                   ? "bg-stone-950 text-white shadow-lg shadow-stone-950/20"
@@ -321,7 +322,7 @@ export default function AdminSecurityPanel({ apiClient = api }) {
 
           <div className="relative">
             <input
-              value={searchQuery}
+              aria-label="Пошук гостей і блокувань" value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               className="eg-field w-full rounded-[1.3rem] border border-stone-200 bg-white/85 px-5 py-3 pr-12 text-sm outline-none backdrop-blur focus:border-emerald-700 focus:bg-white"
               placeholder={
@@ -334,7 +335,7 @@ export default function AdminSecurityPanel({ apiClient = api }) {
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery("")}
+                aria-label="Очистити пошук" onClick={() => setSearchQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-stone-100 px-2 py-1 text-xs font-black text-stone-500 hover:bg-stone-200"
               >
                 ×
@@ -551,8 +552,8 @@ export default function AdminSecurityPanel({ apiClient = api }) {
                           Замовлення гостя
                         </p>
 
-                        <div className="mt-3 overflow-x-auto rounded-[1.4rem] bg-white/80 ring-1 ring-stone-100">
-                          <table className="min-w-full text-left text-sm">
+                        <div className="mt-3 overflow-x-auto rounded-[1.4rem] bg-white/80 ring-1 ring-stone-100" tabIndex={0} role="region" aria-label="Замовлення гостя — таблиця з горизонтальним прокручуванням">
+                          <table className="eg-admin-history-table min-w-full text-left text-sm">
                             <thead>
                               <tr className="text-xs uppercase text-stone-400">
                                 <th className="px-4 py-3">№</th>
@@ -577,7 +578,7 @@ export default function AdminSecurityPanel({ apiClient = api }) {
                                     {formatDate(order.createdAt)}
                                   </td>
 
-                                  <td className="px-4 py-3">{order.status}</td>
+                                  <td className="px-4 py-3">{getOrderStatusLabel(order.status)}</td>
 
                                   <td className="px-4 py-3 text-stone-600">
                                     {order.customerPhone ||

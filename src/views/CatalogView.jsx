@@ -680,6 +680,7 @@ export default function CatalogView({
                     setCurrentPage(1);
                   }}
                   placeholder="Пошук"
+                  aria-label="Пошук товарів"
                   className="min-w-0 flex-1 bg-transparent text-sm text-stone-950 outline-none placeholder:text-stone-400 sm:text-base"
                 />
               </label>
@@ -776,6 +777,7 @@ export default function CatalogView({
                     setCurrentPage(1);
                   }}
                   placeholder="Пошук"
+                  aria-label="Пошук товарів"
                   className="min-w-0 flex-1 bg-transparent text-[15px] font-bold text-stone-950 outline-none placeholder:text-stone-400"
                 />
 

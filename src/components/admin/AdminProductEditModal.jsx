@@ -164,7 +164,7 @@ export default function AdminProductEditModal({
                 Редагування
               </p>
 
-              <h2 className="mt-0.5 truncate text-2xl font-black text-stone-950">
+              <h2 className="mt-0.5 text-2xl font-black text-stone-950">
                 {editingProduct.name || "Товар"}
               </h2>
 

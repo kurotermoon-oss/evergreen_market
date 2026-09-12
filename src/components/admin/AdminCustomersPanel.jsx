@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../../api/client.js";
+import { getOrderStatusLabel } from "./orderUiConfig.js";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -60,8 +61,10 @@ export default function AdminCustomersPanel({ apiClient = api }) {
   const [expandedCustomerId, setExpandedCustomerId] = useState(null);
   const [customerOrders, setCustomerOrders] = useState({});
   const [loadingOrdersId, setLoadingOrdersId] = useState(null);
+  const searchRequest = useRef(0);
 
   const loadCustomers = useCallback(async (nextSearch = "") => {
+  const request = ++searchRequest.current;
   setIsLoading(true);
   setActionMessage("");
 
@@ -70,13 +73,13 @@ export default function AdminCustomersPanel({ apiClient = api }) {
       search: nextSearch,
     });
 
-    setCustomers(response.customers || []);
+    if (request === searchRequest.current) setCustomers(response.customers || []);
   } catch (error) {
-    setActionMessage(
+    if (request === searchRequest.current) setActionMessage(
       error?.message || "Не вдалося завантажити клієнтів."
     );
   } finally {
-    setIsLoading(false);
+    if (request === searchRequest.current) setIsLoading(false);
   }
 }, [apiClient]);
 
@@ -87,6 +90,7 @@ useEffect(() => {
 
   return () => {
     window.clearTimeout(timeoutId);
+    searchRequest.current += 1;
   };
 }, [searchQuery, loadCustomers]);
 
@@ -187,7 +191,7 @@ async function handleSearch(event) {
   }, [customers]);
 
   return (
-    <section className="eg-ambient space-y-6">
+    <section className="eg-admin-page eg-admin-customers eg-ambient space-y-6">
       <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 shadow-sm ring-1 ring-stone-100 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -201,18 +205,19 @@ async function handleSearch(event) {
             </p>
           </div>
 
-            <form onSubmit={handleSearch} className="flex w-full gap-2 lg:w-auto">
-            <div className="relative w-full lg:w-80">
+            <form onSubmit={handleSearch} className="eg-admin-search-form">
+            <div className="relative min-w-0 flex-1">
                 <input
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Пошук: імʼя, телефон, Telegram"
+                aria-label="Пошук клієнтів" placeholder="Імʼя, телефон, Telegram"
                 className="eg-field w-full rounded-[1.4rem] border border-stone-200 bg-white/85 px-5 py-3 pr-12 text-sm outline-none backdrop-blur transition-all duration-300 focus:border-emerald-700 focus:bg-white focus:shadow-lg focus:shadow-emerald-900/10"
                 />
 
                 {searchQuery && (
                 <button
                     type="button"
+                    aria-label="Очистити пошук клієнтів"
                     onClick={() => setSearchQuery("")}
                     className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-stone-100 px-2 py-1 text-xs font-black text-stone-500 hover:bg-stone-200"
                 >
@@ -512,8 +517,8 @@ async function handleSearch(event) {
                           Замовлень поки немає.
                         </p>
                       ) : (
-                        <div className="mt-3 overflow-x-auto">
-                          <table className="min-w-full overflow-hidden rounded-2xl text-left text-sm">
+                        <div className="mt-3 overflow-x-auto" tabIndex={0} role="region" aria-label="Замовлення клієнта — таблиця з горизонтальним прокручуванням">
+                          <table className="eg-admin-history-table min-w-full rounded-2xl text-left text-sm">
                             <thead>
                               <tr className="text-xs uppercase text-stone-400">
                                 <th className="px-3 py-2">№</th>
@@ -537,7 +542,7 @@ async function handleSearch(event) {
                                     {formatDate(order.createdAt)}
                                   </td>
                                   <td className="px-3 py-3">
-                                    {order.status}
+                                    {getOrderStatusLabel(order.status)}
                                   </td>
                                   <td className="px-3 py-3 font-bold">
                                     {formatMoney(order.total)}

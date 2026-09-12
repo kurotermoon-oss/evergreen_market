@@ -56,7 +56,7 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
   }, [section, activeOrders, historyOrders, activeStatus, query]);
 
   return (
-    <section className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
+    <section className="eg-admin-page eg-admin-orders eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="eg-admin-panel-title">
@@ -71,6 +71,7 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
         <div className="grid grid-cols-2 gap-2 rounded-[2rem] bg-stone-100/80 p-2 backdrop-blur">
           <button
             type="button"
+            aria-pressed={section === "active"}
             onClick={() => setSection("active")}
             className={`eg-button rounded-[1.4rem] px-4 py-3 text-sm font-black ${
               section === "active"
@@ -83,6 +84,7 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
 
           <button
             type="button"
+            aria-pressed={section === "history"}
             onClick={() => setSection("history")}
             className={`eg-button rounded-[1.4rem] px-4 py-3 text-sm font-black ${
               section === "history"
@@ -119,6 +121,7 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
               <button
                 key={status}
                 type="button"
+                aria-pressed={activeStatus === status}
                 onClick={() => setActiveStatus(status)}
                 className={`eg-button whitespace-nowrap rounded-2xl px-4 py-3 text-sm font-bold ${
                   activeStatus === status
@@ -138,7 +141,7 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
         <div className="eg-panel mt-6 rounded-[2rem] bg-stone-50/90 p-8 text-center text-stone-500">
           {section === "active"
             ? "Активних замовлень за цим фільтром немає."
-            : "Історія замовлень поки що порожня."}
+            : query.trim() ? "Завершених замовлень за цим запитом немає." : "Історія замовлень поки що порожня."}
         </div>
       )}
 

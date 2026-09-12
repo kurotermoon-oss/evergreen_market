@@ -217,12 +217,12 @@ export default function AdminFeedbackPanel({
   }
 
   return (
-    <section className="space-y-6">
+    <section className="eg-admin-page eg-admin-feedback space-y-6">
       <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="eg-admin-panel-title">
-              Звернення користувачів
+              Звернення
             </h1>
           </div>
 
@@ -233,12 +233,12 @@ export default function AdminFeedbackPanel({
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               className="eg-field w-full rounded-[1.3rem] border border-stone-200 bg-white/85 px-11 py-3 text-sm outline-none backdrop-blur transition focus:border-emerald-700 focus:bg-white"
-              placeholder="Пошук за текстом або контактом"
+              aria-label="Пошук звернень" placeholder="Пошук за текстом або контактом"
             />
           </div>
         </div>
 
-        <div className="eg-stagger mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="eg-admin-stats eg-stagger mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard label="Усього" value={stats.total} />
           <StatCard label="Нові" value={stats.new} tone="emerald" />
           <StatCard label="Скарги" value={stats.complaints} tone="red" />
@@ -247,7 +247,7 @@ export default function AdminFeedbackPanel({
       </div>
 
       <div className="eg-glass eg-premium-card rounded-[2rem] p-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2"><span className="eg-admin-filter-label">Статус</span>
           {STATUS_OPTIONS.map((item) => (
             <FilterButton
               key={item.id}
@@ -258,7 +258,7 @@ export default function AdminFeedbackPanel({
           ))}
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2 border-t border-stone-100 pt-3">
+        <div className="mt-3 flex flex-wrap gap-2 border-t border-stone-100 pt-3"><span className="eg-admin-filter-label">Тип звернення</span>
           {TYPE_OPTIONS.map((item) => (
             <FilterButton
               key={item.id}

@@ -104,12 +104,10 @@ export default function OrderCard({ order, updateOrderAction }) {
         </div>
       </div>
 
-      <div className="eg-order-items eg-panel mt-5 rounded-[1.7rem] bg-stone-50/90 p-5">
-        <p className="mb-3 text-sm font-black text-stone-800">
-          Склад замовлення
-        </p>
+      <details className="eg-order-items eg-panel mt-5 rounded-[1.7rem] bg-stone-50/90 p-5">
+        <summary>Склад замовлення · {order.items?.length || 0} поз. {order.comment && "· Є коментар"}</summary>
 
-        <div className="space-y-2">
+        <div className="mt-3 space-y-2">
           {(order.items || []).map((item) => (
             <div
               key={`${order.id}-${item.productId || item.id}-${item.name}`}
@@ -132,7 +130,7 @@ export default function OrderCard({ order, updateOrderAction }) {
             {order.comment}
           </div>
         )}
-      </div>
+      </details>
 
       {!final && (
         <div className="mt-5 rounded-[1.7rem] bg-white/70 p-4 ring-1 ring-stone-100">
@@ -145,10 +143,8 @@ export default function OrderCard({ order, updateOrderAction }) {
       )}
 
       {final && (
-        <div className="eg-panel mt-5 rounded-[1.7rem] bg-stone-50/90 p-5">
-          <p className="text-sm font-black text-stone-700">
-            Історія замовлення
-          </p>
+        <details className="eg-panel mt-5 rounded-[1.7rem] bg-stone-50/90 p-5">
+          <summary>Історія замовлення</summary>
 
           {!order.statusHistory?.length && (
             <p className="mt-2 text-sm text-stone-500">
@@ -169,7 +165,7 @@ export default function OrderCard({ order, updateOrderAction }) {
               </div>
             ))}
           </div>
-        </div>
+        </details>
       )}
     </div>
   );

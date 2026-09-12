@@ -34,16 +34,16 @@ function SupplierForm({
           value={value.name || ""}
           onChange={(event) => updateField("name", event.target.value)}
           className={getFieldClass()}
-          placeholder="Назва постачальника"
+          aria-label="Назва постачальника" placeholder="Назва постачальника"
         />
 
         <input
-          value={value.minOrderAmount || ""}
+          value={value.minOrderAmount ?? ""}
           onChange={(event) =>
             updateField("minOrderAmount", event.target.value)
           }
           className={getFieldClass()}
-          placeholder="Мінімум, грн"
+          aria-label="Мінімальне замовлення, грн" placeholder="Мінімум, грн"
           type="number"
           min="0"
         />
@@ -64,7 +64,7 @@ function SupplierForm({
         onChange={(event) => updateField("comment", event.target.value)}
         className={`${getFieldClass()} mt-3 resize-y`}
         rows={3}
-        placeholder="Коментар для адмінки"
+        aria-label="Коментар для адмінки" placeholder="Коментар для адмінки"
       />
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
@@ -128,7 +128,7 @@ export default function AdminSuppliersPanel({
     setEditingSupplierId(supplier.id);
     setEditingSupplier({
       ...supplier,
-      minOrderAmount: String(supplier.minOrderAmount || ""),
+      minOrderAmount: String(supplier.minOrderAmount ?? ""),
     });
   }
 
@@ -167,12 +167,12 @@ export default function AdminSuppliersPanel({
   }
 
   return (
-    <section className="space-y-6">
+    <section className="eg-admin-page eg-admin-suppliers space-y-6">
       <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="eg-admin-panel-title">
-              Мінімальні замовлення
+              Постачальники
             </h1>
           </div>
 
@@ -187,12 +187,13 @@ export default function AdminSuppliersPanel({
         </p>
       </div>
 
+      <details className="eg-admin-disclosure"><summary>Додати постачальника</summary>
       <SupplierForm
         value={draftSupplier}
         onChange={setDraftSupplier}
         onSubmit={handleCreateSupplier}
         submitLabel="Додати постачальника"
-      />
+      /></details>
 
       <div className="eg-stagger space-y-3">
         {suppliers.map((supplier) => {
@@ -239,12 +240,12 @@ export default function AdminSuppliersPanel({
 
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-600">
                   <span className="font-black text-stone-950">
-                    Мінімум: {formatUAH(supplier.minOrderAmount)}
+                    Мінімум: {Number(supplier.minOrderAmount) > 0 ? formatUAH(supplier.minOrderAmount) : "Без мінімуму"}
                   </span>
 
                   <span>Товарів: {productsCount}</span>
 
-                  <span>ID: {supplier.id}</span>
+
                 </div>
 
                 {supplier.comment && (

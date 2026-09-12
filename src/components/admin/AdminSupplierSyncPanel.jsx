@@ -350,7 +350,7 @@ export default function AdminSupplierSyncPanel({
   const latestRun = dashboard?.runs?.[0] || null;
 
   return (
-    <section className="space-y-6">
+    <section className="eg-admin-page eg-admin-sync space-y-6">
       <div className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -358,8 +358,7 @@ export default function AdminSupplierSyncPanel({
               Синхронізація Milk Diller
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600">
-              Автоматичний режим перевіряє каталог кожні 6 годин через короткі
-              запуски Railway Cron. Помилка сайту постачальника не змінює
+              Перевірка наявності кожні 6 годин. Помилка сайту постачальника не змінює
               попередній статус товару.
             </p>
           </div>
@@ -522,7 +521,7 @@ export default function AdminSupplierSyncPanel({
           </div>
 
           {connected && (
-            <div className="eg-glass eg-premium-card rounded-[2rem] p-5 lg:p-6">
+            <details className="eg-admin-disclosure"><summary>Масова автопривʼязка товарів</summary>
               <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                 <div>
                   <h3 className="text-xl font-black text-stone-950">
@@ -646,7 +645,7 @@ export default function AdminSupplierSyncPanel({
                   )}
                 </div>
               )}
-            </div>
+            </details>
           )}
 
           {latestRun?.status === "blocked" && (
@@ -676,15 +675,15 @@ export default function AdminSupplierSyncPanel({
                 </p>
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-[220px_170px]">
+              <div className="eg-sync-search">
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Пошук товару"
+                  aria-label="Пошук товару для синхронізації" placeholder="Пошук товару"
                   className="eg-field rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700"
                 />
                 <select
-                  value={filter}
+                  aria-label="Фільтр синхронізації" value={filter}
                   onChange={(event) => setFilter(event.target.value)}
                   className="eg-field rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-emerald-700"
                 >
@@ -749,13 +748,13 @@ export default function AdminSupplierSyncPanel({
                         )}
                       </div>
 
-                      <div className="mt-4 eg-sync-product-fields grid gap-3 xl:grid-cols-[minmax(280px,1fr)_160px_170px_auto] xl:items-center">
+                      <details className="eg-sync-edit"><summary>Налаштувати перевірку</summary><div className="mt-4 eg-sync-product-fields grid gap-3 xl:grid-cols-[minmax(280px,1fr)_160px_170px_auto] xl:items-center">
                         <input
                           value={draft.productUrl || ""}
                           onChange={(event) =>
                             updateDraft(product.id, "productUrl", event.target.value)
                           }
-                          placeholder="https://milkdiller.ua/..."
+                          aria-label={"Посилання Milk Diller: " + product.name} placeholder="https://milkdiller.ua/..."
                           className="eg-field min-w-0 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm outline-none focus:border-emerald-700"
                         />
 
@@ -772,7 +771,7 @@ export default function AdminSupplierSyncPanel({
                         </label>
 
                         <select
-                          value={draft.statusOverride || "auto"}
+                          aria-label={"Режим наявності: " + product.name} value={draft.statusOverride || "auto"}
                           onChange={(event) =>
                             updateDraft(product.id, "statusOverride", event.target.value)
                           }
@@ -791,7 +790,7 @@ export default function AdminSupplierSyncPanel({
                         >
                           Зберегти
                         </button>
-                      </div>
+                      </div></details>
                     </div>
                   );
                 })
@@ -801,7 +800,7 @@ export default function AdminSupplierSyncPanel({
 
           <div className="eg-glass eg-premium-card rounded-[2rem] p-5 lg:p-6">
             <h3 className="text-xl font-black text-stone-950">Останні запуски</h3>
-            <div className="mt-4 overflow-x-auto">
+            <div className="mt-4 overflow-x-auto" tabIndex={0} role="region" aria-label="Останні запуски — таблиця з горизонтальним прокручуванням">
               <table className="w-full min-w-[760px] text-left text-sm">
                 <thead className="text-xs font-black uppercase tracking-wide text-stone-400">
                   <tr>

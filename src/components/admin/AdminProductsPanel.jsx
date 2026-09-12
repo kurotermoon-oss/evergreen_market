@@ -1,24 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { getAdminStockLabel } from "../../utils/adminProductStatus.js";
 import Icon from "../Icon.jsx";
 import { formatUAH } from "../../utils/formatUAH.js";
 
-function getStockLabel(product) {
-  if (
-    product.stockQuantity !== null &&
-    product.stockQuantity !== undefined &&
-    product.stockQuantity !== ""
-  ) {
-    return `Залишилось: ${Number(product.stockQuantity || 0)}`;
-  }
-
-  if (product.stockStatus === "out_of_stock") return "Немає";
-  if (product.stockStatus === "limited") {
-    return `Залишилось: ${product.stockQuantity || 0}`;
-  }
-  if (product.stockStatus === "preorder") return "Під замовлення";
-
-  return "В наявності";
-}
 
 function getCategoryLabel(categories, product) {
   const category = categories.find((item) => item.id === product.category);
@@ -92,6 +76,12 @@ export default function AdminProductsPanel({
   toggleProductActive,
   deleteProduct,
 }) {
+  const [page, setPage] = useState(1);
+  const listRef = useRef(null);
+  function goToPage(nextPage) {
+    setPage(nextPage);
+    listRef.current?.scrollIntoView({ block: "start", behavior: "instant" });
+  }
   const [adminProductQuery, setAdminProductQuery] = useState("");
 
   const filteredAdminProducts = useMemo(() => {
@@ -126,125 +116,38 @@ export default function AdminProductsPanel({
     });
   }, [products, categories, adminProductQuery]);
 
-  return (
-    <section className="eg-glass eg-premium-card rounded-[2.5rem] p-6 lg:p-8">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+  const pageSize = 25;
+  const pageCount = Math.max(1, Math.ceil(filteredAdminProducts.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const pageProducts = filteredAdminProducts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-          <h2 className="mt-2 text-3xl font-black text-stone-950">
-            Список товарів
-          </h2>
+  return <section ref={listRef} className="eg-admin-products" aria-label="Список товарів">
+    {showSearch && <label className="eg-admin-label">Пошук товарів<input className="eg-field" value={adminProductQuery} onChange={event => { setAdminProductQuery(event.target.value); setPage(1); }} placeholder="Назва, категорія, постачальник…" /></label>}
+    <div className="eg-product-columns" aria-hidden="true"><span>Товар</span><span>Ціна / собівартість</span><span>Наявність / показ</span><span>Дії</span></div>
+    {!pageProducts.length && <p className="eg-admin-empty">Товарів не знайдено. Змініть пошук або скиньте фільтри.</p>}
+    {pageProducts.map(product => {
+      const isHidden = product.active === false;
+      const unavailable = product.stockStatus === "out_of_stock";
+      return <article key={product.id} className="eg-product-row" data-hidden={isHidden}>
+        <div className="eg-product-identity">
+          <ProductThumbnail key={product.image} product={product} />
+          <div><button type="button" className="eg-product-name" onClick={() => startEditProduct(product)}>{product.name}</button>
+            <p>{getCategoryLabel(categories, product)}</p>
+            <small>{product.fulfillmentType === "supplier_order" ? product.supplier?.name || "Постачальник не вказаний" : "Власний склад"}</small>
+          </div>
         </div>
-
-        <span className="w-fit rounded-full bg-emerald-100 px-4 py-2 text-sm font-black text-emerald-950">
-          {filteredAdminProducts.length} товарів
-        </span>
-      </div>
-
-      {showSearch && <div className="mt-6">
-        <input
-          value={adminProductQuery}
-          onChange={(event) => setAdminProductQuery(event.target.value)}
-          className="eg-field w-full rounded-[1.4rem] border border-stone-200 bg-white/85 px-5 py-3.5 outline-none backdrop-blur focus:border-emerald-700 focus:bg-white"
-          placeholder="Пошук товарів в адмінці..."
-        />
-      </div>}
-
-      {!filteredAdminProducts.length && (
-        <div className="eg-panel mt-6 rounded-[2rem] bg-stone-50/90 p-8 text-center text-stone-500">
-          Товарів за цим запитом не знайдено.
+        <div className="eg-product-price"><strong>{formatUAH(product.price)}</strong><small>Собівартість: {product.costPrice == null || product.costPrice === "" ? "—" : formatUAH(product.costPrice)}</small></div>
+        <div className="eg-product-status"><span data-tone={unavailable ? "warning" : "neutral"}>{getAdminStockLabel(product)}</span><small>{isHidden ? "Приховано вручну" : unavailable && product.fulfillmentType === "supplier_order" ? "Не показується покупцям" : "Увімкнено в каталозі"}</small></div>
+        <div className="eg-product-actions">
+          <ProductActionButton onClick={() => startEditProduct(product)} label={"Редагувати: " + product.name}><Icon name="edit" size={18} /></ProductActionButton>
+          <ProductActionButton onClick={() => toggleProductActive(product.id)} label={(isHidden ? "Повернути на сайт: " : "Сховати: ") + product.name} tone="green"><Icon name={isHidden ? "eye" : "eyeOff"} size={18} /></ProductActionButton>
+          <ProductActionButton onClick={() => deleteProduct(product.id)} label={"Видалити: " + product.name} tone="red"><Icon name="trash" size={18} /></ProductActionButton>
         </div>
-      )}
-
-      <div className="eg-stagger mt-6 space-y-2.5">
-        {filteredAdminProducts.map((product) => {
-          const isHidden = product.active === false;
-
-          return (
-            <div
-              key={product.id}
-              className={`eg-card eg-premium-card grid grid-cols-[64px_minmax(0,1fr)] gap-4 rounded-[1.5rem] border p-3.5 backdrop-blur transition hover:shadow-lg hover:shadow-emerald-900/10 sm:grid-cols-[72px_minmax(0,1fr)] lg:grid-cols-[72px_minmax(0,1fr)_auto] lg:items-center ${
-                isHidden
-                  ? "border-amber-200 bg-amber-50/72 hover:border-amber-300"
-                  : "border-stone-200 bg-white/88 hover:border-emerald-100"
-              }`}
-            >
-              <ProductThumbnail product={product} />
-
-              <div className="min-w-0">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="line-clamp-2 text-base font-black leading-6 text-stone-950 lg:line-clamp-1">
-                      {product.name}
-                    </p>
-
-                    <p className="mt-1 truncate text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                      {getCategoryLabel(categories, product)}
-                    </p>
-                  </div>
-
-                  <span
-                    className={`w-fit shrink-0 rounded-full px-3 py-1 text-xs font-black ring-1 ${
-                      !isHidden
-                        ? "bg-emerald-50 text-emerald-900 ring-emerald-200"
-                        : "bg-amber-100 text-amber-950 ring-amber-200"
-                    }`}
-                  >
-                    {!isHidden ? "Видимий на сайті" : "Приховано · не на сайті"}
-                  </span>
-                </div>
-
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-600">
-                  <span className="font-black text-stone-950">
-                    {formatUAH(product.price)}
-                  </span>
-
-                  <span>Собівартість: {formatUAH(product.costPrice || 0)}</span>
-
-                  <span>{getStockLabel(product)}</span>
-
-                  <span>
-                    {product.fulfillmentType === "supplier_order"
-                      ? `Під замовлення: ${
-                          product.supplier?.name || "постачальник не вказаний"
-                        }`
-                      : "Є в наявності"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="col-span-2 grid grid-cols-3 gap-2 justify-self-start lg:col-span-1 lg:justify-self-end">
-                <ProductActionButton
-                  onClick={() => startEditProduct(product)}
-                  label="Редагувати товар"
-                >
-                  <Icon name="edit" size={18} />
-                </ProductActionButton>
-
-                <ProductActionButton
-                  onClick={() => toggleProductActive(product.id)}
-                  label={!isHidden ? "Сховати товар" : "Повернути на сайт"}
-                  tone="green"
-                >
-                  {!isHidden ? (
-                    <Icon name="eyeOff" size={18} />
-                  ) : (
-                    <Icon name="eye" size={18} />
-                  )}
-                </ProductActionButton>
-
-                <ProductActionButton
-                  onClick={() => deleteProduct(product.id)}
-                  label="Видалити товар"
-                  tone="red"
-                >
-                  <Icon name="trash" size={18} />
-                </ProductActionButton>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
+      </article>;
+    })}
+    <nav className="eg-admin-pagination" aria-label="Сторінки товарів">
+      <p role="status">{filteredAdminProducts.length ? (currentPage - 1) * pageSize + 1 : 0}–{Math.min(currentPage * pageSize, filteredAdminProducts.length)} із {filteredAdminProducts.length} товарів</p>
+      <div><button type="button" disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}>Назад</button><span>{currentPage} / {pageCount}</span><button type="button" disabled={currentPage === pageCount} onClick={() => goToPage(currentPage + 1)}>Далі</button></div>
+    </nav>
+  </section>;
 }

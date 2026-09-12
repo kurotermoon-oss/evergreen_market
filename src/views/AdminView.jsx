@@ -54,6 +54,10 @@ export default function AdminView({
   deleteSubcategory,
 }) {
   const [adminTab, setAdminTab] = useState("orders");
+  function selectAdminTab(tab) {
+    setAdminTab(tab);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
 
   const safeCategories = adminCategories?.length ? adminCategories : categories;
 
@@ -134,10 +138,10 @@ export default function AdminView({
         <aside className="eg-admin-sidebar">
           <p>РОБОЧИЙ ПРОСТІР</p>
           <nav className="eg-admin-nav" aria-label="Розділи адмін-панелі">
-            {tabs.map(tab => { const TabIcon = tabIcons[tab.id]; return <button key={tab.id} type="button" onClick={() => setAdminTab(tab.id)} aria-current={adminTab === tab.id ? "page" : undefined}><TabIcon size={18} aria-hidden="true" /><span>{tab.label}</span>{typeof tab.count === "number" && <span className="eg-admin-count">{tab.count}</span>}</button>; })}
+            {tabs.map(tab => { const TabIcon = tabIcons[tab.id]; return <button key={tab.id} type="button" onClick={() => selectAdminTab(tab.id)} aria-current={adminTab === tab.id ? "page" : undefined}><TabIcon size={18} aria-hidden="true" /><span>{tab.label}</span>{typeof tab.count === "number" && <span className="eg-admin-count">{tab.count}</span>}</button>; })}
           </nav>
         </aside>
-        <label className="eg-admin-mobile-nav">Розділ панелі<select value={adminTab} onChange={event => setAdminTab(event.target.value)}>{tabs.map(tab => <option key={tab.id} value={tab.id}>{tab.label}{typeof tab.count === "number" ? ' · ' + tab.count : ''}</option>)}</select></label>
+        <label className="eg-admin-mobile-nav">Розділ панелі<select value={adminTab} onChange={event => selectAdminTab(event.target.value)}>{tabs.map(tab => <option key={tab.id} value={tab.id}>{tab.label}{typeof tab.count === "number" ? ' · ' + tab.count : ''}</option>)}</select></label>
         <main className="eg-admin-content" id="admin-content">
           <Suspense fallback={<div className="shop-loading" role="status">Завантажуємо розділ…</div>}>
       {adminTab === "orders" && (

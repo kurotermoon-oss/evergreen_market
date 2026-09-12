@@ -12,7 +12,7 @@ const demoOrders = ["new", "ready", "completed"].map((status, i) => ({
   id: `demo-order-${i}`, orderNumber: `DEMO-00${i + 1}`, status, createdAt: date, customerName: "Демонстраційний покупець", customerPhone: "", customerTelegram: "", deliveryType: "pickup", paymentMethod: "На місці", total: 480,
   items: [{ id: `demo-item-${i}`, name: "Приклад товару з довгою назвою для перевірки перенесення", quantity: 4, price: 120, total: 480 }], comment: i === 0 ? "Демонстраційне замовлення для перевірки інтерфейсу." : "",
 }));
-const demoAnalytics = { completedOrdersCount: 1, totalRevenue: 480, totalCost: 400, totalProfit: 80, ordersByDay: [{ date: "07.09", orders: 1, revenue: 240, profit: 40 }, { date: "08.09", orders: 2, revenue: 600, profit: 100 }, { date: "09.09", orders: 1, revenue: 480, profit: 80 }], topProducts: [{ name: "Демонстраційний товар", quantity: 4, revenue: 480, profit: 80 }] };
+const demoAnalytics = { completedOrdersCount: 1, totalRevenue: 480, totalCost: 400, totalProfit: 80, ordersByDay: [{ date: "07.09", orders: 1, revenue: 240, profit: 40 }, { date: "08.09", orders: 2, revenue: 600, profit: 100 }, { date: "09.09", orders: 1, revenue: 480, profit: 80 }], topProducts: [{ name: "Демонстраційний товар", purchaseCount: 4, revenue: 480, profit: 80 }] };
 const blockedWrite = async () => { throw new Error("Демонстрація: зміни не зберігаються."); };
 
 export default function DesignPreview({ mode, products = [], categories = [], setView }) {
@@ -21,8 +21,8 @@ export default function DesignPreview({ mode, products = [], categories = [], se
   const [customer, setCustomer] = useState(demoCustomer);
   const [notice, setNotice] = useState("");
   const [accountScenario, setAccountScenario] = useState("normal");
-  const [analyticsFilters, setAnalyticsFilters] = useState({ period: "7d", from: "", to: "" });
-  const previewProducts = useMemo(() => products.slice(0, 12).map(p => ({ ...p, supplierId: "demo-supplier" })), [products]);
+  const [analyticsFilters, setAnalyticsFilters] = useState({ preset: "7d", from: "", to: "" });
+  const previewProducts = useMemo(() => products.slice(0, 60).map(p => ({ ...p, supplierId: "demo-supplier", supplier: { name: "Milk Diller · демо" } })), [products]);
   const suppliers = useMemo(() => [{ id: "demo-supplier", name: "Milk Diller · демо", active: true, minOrderAmount: 400, availabilitySyncAdapter: "milkdiller_html", availabilitySyncEnabled: false }], []);
   const previewApi = useMemo(() => ({
     getAdminCustomers: async ({ search = "" } = {}) => ({ customers: demoCustomer.name.toLowerCase().includes(search.toLowerCase()) ? [demoCustomer] : [] }),

@@ -80,13 +80,6 @@ function getProductsByVisibility(products, visibilityFilter) {
   return products;
 }
 
-function getVisibilityFilterLabel(visibilityFilter) {
-  return (
-    VISIBILITY_FILTERS.find((item) => item.id === visibilityFilter)?.label ||
-    "Всі товари"
-  );
-}
-
 function getProductsBySearch(products, categories, query) {
   const normalizedQuery = normalizeText(query);
 
@@ -96,6 +89,7 @@ function getProductsBySearch(products, categories, query) {
     const searchableText = [
       product.name,
       product.brand,
+      product.supplier?.name,
       product.description,
       product.details,
       product.unit,
@@ -258,12 +252,10 @@ export default function AdminCatalogPanel({
   updateSubcategory,
   deleteSubcategory,
 }) {
-  const [categoryNavOpen, setCategoryNavOpen] = useState(() => window.matchMedia("(min-width: 1400px)").matches);
   const [showAddProductForm, setShowAddProductForm] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [catalogQuery, setCatalogQuery] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState("all");
-  const [expandedCategories, setExpandedCategories] = useState({});
   const [importStatus, setImportStatus] = useState({
     isLoading: false,
     message: "",
@@ -280,9 +272,6 @@ export default function AdminCatalogPanel({
   });
 
 
-  const visibleCategories = useMemo(() => {
-    return getVisibleCategories(categories);
-  }, [categories]);
 
   const categoryStats = useMemo(() => {
     return buildCategoryStats(categories, products);
@@ -309,23 +298,6 @@ export default function AdminCatalogPanel({
   const visibleProducts = useMemo(() => {
     return getProductsByVisibility(searchedProducts, visibilityFilter);
   }, [searchedProducts, visibilityFilter]);
-
-  const activeProductsCount = products.filter(
-    (product) => product.active !== false
-  ).length;
-
-  const hiddenProductsCount = products.length - activeProductsCount;
-
-  const subcategoriesCount = visibleCategories.reduce((sum, category) => {
-    return sum + Number(category.subcategories?.length || 0);
-  }, 0);
-
-  function toggleCategoryExpand(categoryId) {
-    setExpandedCategories((current) => ({
-      ...current,
-      [categoryId]: !current[categoryId],
-    }));
-  }
 
   async function handleAddProduct() {
     await addDraftProduct();
@@ -501,12 +473,12 @@ export default function AdminCatalogPanel({
   }
 
   return (
-    <section className="eg-ambient space-y-6">
+    <section className="eg-admin-page eg-admin-catalog eg-ambient space-y-6">
       <div className="eg-glass eg-premium-card overflow-hidden rounded-[2.5rem] p-6 lg:p-8">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div>
             <h1 className="eg-admin-panel-title">
-              Керування каталогом
+              Каталог
             </h1>
 
             <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
@@ -587,130 +559,37 @@ export default function AdminCatalogPanel({
         )}
 
 
-        <div className="eg-admin-stats eg-stagger mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
-            <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
-              Товарів
-            </p>
-            <p className="mt-2 text-2xl font-black text-stone-950">
-              {products.length}
-            </p>
-          </div>
-
-          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
-            <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
-              Активних
-            </p>
-            <p className="mt-2 text-2xl font-black text-emerald-900">
-              {activeProductsCount}
-            </p>
-          </div>
-
-          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
-            <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
-              Прихованих
-            </p>
-            <p className="mt-2 text-2xl font-black text-amber-800">
-              {hiddenProductsCount}
-            </p>
-          </div>
-
-          <div className="eg-card rounded-[1.8rem] bg-white/75 p-5 shadow-sm ring-1 ring-stone-100 backdrop-blur transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-900/10">
-            <p className="text-xs font-bold uppercase tracking-wide text-stone-500">
-              Категорій / підкатегорій
-            </p>
-            <p className="mt-2 text-2xl font-black text-stone-950">
-              {visibleCategories.length} / {subcategoriesCount}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-7">
-          <label className="mb-2 block text-sm font-black text-stone-800">
-            Пошук у вибраному розділі
+        <div className="eg-catalog-filters">
+          <label className="eg-admin-label eg-catalog-search">Пошук товарів
+            <input className="eg-field" value={catalogQuery} onChange={event => setCatalogQuery(event.target.value)} placeholder="Назва, бренд, постачальник…" />
           </label>
-
-          <div className="flex flex-col gap-3 md:flex-row">
-            <input
-              value={catalogQuery}
-              onChange={(event) => {
-                const nextQuery = event.target.value;
-
-                setCatalogQuery(nextQuery);
-
-                if (nextQuery.trim()) {
-                  setVisibilityFilter("all");
-                }
-              }}
-              className="eg-field w-full rounded-[1.5rem] border border-stone-200 bg-white/85 px-5 py-4 outline-none backdrop-blur transition-all duration-300 focus:border-emerald-700 focus:bg-white focus:shadow-lg focus:shadow-emerald-900/10"
-              placeholder="Пошук товарів, категорій, підкатегорій..."
-            />
-
-            {catalogQuery && (
-              <button
-                type="button"
-                onClick={() => setCatalogQuery("")}
-                className="eg-button rounded-[1.3rem] border border-stone-300 bg-white/80 px-5 py-3 text-sm font-black text-stone-900 hover:bg-white"
-              >
-                Очистити
-              </button>
-            )}
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {VISIBILITY_FILTERS.map((item) => {
-              const isActive = visibilityFilter === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setVisibilityFilter(item.id)}
-                  className={`eg-button rounded-[1.15rem] px-4 py-2 text-xs font-black transition ${
-                    isActive
-                      ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
-                      : "border border-stone-200 bg-white/80 text-stone-700 hover:bg-white"
-                  }`}
-                >
-                  {item.label}
-                  <span
-                    className={`ml-2 rounded-full px-2 py-0.5 ${
-                      isActive
-                        ? "bg-white/20 text-white"
-                        : "bg-stone-100 text-stone-600"
-                    }`}
-                  >
-                    {visibilityCounts[item.id] || 0}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {visibilityCounts.hidden > 0 && (
-            <p className="mt-3 rounded-[1.1rem] bg-amber-50 px-4 py-2 text-xs font-semibold leading-5 text-amber-900 ring-1 ring-amber-100">
-              Приховані товари не відображаються покупцям, але залишаються
-              доступними тут для редагування та повернення на сайт.
-            </p>
-          )}
-
-          <p className="mt-3 text-sm text-stone-500">
-            Поточний розділ:{" "}
-            <span className="font-bold text-stone-800">
-              {catalogFilter.label}
-            </span>
-            {" · "}
-            фільтр:{" "}
-            <span className="font-bold text-stone-800">
-              {getVisibilityFilterLabel(visibilityFilter)}
-            </span>
-            {" · "}
-            показано товарів:{" "}
-            <span className="font-bold text-stone-800">
-              {visibleProducts.length}
-            </span>
-          </p>
+          <label className="eg-admin-label">Категорія
+            <select className="eg-field" value={catalogFilter.categoryId} onChange={event => {
+              const category = categoryStats.find(item => item.id === event.target.value);
+              setCatalogFilter({ type: category ? "category" : "all", categoryId: category?.id || "", subcategoryId: "", label: category?.name || "Усі товари" });
+            }}>
+              <option value="">Усі категорії · {products.length}</option>
+              {categoryStats.map(category => <option key={category.id} value={category.id}>{category.name} · {category.productsCount}</option>)}
+            </select>
+          </label>
+          {catalogFilter.categoryId && <label className="eg-admin-label">Підкатегорія
+            <select className="eg-field" value={catalogFilter.subcategoryId} onChange={event => {
+              const category = categoryStats.find(item => item.id === catalogFilter.categoryId);
+              const subcategory = category?.subcategories?.find(item => item.id === event.target.value);
+              setCatalogFilter({ type: subcategory ? "subcategory" : "category", categoryId: category.id, subcategoryId: subcategory?.id || "", label: subcategory ? category.name + " / " + subcategory.name : category.name });
+            }}>
+              <option value="">Усі підкатегорії</option>
+              {categoryStats.find(item => item.id === catalogFilter.categoryId)?.subcategories?.map(item => <option key={item.id} value={item.id}>{item.name} · {item.productsCount}</option>)}
+            </select>
+          </label>}
         </div>
+        <div className="eg-catalog-filter-footer">
+          <div className="eg-admin-filter-tabs" aria-label="Видимість товарів">
+            {VISIBILITY_FILTERS.map(item => <button type="button" key={item.id} aria-pressed={visibilityFilter === item.id} onClick={() => setVisibilityFilter(item.id)}>{item.label} <span>{visibilityCounts[item.id] || 0}</span></button>)}
+          </div>
+          {(catalogQuery || catalogFilter.type !== "all" || visibilityFilter !== "all") && <button className="eg-button eg-admin-reset" type="button" onClick={() => { setCatalogQuery(""); setVisibilityFilter("all"); setCatalogFilter({ type: "all", categoryId: "", subcategoryId: "", label: "Усі товари" }); }}>Скинути фільтри</button>}
+        </div>
+        <p className="eg-admin-caption">{catalogFilter.label} · Знайдено {visibleProducts.length}. Приховані та недоступні товари залишаються тут для керування.</p>
       </div>
 
 {showCategoryManager &&
@@ -762,162 +641,11 @@ export default function AdminCatalogPanel({
       </div>
     </Modal>}
 
-      <div className="eg-catalog-workspace">
-        <details open={categoryNavOpen} onToggle={event => setCategoryNavOpen(event.currentTarget.open)} className="eg-catalog-categories eg-glass eg-premium-card sticky top-24 rounded-[2rem] p-4"><summary className="eg-category-summary">Категорії · {catalogFilter.label}</summary><div className="mt-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">
-                Навігація
-              </p>
-
-              <h3 className="mt-1 text-lg font-black text-stone-950">
-                Категорії
-              </h3>
-            </div>
-          </div>
-
-          <div className="mt-4 space-y-1.5">
-            <button
-              type="button"
-              onClick={() =>
-                setCatalogFilter({
-                  type: "all",
-                  categoryId: "",
-                  subcategoryId: "",
-                  label: "Усі товари",
-                })
-              }
-              className={`eg-button flex w-full items-center justify-between rounded-[1rem] px-3 py-2.5 text-left text-sm font-black ${
-                catalogFilter.type === "all"
-                  ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
-                  : "bg-white/75 text-stone-800 hover:bg-white"
-              }`}
-            >
-              <span>Усі товари</span>
-              <span>{products.length}</span>
-            </button>
-
-            {categoryStats.map((category) => {
-              const isExpanded = Boolean(expandedCategories[category.id]);
-
-              const isCategoryActive =
-                catalogFilter.type === "category" &&
-                catalogFilter.categoryId === category.id;
-
-              const hasActiveSubcategory =
-                catalogFilter.type === "subcategory" &&
-                catalogFilter.categoryId === category.id;
-
-              return (
-                <div
-                  key={category.id}
-                  className="eg-card rounded-[1.15rem] border border-stone-200 bg-white/75 p-1.5 backdrop-blur transition-all duration-300 hover:border-emerald-100"
-                >
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setCatalogFilter({
-                          type: "category",
-                          categoryId: category.id,
-                          subcategoryId: "",
-                          label: category.name,
-                        })
-                      }
-                      className={`eg-button flex min-w-0 flex-1 items-center justify-between rounded-[0.95rem] px-3 py-2.5 text-left text-[13px] font-black transition-all duration-300 ${
-                        isCategoryActive || hasActiveSubcategory
-                          ? "bg-emerald-900 text-white shadow-lg shadow-emerald-900/20"
-                          : "bg-stone-50/90 text-stone-900 hover:bg-emerald-50"
-                      }`}
-                    >
-                      <span className="min-w-0 truncate">{category.name}</span>
-
-                      <span
-                        className={`ml-2 shrink-0 rounded-full px-2 py-0.5 text-[11px] ${
-                          isCategoryActive || hasActiveSubcategory
-                            ? "bg-white/20 text-white"
-                            : "bg-stone-200 text-stone-700"
-                        }`}
-                      >
-                        {category.productsCount}
-                      </span>
-                    </button>
-
-                    {category.subcategories?.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => toggleCategoryExpand(category.id)}
-                        className="eg-icon-button flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-100"
-                        title={isExpanded ? "Згорнути" : "Розгорнути"}
-                      >
-                        <span
-                          className={`text-lg leading-none transition-transform ${
-                            isExpanded ? "rotate-180" : ""
-                          }`}
-                        >
-                          ⌄
-                        </span>
-                      </button>
-                    )}
-                  </div>
-
-                  {isExpanded && category.subcategories?.length > 0 && (
-                    <div className="mt-1.5 border-t border-stone-200 pt-1.5">
-                      <div className="space-y-1 pl-1">
-                        {category.subcategories.map((subcategory) => {
-                          const isSubcategoryActive =
-                            catalogFilter.type === "subcategory" &&
-                            catalogFilter.categoryId === category.id &&
-                            catalogFilter.subcategoryId === subcategory.id;
-
-                          return (
-                            <button
-                              key={subcategory.id}
-                              type="button"
-                              onClick={() =>
-                                setCatalogFilter({
-                                  type: "subcategory",
-                                  categoryId: category.id,
-                                  subcategoryId: subcategory.id,
-                                  label: `${category.name} / ${subcategory.name}`,
-                                })
-                              }
-                              className={`eg-button flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition-all duration-300 ${
-                                isSubcategoryActive
-                                  ? "bg-emerald-50 font-black text-emerald-900"
-                                  : "text-stone-600 hover:bg-stone-50"
-                              }`}
-                            >
-                              <span className="min-w-0 truncate">
-                                {subcategory.name}
-                              </span>
-
-                              <span className="ml-3 shrink-0 text-xs text-stone-400">
-                                {subcategory.productsCount}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div></details>
-
-        <div className="min-w-0 overflow-hidden">
-          <AdminProductsPanel
-            showSearch={false}
-            products={visibleProducts}
-            categories={categories}
-            startEditProduct={startEditProduct}
-            toggleProductActive={toggleProductActive}
-            deleteProduct={deleteProduct}
-          />
-        </div>
-      </div>
+      <AdminProductsPanel
+        key={catalogQuery + "|" + catalogFilter.type + "|" + catalogFilter.categoryId + "|" + catalogFilter.subcategoryId + "|" + visibilityFilter}
+        showSearch={false} products={visibleProducts} categories={categories}
+        startEditProduct={startEditProduct} toggleProductActive={toggleProductActive} deleteProduct={deleteProduct}
+      />
 
 {showAddProductForm &&
   <Modal label="Додати товар" maxWidth={1260} onClose={() => setShowAddProductForm(false)}>

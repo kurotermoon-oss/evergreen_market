@@ -1,6 +1,4 @@
 import {
-  BarChart,
-  Bar,
   LineChart,
   Line,
   XAxis,
@@ -21,7 +19,7 @@ function ChartCard({ title, description, children }) {
         <p className="mt-2 text-sm leading-6 text-stone-500">{description}</p>
       )}
 
-      <div className="mt-5 h-80">{children}</div>
+      <div className="eg-admin-chart-body">{children}</div>
     </div>
   );
 }
@@ -81,29 +79,14 @@ export default function AnalyticsCharts({ analytics }) {
       </ChartCard>
 
       <ChartCard
-        title="Топ товарів за виручкою"
-        description="Позиції, які принесли найбільше обороту."
+        title="Топ товарів за прибутком"
+        description="Продажі та прибуток найрезультативніших товарів."
       >
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={topProducts}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-            <XAxis
-              dataKey="name"
-              tick={{ fontSize: 11 }}
-              stroke="#78716c"
-              interval={0}
-            />
-            <YAxis tick={{ fontSize: 12 }} stroke="#78716c" />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar
-              isAnimationActive={false}
-              name="Виручка"
-              dataKey="revenue"
-              fill="#065f46"
-              radius={[12, 12, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
+        <ol className="eg-analytics-ranking">
+          {topProducts.map((product, index) => <li key={product.id || product.name + index}>
+            <span className="eg-ranking-number">{index + 1}</span><div><strong>{product.name}</strong><small>{product.purchaseCount ?? "—"} шт.</small>{Number(product.profit) >= 0 && <meter min="0" max={Math.max(1, ...topProducts.map(item => Number(item.profit) || 0))} value={Number(product.profit) || 0} aria-label={"Прибуток: " + product.name} />}</div><b>{formatUAH(product.profit)}</b>
+          </li>)}
+        </ol>
       </ChartCard>
     </div>
   );
