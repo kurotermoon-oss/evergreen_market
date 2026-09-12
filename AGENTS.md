@@ -1,39 +1,29 @@
 # Evergreen Market
 
-Canonical source: `https://github.com/kurotermoon-oss/evergreen_market`, branch `main`. Work in the current device's clone; no hard-coded canonical local path. Owner: Russian; customer copy: Ukrainian.
+Source: `https://github.com/kurotermoon-oss/evergreen_market`, `main`; use this device's clone. Owner: Russian; customer copy: Ukrainian.
 
-## Start and scope
-- Run `git status --short`. Read `docs/WORK-STATE.md` only when resuming; use the relevant row of `docs/PROJECT_OVERVIEW.md` when file locations are unknown. Verify against code; these are a map and checkpoint, not a second instruction set.
-- Before edits, fetch `origin/main` and compare with HEAD. Fast-forward a clean main; preserve and reconcile local changes or divergent commits before proceeding. `npm run sync` performs the safe clean-main path; `npm run sync:check` reports differences. Never overwrite work to match GitHub. ZIP downloads are not working clones; see `docs/DEVICE-WORKFLOW.md`.
-- For the owner's authorized GitHub/site updates, finish with reviewed task files committed and pushed, then verify remote main and deployment separately. Fetch again before publishing to include work from other devices; never force-push or upload secrets, local snapshots or unrelated files.
-- Open only the files needed for the current step. Use scoped `rg -n` / `rg --files`, bounded output and batched independent reads. Do not reread unchanged files, whole docs, history, generated bundles or logs without a reason.
-- For a broad request, state the outcome and 3–5 sequential stages. Finish one coherent screen/workflow, check it, then continue. Shared foundations come first. Keep the whole requested outcome; do not require owner approval between routine stages.
-- Before visual changes state the affected area and direction. Choose one design direction from existing tokens and customer needs. Finish at the acceptance criteria; avoid speculative alternatives and unrelated refactors.
-- Preserve user edits and completed work when steered. Ask only when missing input materially changes the result. No subagents unless explicitly requested.
-- Update the compact checkpoint after a substantial stage or interruption: done, next, checks, blockers. Replace stale state; do not accumulate a diary or turn a completed brief into standing work.
-- Complete the authorized task. End briefly with result, checks and actual limitations. No repeated unchanged progress or large file/log dumps.
+## Work cycle
+- Start with `git status --short` and sync/compare `origin/main` once. `npm run sync` handles clean-main fast-forward; `sync:check` reports differences. Preserve/reconcile local work; no force-push. See `docs/DEVICE-WORKFLOW.md` for setup problems.
+- Use instructions already in context. Read `docs/WORK-STATE.md` only on resumption and the relevant `docs/PROJECT_OVERVIEW.md` row only when locations are unknown. Neither requires reading linked docs.
+- Small task: state the intended result in one sentence, then act. Broad task: 3–5 coherent stages, completed sequentially. Choose one visual direction using existing styles. Fix the requested behavior and demonstrated bugs in its workflow; defer unrelated improvements.
+- Locate with scoped `rg`; read the relevant function/style, not its whole file. Batch independent reads. Reread only changed lines or to resolve a named uncertainty. Keep tool output focused; summarize successful checks, show failure details when needed.
+- Preserve work when steered. Ask only for materially missing input. No subagents unless requested. Stop iterating when acceptance criteria and required checks pass.
+- Checkpoint: at substantial completion/interruption, replace stale state with done/next/checks/blockers, normally under 250 words. Update other docs only if behavior, contracts or file locations changed; avoid progress-only follow-up commits.
+- For authorized publication, fetch again, review/upload only task files, verify remote main and deployment separately. Reuse the established GitHub/deploy path. End with result, checks and actual limitations.
 
-## Runtime and verification
-- React/Vite/Tailwind v4; Express entry `server/index.cjs` (not `server/app.cjs`); PostgreSQL/Prisma.
-- `npm run dev`: real backend + frontend. `npm run preview:design`: read-only preview, port 5180; details in `docs/REDESIGN.md`.
-- Frontend code changes: `npm run build` and checks of affected interactions. Docs-only: links, paths and `git diff --check`; no application build or browser matrix.
-- Small visual fix: affected screen at narrow and wide widths. Shared layout, navigation or broad redesign: 320/390/768/1280, relevant drawers/dialogs, keyboard and reduced motion. Expand when a failure or shared dependency justifies it.
-- Run relevant existing tests for logic changes; no generic `npm test`. Do not add tests that mirror markup. Repeat successful checks only after relevant changes or new evidence.
-- No live supplier sync, migrations or real customer writes for design checks. Never expose credentials; preserve data and production behavior. Use existing dependencies; no unrelated upgrades, bulk formatting or paid services.
-- Upload only reviewed task files when authorized; verify remote commit. GitHub upload alone does not prove production deployment.
+## Verification and tools
+- React/Vite/Tailwind v4; Express `server/index.cjs`; PostgreSQL/Prisma. `npm run dev` uses real backend. `npm run preview:design` is read-only, port 5180; private demos: `/preview/account`, `/preview/admin`.
+- Frontend: one successful `npm run build` after coherent edits, plus affected interactions. Logic: relevant existing tests, no generic `npm test` or markup-mirroring tests. Docs-only: paths/links and `git diff --check`.
+- Local visual fix: narrow and wide affected screen. Screen/shared-layout redesign: 320/390/768/1280; one layout pass, interactions where behavior differs, relevant dialogs/keyboard/reduced motion. Repeat only the check affected by a later change or failure; no whole-site matrix by default.
+- Browser: reuse the session and known APIs. Choose one authoritative observation per question: compact AX/DOM for state, screenshot for appearance. Do not duplicate an auto-emitted screenshot. Verify the target tab/viewport before a responsive pass. If input/state observations disagree, inspect one screenshot before retrying or changing code. Do not reset a session just to discover an API.
+- Once a check passes, record it briefly and move on. For deployment, use the known release/status signal and one final public verification; avoid tight polling or rechecking identical assets.
+- No live supplier sync, migrations or real customer writes for design checks. No credentials, private snapshots or unrelated files in uploads. Existing dependencies only; no unrelated upgrades, bulk formatting or paid services.
 
-## Business invariants
-- Café wholesale goods for neighbors with a small markup. No invented prices, savings, reviews, stock or deadlines.
-- Pickup: Kyiv, Білицька, 20, 09:00–21:00. Delivery disabled.
-- `in_stock`: one group, no supplier minimum. `supplier_order`: separate supplier groups with their own minima; submit only one group. Preserve guest checkout, sessions, stock validation; Telegram failure must not prevent order creation.
-- Supplier filter is optional; categories cover all supplier-order goods. Clear incompatible supplier selection on category change; show supplier + minimum (including no-minimum label). Sort orderable goods first before pagination/related lists.
-- Catalog defaults to supplier_order. Supplier-order out_of_stock goods are excluded from the public API without changing active; admin must still list them.
-- Public catalog refresh: every minute while visible and on return; never scrape suppliers on customer page views.
-- Milk Diller: Railway Cron every six hours, no in-process interval. Preserve `availabilitySyncEnabled`, immediate check when enabled, manual overrides and `stockStatus` versus merchandising `active`.
-- Read `docs/BUSINESS_LOGIC.md` or `docs/SUPPLIER_AVAILABILITY_SYNC.md` only for affected rules.
-
-## Design and model
-- Reuse existing styles and components; keep heavy admin modules lazy. Read the code map for ownership.
-- Neutral surfaces, muted green, readable text, restrained shadows/motion and meaningful state colors. Use wrapping and `minmax(0,1fr)`; keep actions tappable. Preserve safe-area/stack tokens; never hide content to mask overflow.
-- Latest user request governs scope. Completed redesign: `docs/REDESIGN.md`; other references: `docs/README.md`. Archives and prototype briefs are historical, not mandatory prompts.
-- Effort recommendation: medium for normal feature/design work, low for small edits, high for difficult diagnosis; xhigh only with a concrete need. `AGENTS.md` cannot set effort, model, billing or caching. Do not change models without a request. Read `docs/MODEL-NOTES.md` only for model/usage questions.
+## Business and design
+- Neighborhood café wholesale goods, small markup; no invented prices, savings, stock, reviews or deadlines. Pickup: Kyiv, Білицька, 20, 09:00–21:00. Delivery disabled.
+- `in_stock`: one group, no supplier minimum. `supplier_order`: separate supplier groups/minima; submit one group. Preserve guest checkout, sessions and stock validation. Telegram failure must not prevent order creation.
+- Supplier filter optional; categories span all supplier-order goods. Clear incompatible supplier on category change. Show supplier and minimum/no-minimum label. Sort orderable goods before pagination/related lists.
+- Catalog defaults to supplier_order. Exclude supplier-order out_of_stock from public API without changing active; admin still lists them. Refresh public catalog each minute while visible/on return; never scrape on page views.
+- Milk Diller: Railway Cron every six hours, no in-process interval. Preserve availabilitySyncEnabled, immediate enable check, overrides and stockStatus versus active. Read `docs/BUSINESS_LOGIC.md` / `docs/SUPPLIER_AVAILABILITY_SYNC.md` only for affected rules.
+- Reuse components/tokens; heavy admin modules stay lazy. Neutral surfaces, muted green, readable text, restrained motion/shadows. Wrap text, use minmax(0,1fr), tappable actions and safe-area/stack tokens; never hide content to mask overflow.
+- Archives/completed briefs are history. Model/effort are actual Codex settings, not controlled by Markdown; do not change without request. Read `docs/MODEL-NOTES.md` only for usage/model questions.
