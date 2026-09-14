@@ -1,5 +1,6 @@
 // Loaded only by the explicitly enabled, local development preview.
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { emptyPriceProfile, normalizePriceProfile } from "../utils/marketPricing.js";
 import AdminView from "./AdminView.jsx";
 import AccountView from "./AccountView.jsx";
 import SuccessView from "./SuccessView.jsx";
@@ -16,6 +17,7 @@ const demoAnalytics = { completedOrdersCount: 1, totalRevenue: 480, totalCost: 4
 const blockedWrite = async () => { throw new Error("Демонстрація: зміни не зберігаються."); };
 
 export default function DesignPreview({ mode, products = [], categories = [], setView }) {
+  const pricingProfiles = useRef(new Map());
   const [draft, setDraft] = useState({ ...EMPTY_DRAFT_PRODUCT });
   const [editing, setEditing] = useState(null);
   const [customer, setCustomer] = useState(demoCustomer);
@@ -25,6 +27,15 @@ export default function DesignPreview({ mode, products = [], categories = [], se
   const previewProducts = useMemo(() => products.slice(0, 60).map(p => ({ ...p, supplierId: "demo-supplier", supplier: { name: "Milk Diller · демо" } })), [products]);
   const suppliers = useMemo(() => [{ id: "demo-supplier", name: "Milk Diller · демо", active: true, minOrderAmount: 400, availabilitySyncAdapter: "milkdiller_html", availabilitySyncEnabled: false }], []);
   const previewApi = useMemo(() => ({
+    getAdminPriceProfile: async id => pricingProfiles.current.get(id) || { profile: emptyPriceProfile(), revision: 0 },
+    saveAdminPriceProfile: async (id, profile, revision) => {
+      const current = pricingProfiles.current.get(id);
+      if ((current?.revision || 0) !== revision) throw new Error("Демонстрація конфлікту версій: перезавантажте розрахунок.");
+      const data = { profile: normalizePriceProfile(profile), revision: revision + 1 };
+      pricingProfiles.current.set(id, data);
+      return data;
+    },
+    fetchAdminMarketQuote: async () => { throw new Error("У перегляді мережеве читання вимкнене. Введіть демонстраційну ціну вручну."); },
     getAdminCustomers: async ({ search = "" } = {}) => ({ customers: demoCustomer.name.toLowerCase().includes(search.toLowerCase()) ? [demoCustomer] : [] }),
     getAdminCustomerOrders: async () => ({ orders: demoOrders }),
     getAdminGuestActivity: async () => ({ guests: [{ key: "demo-guest", guestId: "demo-guest", mainName: "Демонстраційний гість", clientIp: "192.0.2.1", ordersCount: 3, ordersTodayCount: 1, activeOrdersCount: 2, cancelledOrdersCount: 0, completedRevenue: 480, totalRevenue: 1440, lastOrderAt: date, risk: "low", orders: demoOrders }] }),

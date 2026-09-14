@@ -54,6 +54,7 @@ const adminCustomersRoutes = require("./routes/adminCustomers.routes.cjs");
 const adminSecurityRoutes = require("./routes/adminSecurity.routes.cjs");
 const adminUploadsRoutes = require("./routes/adminUploads.routes.cjs");
 const adminSupplierSyncRoutes = require("./routes/adminSupplierSync.routes.cjs");
+const adminPricingRoutes = require("./routes/adminPricing.routes.cjs");
 const { registerSeoRoutes } = require("./seoRoutes.cjs");
 
 
@@ -1224,6 +1225,7 @@ app.use("/api/admin/customers", adminCustomersRoutes);
 app.use("/api/admin/security", adminSecurityRoutes);
 app.use("/api/admin/uploads", adminUploadsRoutes);
 app.use("/api/admin/supplier-sync", adminSupplierSyncRoutes);
+app.use("/api/admin/pricing", adminPricingRoutes);
 
 console.log("[debug] admin routes mounted");
 

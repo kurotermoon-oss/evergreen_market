@@ -120,6 +120,7 @@ model Product {
   supplier    Supplier?    @relation(fields: [supplierId], references: [id], onDelete: SetNull)
 
   orderItems OrderItem[]
+  marketPriceProfile MarketPriceProfile?
 
   @@index([categoryId])
   @@index([subcategoryId])
@@ -128,6 +129,16 @@ model Product {
   @@index([supplierSyncEnabled])
   @@index([active])
   @@map("products")
+}
+
+model MarketPriceProfile {
+  productId String @id
+  data Json
+  revision Int @default(1)
+  updatedAt DateTime @updatedAt
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("market_price_profiles")
 }
 
 model SupplierSyncRun {

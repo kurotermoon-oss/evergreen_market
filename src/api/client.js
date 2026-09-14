@@ -39,6 +39,15 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  getAdminPriceProfile(productId) {
+    return request(`/api/admin/pricing/${encodeURIComponent(productId)}`);
+  },
+  saveAdminPriceProfile(productId, profile, revision) {
+    return request(`/api/admin/pricing/${encodeURIComponent(productId)}`, { method: "PUT", body: JSON.stringify({ profile, revision }) });
+  },
+  fetchAdminMarketQuote(source) {
+    return request("/api/admin/pricing/quote", { method: "POST", body: JSON.stringify(source) });
+  },
   getCategories() {
     return request("/api/categories");
   },

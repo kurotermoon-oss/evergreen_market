@@ -22,7 +22,8 @@ Paths below are relative to the repository root.
 | Dialogs/feedback | `src/components/Modal.jsx`, `src/styles/controls.css` | `src/components/FeedbackButton.jsx`, `src/components/OrderRulesModal.jsx` |
 | Mascot/order guidance | `src/components/ShoppingAssistant.jsx`, `src/utils/shoppingAssistant.js` | `src/components/BeanMascot.jsx`, `src/styles/shopping-assistant.css`; selected cart group is passed from `CartView.jsx` through `App.jsx` |
 | Admin navigation | `src/views/AdminView.jsx`, `src/styles/admin.css` | `src/hooks/useAdminData.js` |
-| Admin section | Matching `src/components/admin/Admin*Panel.jsx` | Orders, Catalog, Customers, Feedback, Security, Suppliers, SupplierSync, Analytics |
+| Admin section | Matching `src/components/admin/Admin*Panel.jsx` | Orders, Catalog, Customers, Feedback, Security, Suppliers, SupplierSync, Pricing, Analytics |
+| Market pricing | `src/utils/marketPricing.js`, `src/components/admin/AdminPricingPanel.jsx` | `server/routes/adminPricing.routes.cjs`, `server/services/marketPricing.cjs`, `server/integrations/marketPriceQuote.cjs`; `docs/MARKET_PRICING.md` |
 | Admin product editor | `src/components/admin/AdminProductEditModal.jsx`, `src/components/admin/AdminProductForm.jsx` | Category, price and image components in the same directory |
 | Routing/data wiring | `src/App.jsx`, `src/utils/routes.js`, `src/api/client.js` | `src/hooks/usePublicData.js` |
 | SEO/public URLs | `src/utils/pageMeta.js`, `server/seoRoutes.cjs` | `docs/SEO_REQUIREMENTS.md` |

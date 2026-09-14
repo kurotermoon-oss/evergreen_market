@@ -142,6 +142,44 @@
 .eg-admin .eg-admin-chart-body { margin-top: 20px; height: 320px; min-width: 0; }
 .eg-admin .eg-admin-chart-body:has(.eg-analytics-ranking) { height: auto; }
 .eg-admin .eg-admin-history-table { min-width: 620px; }
+.eg-admin .eg-pricing-product-picker,.eg-admin .eg-pricing-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 18px; }
+.eg-admin .eg-pricing-workspace { display: grid; grid-template-columns: minmax(0,1fr) 310px; gap: 20px; align-items: start; }
+.eg-pricing-inputs { display: grid; gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.eg-pricing-source-heading,.eg-pricing-source-actions,.eg-pricing-add { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.eg-pricing-source-heading { justify-content: space-between; font-size: 13px; color: #657467; }
+.eg-pricing-source-heading h2 { font-size: 18px; color: #2a3d30; font-weight: 650; }
+.eg-pricing-source summary > span { display: block; margin-top: 5px; font-variant-numeric: tabular-nums; }
+.eg-pricing-source fieldset { min-width: 0; }
+.eg-pricing-source-actions { margin-top: 10px; font-size: 13px; color: #3c684c; }
+.eg-pricing-source-actions button,.eg-pricing-add button,.eg-pricing-result > button { border: 1px solid #d7e0d2; border-radius: 9px; padding: 10px 14px; background: #fff; font-size: 13px; }
+.eg-pricing-checks { display: grid; gap: 12px; margin-top: 20px; font-size: 13px; line-height: 1.6; }
+.eg-pricing-checks label,.eg-pricing-monitor { display: flex; align-items: start; gap: 10px; }
+.eg-pricing-checks input,.eg-pricing-monitor input { flex-shrink: 0; margin-top: 4px; width: 16px; height: 16px; accent-color: #365e48; }
+.eg-pricing-result { position: sticky; top: 20px; border: 1px solid #d9e2d4; background: #fff; border-radius: 16px; padding: 20px; display: grid; gap: 14px; font-size: 13px; line-height: 1.55; }
+.eg-pricing-result h2 { font-size: 32px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.eg-pricing-result[data-status=competitive] { border-top: 4px solid #4d7755; }
+.eg-pricing-result[data-status=uncompetitive],.eg-pricing-result[data-status=invalid] { border-top: 4px solid #ae5944; }
+.eg-pricing-result[data-status=partial] { border-top: 4px solid #b48a36; }
+.eg-pricing-result dl { display: grid; gap: 12px; border-block: 1px solid #e3e8df; padding-block: 14px; }
+.eg-pricing-result dl > div { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+.eg-pricing-result dt { color: #667268; }
+.eg-pricing-result dd { font-weight: 650; text-align: right; }
+.eg-admin .eg-pricing-save { background: #365e48; color: #fff; }
+.eg-admin .eg-pricing-remove { color: #9a4b39; font-size: 12px; margin-top: 12px; }
+.eg-pricing-alert,.eg-pricing-notice { padding: 14px; border-radius: 10px; background: #fff1de; color: #805a20; font-size: 13px; }
+.eg-pricing-notice { background: #edf4e8; color: #3e6046; }
+.eg-pricing-history { display: grid; gap: 12px; font-size: 12px; }
+.eg-pricing-history li { display: flex; gap: 12px; justify-content: space-between; }
+.eg-admin .eg-pricing-result .eg-admin-caption { margin: 0; }
+.eg-admin-pricing button:disabled { cursor: default; opacity: .55; }
+@media (max-width: 1199px) {
+  .eg-admin .eg-pricing-workspace { grid-template-columns: minmax(0,1fr); }
+  .eg-pricing-result { position: static; grid-row: 1; }
+}
+@media (max-width: 639px) {
+  .eg-admin .eg-pricing-product-picker,.eg-admin .eg-pricing-fields { grid-template-columns: minmax(0,1fr); }
+  .eg-pricing-result { padding: 16px; }
+}
 .eg-admin .eg-product-create-form .eg-product-form-section { padding: 16px; border-radius: 12px; border: 1px solid #e2e7dd; }
 .eg-admin .eg-product-create-form .eg-field { padding-inline: 12px; font-size: 14px; }
 .eg-analytics-ranking { display: grid; gap: 18px; }

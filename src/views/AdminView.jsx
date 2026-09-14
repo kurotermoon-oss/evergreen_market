@@ -11,6 +11,7 @@ const AdminFeedbackPanel = lazy(() => import("../components/admin/AdminFeedbackP
 const AdminSecurityPanel = lazy(() => import("../components/admin/AdminSecurityPanel.jsx"));
 const AdminSuppliersPanel = lazy(() => import("../components/admin/AdminSuppliersPanel.jsx"));
 const AdminSupplierSyncPanel = lazy(() => import("../components/admin/AdminSupplierSyncPanel.jsx"));
+const AdminPricingPanel = lazy(() => import("../components/admin/AdminPricingPanel.jsx"));
 
 export default function AdminView({
   adminApi = api,
@@ -54,7 +55,11 @@ export default function AdminView({
   deleteSubcategory,
 }) {
   const [adminTab, setAdminTab] = useState("orders");
+  const [pricingDirty, setPricingDirty] = useState(false);
   function selectAdminTab(tab) {
+    if (tab === adminTab) return;
+    if (pricingDirty && !window.confirm("Відкинути незбережений розрахунок і перейти до іншого розділу?")) return;
+    setPricingDirty(false);
     setAdminTab(tab);
     window.scrollTo({ top: 0, behavior: "instant" });
   }
@@ -104,6 +109,7 @@ export default function AdminView({
       label: "Постачальники",
       count: stats.suppliers,
     },
+    { id: "pricing", label: "Ціни та закупівлі" },
     {
       id: "supplier-sync",
       label: "Синхронізація",
@@ -127,7 +133,7 @@ export default function AdminView({
     },
   ];
 
-  const tabIcons = { orders: ShoppingBag, catalog: Package, suppliers: Truck, "supplier-sync": RefreshCw, customers: Users, feedback: MessageSquare, security: ShieldCheck, analytics: ChartNoAxesCombined };
+  const tabIcons = { orders: ShoppingBag, catalog: Package, suppliers: Truck, pricing: ChartNoAxesCombined, "supplier-sync": RefreshCw, customers: Users, feedback: MessageSquare, security: ShieldCheck, analytics: ChartNoAxesCombined };
   return (
     <div className="eg-admin eg-admin-shell">
       <header className="eg-admin-topbar">
@@ -144,6 +150,7 @@ export default function AdminView({
         <label className="eg-admin-mobile-nav">Розділ панелі<select value={adminTab} onChange={event => selectAdminTab(event.target.value)}>{tabs.map(tab => <option key={tab.id} value={tab.id}>{tab.label}{typeof tab.count === "number" ? ' · ' + tab.count : ''}</option>)}</select></label>
         <main className="eg-admin-content" id="admin-content">
           <Suspense fallback={<div className="shop-loading" role="status">Завантажуємо розділ…</div>}>
+      {adminTab === "pricing" && <AdminPricingPanel products={products} apiClient={adminApi} startEditProduct={startEditProduct} onDirtyChange={setPricingDirty} />}
       {adminTab === "orders" && (
         <AdminOrdersPanel
           orders={orders}
