@@ -154,6 +154,8 @@ export default function AdminView({
       {adminTab === "orders" && (
         <AdminOrdersPanel
           orders={orders}
+          products={products}
+          startEditProduct={startEditProduct}
           updateOrderAction={updateOrderAction}
         />
       )}

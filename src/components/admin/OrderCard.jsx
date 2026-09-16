@@ -1,4 +1,7 @@
 import { formatUAH } from "../../utils/formatUAH.js";
+import { ArrowUpRight, Pencil } from "lucide-react";
+import { getProductPath } from "../../utils/routes.js";
+import { getStockLabel, getStockTone, isSupplierOrderProduct } from "../../utils/products.js";
 import OrderActions from "./OrderActions.jsx";
 import {
   isFinalOrder,
@@ -26,7 +29,58 @@ function InfoPill({ children }) {
   );
 }
 
-export default function OrderCard({ order, updateOrderAction }) {
+function getSupplierLink(value) {
+  try {
+    const url = new URL(value);
+    return ["https:", "http:"].includes(url.protocol) && !url.username && !url.password ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function OrderItem({ item, product, startEditProduct }) {
+  const supplierLink = getSupplierLink(product?.supplierProductUrl);
+  const stockQuantity = product?.stockQuantity;
+  const hasStockQuantity = !isSupplierOrderProduct(product) && stockQuantity !== null &&
+    stockQuantity !== undefined && stockQuantity !== "" && Number.isFinite(Number(stockQuantity));
+
+  return (
+    <div className="eg-order-item">
+      <div className="eg-order-item-main">
+        {product ? (
+          <a className="eg-order-item-name" href={getProductPath(product.id)} target="_blank" rel="noopener noreferrer"
+            aria-label={`Відкрити товар у новій вкладці: ${item.name}`}>
+            <span>{item.name}</span><ArrowUpRight size={17} aria-hidden="true" />
+          </a>
+        ) : <p className="eg-order-item-name">{item.name}</p>}
+        <p className="eg-order-item-quantity">{item.quantity} шт × {formatUAH(item.price)}</p>
+        {product ? (
+          <div className="eg-order-item-current">
+            <span>Зараз у каталозі:</span>
+            <span className={`eg-order-item-stock ${getStockTone(product)}`}>{getStockLabel(product)}</span>
+            {product.active === false && <span className="eg-order-item-stock bg-stone-100 text-stone-600">Приховано з вітрини</span>}
+            {hasStockQuantity && <span>Обліковий залишок: {stockQuantity} шт.</span>}
+            {isSupplierOrderProduct(product) && product.supplier?.name && <span>{product.supplier.name}</span>}
+          </div>
+        ) : <p className="eg-order-item-missing">Товар видалений або недоступний у каталозі. Дані замовлення збережені.</p>}
+        {product && (
+          <div className="eg-order-item-links">
+            {supplierLink && <a href={supplierLink} target="_blank" rel="noopener noreferrer"
+              aria-label={`Відкрити у постачальника в новій вкладці: ${item.name}`}>
+              У постачальника <ArrowUpRight size={15} aria-hidden="true" />
+            </a>}
+            {startEditProduct && <button type="button" onClick={() => startEditProduct(product)}
+              aria-label={`Редагувати товар: ${item.name}`}><Pencil size={14} aria-hidden="true" /> Редагувати товар</button>}
+            {isSupplierOrderProduct(product) && !supplierLink && <span>Посилання постачальника не задане</span>}
+          </div>
+        )}
+      </div>
+      <strong className="eg-order-item-total">{formatUAH(item.total)}</strong>
+    </div>
+  );
+}
+
+export default function OrderCard({ order, productsById, startEditProduct, updateOrderAction }) {
   const final = isFinalOrder(order);
 
   async function handleAction(action) {
@@ -109,18 +163,12 @@ export default function OrderCard({ order, updateOrderAction }) {
 
         <div className="mt-3 space-y-2">
           {(order.items || []).map((item) => (
-            <div
+            <OrderItem
               key={`${order.id}-${item.productId || item.id}-${item.name}`}
-              className="flex justify-between gap-4 rounded-2xl bg-white/75 px-4 py-3 text-sm text-stone-700 ring-1 ring-stone-100"
-            >
-              <span>
-                {item.name} · {item.quantity} шт × {formatUAH(item.price)}
-              </span>
-
-              <span className="font-black text-stone-950">
-                {formatUAH(item.total)}
-              </span>
-            </div>
+              item={item}
+              product={item.productId ? productsById?.get(String(item.productId)) : null}
+              startEditProduct={startEditProduct}
+            />
           ))}
         </div>
 

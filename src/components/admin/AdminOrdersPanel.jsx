@@ -7,10 +7,14 @@ import {
   normalizeOrderStatus,
 } from "./orderUiConfig.js";
 
-export default function AdminOrdersPanel({ orders, updateOrderAction }) {
+export default function AdminOrdersPanel({ orders, products = [], startEditProduct, updateOrderAction }) {
   const [section, setSection] = useState("active");
   const [activeStatus, setActiveStatus] = useState("all");
   const [query, setQuery] = useState("");
+  const productsById = useMemo(
+    () => new Map(products.map(product => [String(product.id), product])),
+    [products]
+  );
 
   const activeOrders = useMemo(
     () => orders.filter((order) => !isFinalOrder(order)),
@@ -150,6 +154,8 @@ export default function AdminOrdersPanel({ orders, updateOrderAction }) {
           <OrderCard
             key={order.id}
             order={order}
+            productsById={productsById}
+            startEditProduct={startEditProduct}
             updateOrderAction={updateOrderAction}
           />
         ))}

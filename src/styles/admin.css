@@ -131,6 +131,30 @@
 .eg-admin .eg-admin-disclosure > .eg-glass { padding: 0; }
 .eg-admin .eg-order-items { margin-top: 16px; padding: 10px 14px; border: 1px solid #e3e8df; }
 .eg-admin .eg-order-total { min-width: 150px; }
+.eg-order-item { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: start; gap: 12px 20px; padding: 14px 16px; border: 1px solid #e8ece5; border-radius: 12px; background: #fff; font-size: 14px; }
+.eg-order-item-main { min-width: 0; }
+.eg-order-item-name { display: inline-flex; align-items: baseline; gap: 5px; max-width: 100%; font-weight: 600; color: #294d38; line-height: 1.5; }
+a.eg-order-item-name { text-decoration: underline; text-decoration-color: #c2d0c1; text-underline-offset: 3px; }
+a.eg-order-item-name:hover { text-decoration-color: currentColor; }
+.eg-order-item-name svg,.eg-order-item-links svg { flex-shrink: 0; }
+.eg-order-item-name span { min-width: 0; overflow-wrap: anywhere; }
+.eg-order-item-quantity { margin-top: 5px; color: #566157; font-variant-numeric: tabular-nums; }
+.eg-order-item-total { color: #283b30; font-size: 15px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.eg-order-item-current { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; margin-top: 9px; color: #667368; font-size: 12px; }
+.eg-order-item-stock { padding: 3px 7px; border-radius: 5px; }
+.eg-order-item-links { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; margin-top: 4px; font-size: 12px; }
+.eg-order-item-links :is(a,button) { display: inline-flex; align-items: center; justify-content: flex-start; gap: 5px; min-height: 44px; color: #365e48; text-align: left; }
+.eg-order-item-links :is(a,button):hover { text-decoration: underline; text-underline-offset: 3px; }
+.eg-order-item-links > span,.eg-order-item-missing { color: #76756c; font-size: 12px; line-height: 1.5; }
+.eg-order-item-missing { margin-top: 9px; }
+.eg-order-item :is(a,button):focus-visible { outline: 2px solid #365e48; outline-offset: 3px; border-radius: 3px; }
+@media (max-width: 639px) {
+  .eg-order-item { grid-template-columns: minmax(0,1fr); padding: 12px; gap: 8px; }
+  .eg-order-item-total { justify-self: end; }
+  .eg-admin .eg-order-total { grid-template-columns: minmax(0,1fr); }
+  .eg-admin .eg-order-total > div { grid-column: 1; grid-row: auto; margin-top: 6px; }
+  .eg-admin .eg-order-total > p:nth-child(2) { overflow-wrap: normal; }
+}
 .eg-admin .eg-order-card > div:last-child { padding: 12px 0 0; border-radius: 0; border-top: 1px solid #e5e9e1; }
 .eg-admin .eg-admin-customer-row > div:nth-child(2),
 .eg-admin .eg-admin-security-row > div:nth-child(2) { align-self: start; }
