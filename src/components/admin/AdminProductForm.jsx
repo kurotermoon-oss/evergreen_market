@@ -329,7 +329,7 @@ export default function AdminProductForm({
 
           <FormSection
             title="Опис товару"
-            description="Короткий опис можна використовувати в адмінці та майбутніх превʼю, детальний — на сторінці товару."
+            description="Обидва описи показуються в розділі «Про товар». Порожні поля не показуються."
           >
             <TextArea
               value={draftProduct.description || ""}

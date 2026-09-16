@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ShoppingBasket } from "lucide-react";
+import { ShoppingBasket, Package, MapPin, Check } from "lucide-react";
 import Icon from "../components/Icon.jsx";
 import QuantityControl from "../components/QuantityControl.jsx";
 import ProductCard from "../components/ProductCard.jsx";
@@ -37,16 +37,14 @@ function InfoRow({ label, value }) {
   if (!value) return null;
 
   return (
-    <div className="grid min-w-0 grid-cols-[0.9fr_1.1fr] gap-4 border-b border-stone-200/70 px-0 py-4 text-sm last:border-b-0">
-      <span className={`font-medium text-stone-500 ${SAFE_TEXT_CLASS}`}>
+    <div className="shop-product-fact">
+      <dt className={SAFE_TEXT_CLASS}>
         {label}
-      </span>
+      </dt>
 
-      <span
-        className={`text-right font-black text-stone-950 ${SAFE_TEXT_CLASS}`}
-      >
+      <dd className={SAFE_TEXT_CLASS}>
         {value}
-      </span>
+      </dd>
     </div>
   );
 }
@@ -68,8 +66,9 @@ export default function ProductDetailsView({
   const similarCarouselRef = useRef(null);
   const inlineActionsRef = useRef(null);
   const [activeSimilarIndex, setActiveSimilarIndex] = useState(0);
-  const [showFloatingActions, setShowFloatingActions] = useState(true);
+  const [showFloatingActions, setShowFloatingActions] = useState(false);
   const [pendingQuantity, setPendingQuantity] = useState(1);
+  const [failedImage, setFailedImage] = useState(null);
 
   useEffect(() => {
     setPendingQuantity(1);
@@ -79,16 +78,16 @@ export default function ProductDetailsView({
     const node = inlineActionsRef.current;
 
     if (!product || !node || typeof IntersectionObserver === "undefined") {
-      setShowFloatingActions(true);
+      setShowFloatingActions(false);
       return undefined;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setShowFloatingActions(!entry.isIntersecting);
+        setShowFloatingActions(!entry.isIntersecting && entry.boundingClientRect.top < 0);
       },
       {
-        threshold: 0.35,
+        threshold: 0,
       }
     );
 
@@ -169,19 +168,18 @@ export default function ProductDetailsView({
 
   const benefits = parseTextList(product.benefits);
 
-  const defaultBenefits = [
-    "Зручно замовити без обовʼязкової реєстрації",
-    "Можна забрати в Evergreen coffee",
-    "Доступна доставка по ЖК",
-    "Ми підтвердимо замовлення перед оплатою",
-  ];
+  const description = String(product.description || "").trim();
+  const details = String(product.details || "").trim();
+  const showDescription = Boolean(description || details || benefits.length);
+  const additionalInfo = [
+    ["Склад", product.composition],
+    ["Алергени", product.allergens],
+    ["Умови зберігання", product.storageConditions ?? product.storage],
+  ].filter(([, value]) => String(value || "").trim());
 
-  const benefitItems = benefits.length ? benefits : defaultBenefits;
-
-  const description =
-    product.details ||
-    product.description ||
-    "Детальний опис товару буде додано пізніше.";
+  function scrollBehavior() {
+    return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+  }
 
   function handleAdd() {
     if (!available) return;
@@ -279,8 +277,8 @@ export default function ProductDetailsView({
             <ShoppingBasket className="shrink-0" size={isFloating ? 17 : 19} strokeWidth={2.05} />
             {cartQty > 0 ? (
               <>
-                <span className="truncate sm:hidden">У кошик</span>
-                <span className="hidden truncate sm:inline">
+                <span className="sm:hidden">У кошик</span>
+                <span className="hidden sm:inline">
                   У кошику · перейти
                 </span>
               </>
@@ -306,7 +304,7 @@ export default function ProductDetailsView({
     if (!card) return;
 
     card.scrollIntoView({
-      behavior: "smooth",
+      behavior: scrollBehavior(),
       block: "nearest",
       inline: "center",
     });
@@ -338,362 +336,111 @@ export default function ProductDetailsView({
   }
 
   return (
-    <main className="eg-ambient eg-product-details-page mx-auto max-w-7xl px-4 pb-44 pt-8 sm:px-6 md:pb-32 lg:px-8">
-      {/* BREADCRUMBS */}
-
-      <nav className="mb-6 flex min-w-0 flex-wrap items-center gap-2 text-sm text-stone-500">
-        <button
-          type="button"
-          onClick={() => setView("home")}
-          className="eg-button rounded-xl px-1 hover:text-emerald-800"
-        >
-          Головна
-        </button>
-
-        <span>/</span>
-
-        <button
-          type="button"
-          onClick={() => setView("catalog")}
-          className="hover:text-emerald-800"
-        >
-          Каталог
-        </button>
-
-        <span>/</span>
-
-        <span className={SAFE_TEXT_CLASS}>{category}</span>
-
-        <span>/</span>
-
-        <span
-          className={`line-clamp-1 font-semibold text-stone-950 ${SAFE_TEXT_CLASS}`}
-        >
-          {product.name}
-        </span>
+    <main className="eg-product-details-page shop-product-page mx-auto max-w-7xl px-4 pb-44 pt-6 sm:px-6 md:pb-32 lg:px-8">
+      <nav className="shop-product-breadcrumbs" aria-label="Навігація сторінкою">
+        <button type="button" onClick={() => setView("catalog")}>← Каталог</button>
+        <span aria-hidden="true">/</span>
+        <span>{category}</span>
+        {subcategory && <><span aria-hidden="true">/</span><span>{subcategory}</span></>}
       </nav>
 
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <button
-          type="button"
-          onClick={() => setView("catalog")}
-          className="eg-button w-fit rounded-2xl border border-stone-300 bg-white/80 px-5 py-3 text-sm font-black text-stone-950 backdrop-blur hover:bg-white"
-        >
-          ← Назад до каталогу
-        </button>
+      {isAdmin && (
+        <div className="shop-product-admin">
+          <button type="button" onClick={handleAdminEdit} className="eg-button">
+            <Icon name="edit" size={17} />
+            Редагувати товар
+          </button>
+        </div>
+      )}
 
-        {isAdmin && (
-          <div className="eg-glass flex min-w-0 flex-col gap-2 rounded-[1.35rem] border border-emerald-100 bg-white/85 p-2 shadow-sm sm:flex-row sm:items-center">
-            <span className="px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
-              Адмін
-            </span>
+      <section className="shop-product-hero" aria-labelledby="product-title">
+        <header className="shop-product-heading">
+          <p className="shop-product-eyebrow">{product.brand || category}</p>
+          <h1 id="product-title">{product.name}</h1>
+          <span className={`shop-product-stock ${stockTone}`}>{stockLabel}</span>
+        </header>
 
-            <button
-              type="button"
-              onClick={handleAdminEdit}
-              className="eg-button eg-sweep inline-flex items-center justify-center gap-2 rounded-[1.1rem] bg-emerald-900 px-4 py-3 text-sm font-black text-white shadow-lg shadow-emerald-900/20 hover:bg-emerald-800"
-            >
-              <Icon name="edit" size={17} />
-              <span>Редагувати товар</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* PRODUCT HERO */}
-
-      <section className="eg-glass eg-premium-card min-w-0 overflow-hidden rounded-[2.4rem] p-5 lg:p-8">
-        <div className="mb-5 min-w-0 lg:hidden">
-          <p
-            className={`text-xs font-black uppercase tracking-[0.2em] text-emerald-700 ${SAFE_TEXT_CLASS}`}
-          >
-            {category}
-            {product.brand ? ` · ${product.brand}` : ""}
-          </p>
-
-          <h1
-            className={`mt-3 text-3xl font-medium leading-tight text-stone-950 ${SAFE_TEXT_CLASS}`}
-          >
-            {product.name}
-          </h1>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span
-              className={`inline-flex rounded-full px-3 py-1.5 text-xs font-black ${stockTone}`}
-            >
-              {available ? "✓ " : ""}
-              {stockLabel}
-            </span>
-
-            {subcategory && (
-              <span
-                className={`rounded-full bg-white/80 px-3 py-1.5 text-xs font-black text-stone-700 ring-1 ring-stone-200 ${SAFE_TEXT_CLASS}`}
-              >
-                {subcategory}
-              </span>
-            )}
-
-            {isSupplierOrder && supplierName && (
-              <span
-                className={`rounded-full bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-800 ring-1 ring-blue-100 ${SAFE_TEXT_CLASS}`}
-              >
-                Постачальник: {supplierName}
-                {supplierMinOrderAmount > 0
-                  ? ` · мінімум ${formatUAH(supplierMinOrderAmount)}`
-                  : " · без мінімальної суми"}
-              </span>
-            )}
-          </div>
+        <div className="shop-product-media">
+          {discountPercent > 0 && <span className="shop-product-discount">−{discountPercent}%</span>}
+          {product.image && product.image !== failedImage ? (
+            <img key={product.image} src={product.image} alt={product.name} className="shop-product-image"
+              onError={() => setFailedImage(product.image)} />
+          ) : (
+            <div className="shop-product-no-image"><Package size={48} strokeWidth={1} /><span>Фото товару ще немає</span></div>
+          )}
         </div>
 
-        <div className="grid min-w-0 gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-          {/* IMAGE */}
-
-          <div className="relative min-w-0">
-            <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-emerald-100/70 via-white to-amber-50 blur-3xl" />
-
-            <div className="eg-steam relative flex min-h-[360px] items-center justify-center overflow-hidden rounded-[2rem] bg-gradient-to-br from-stone-50 via-white to-emerald-50/40 p-6 lg:min-h-[620px]">
-              {discountPercent && (
-                <span className="absolute left-5 top-5 z-20 rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white shadow-lg">
-                  -{discountPercent}%
-                </span>
-              )}
-
-              {!available && (
-                <span className="absolute right-5 top-5 z-20 rounded-full bg-stone-900 px-4 py-2 text-sm font-black text-white shadow-lg">
-                  Немає в наявності
-                </span>
-              )}
-
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.08),transparent_60%)]" />
-
-              <img
-                src={product.image}
-                alt={product.name}
-                className="eg-image relative z-10 max-h-[520px] max-w-full object-contain drop-shadow-[0_24px_60px_rgba(0,0,0,0.18)] hover:scale-[1.04]"
-              />
-            </div>
+        <div className="shop-product-purchase">
+          <div className="shop-product-price-line">
+            <p className="shop-product-price">{formatUAH(product.price)}</p>
+            {Number(product.oldPrice) > Number(product.price) && (
+              <del className="shop-product-old-price">{formatUAH(product.oldPrice)}</del>
+            )}
+          </div>
+          <p className="shop-product-unit">Обʼєм / кількість: {unit}</p>
+          <div className="shop-product-buy" ref={inlineActionsRef}>
+            {renderPurchaseActions()}
           </div>
 
-          {/* INFO */}
-
-          <div className="flex min-w-0 flex-col justify-center">
-            <div className="hidden min-w-0 lg:block">
-            <p
-              className={`text-sm font-black uppercase tracking-[0.22em] text-emerald-700 ${SAFE_TEXT_CLASS}`}
-            >
-              {category}
-              {product.brand ? ` · ${product.brand}` : ""}
-            </p>
-
-            <h1
-              className={`mt-4 text-4xl font-medium leading-tight text-stone-950 sm:text-5xl ${SAFE_TEXT_CLASS}`}
-            >
-              {product.name}
-            </h1>
-
-            <div className="mt-5 flex flex-wrap items-center gap-3">
-              <span
-                className={`inline-flex rounded-full px-4 py-2 text-sm font-black ${stockTone}`}
-              >
-                {available ? "✓ " : ""}
-                {stockLabel}
-              </span>
-
-              {subcategory && (
-                <span
-                  className={`rounded-full bg-white/80 px-4 py-2 text-sm font-black text-stone-700 ring-1 ring-stone-200 ${SAFE_TEXT_CLASS}`}
-                >
-                  {subcategory}
-                </span>
-              )}
-
-              {isSupplierOrder && supplierName && (
-                <span
-                  className={`rounded-full bg-blue-50 px-4 py-2 text-sm font-black text-blue-800 ring-1 ring-blue-100 ${SAFE_TEXT_CLASS}`}
-                >
-                  Постачальник: {supplierName}
+          <div className="shop-product-order-info">
+            <Package size={20} strokeWidth={1.6} aria-hidden="true" />
+            <div>
+              <strong>{isSupplierOrder ? "Замовлення у постачальника" : "Покупка у кавʼярні"}</strong>
+              {isSupplierOrder ? (
+                <p>{supplierName && <>{supplierName} · </>}
                   {supplierMinOrderAmount > 0
-                    ? ` · мінімум ${formatUAH(supplierMinOrderAmount)}`
-                    : " · без мінімальної суми"}
-                </span>
-              )}
+                    ? `Від ${formatUAH(supplierMinOrderAmount)} разом з іншими товарами цього постачальника.`
+                    : "Без мінімальної суми замовлення."}</p>
+              ) : <p>Без мінімальної суми замовлення.</p>}
             </div>
-            </div>
-
-            {/* PRICE BLOCK */}
-
-            <div className="eg-premium-card mt-8 min-w-0 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-lg shadow-emerald-900/5 backdrop-blur">
-              <div className="flex flex-wrap items-end gap-3">
-                <p className="text-5xl font-black tracking-tight text-stone-950">
-                  {formatUAH(product.price)}
-                </p>
-
-                {product.oldPrice &&
-                  Number(product.oldPrice) > Number(product.price) && (
-                    <p className="pb-2 text-xl text-stone-400 line-through">
-                      {formatUAH(product.oldPrice)}
-                    </p>
-                  )}
-              </div>
-
-              {discountPercent > 0 && (
-                <div className="mt-4 inline-flex rounded-full bg-red-50 px-4 py-2 text-sm font-black text-red-600">
-                  Вигода -{discountPercent}%
-                </div>
-              )}
-
-              <div className="eg-stagger mt-6 grid min-w-0 gap-3 sm:grid-cols-2">
-                <div className="eg-card min-w-0 rounded-2xl bg-stone-50/90 p-4 hover:bg-emerald-50/60">
-                  <p className="text-xs font-black uppercase tracking-wide text-stone-500">
-                    Обʼєм / кількість
-                  </p>
-
-                  <p
-                    className={`mt-1 text-base font-black text-stone-950 ${SAFE_TEXT_CLASS}`}
-                  >
-                    {unit}
-                  </p>
-                </div>
-
-                <div className="eg-card min-w-0 rounded-2xl bg-stone-50/90 p-4 hover:bg-emerald-50/60">
-                  <p className="text-xs font-black uppercase tracking-wide text-stone-500">
-                    Упаковка
-                  </p>
-
-                  <p
-                    className={`mt-1 text-base font-black text-stone-950 ${SAFE_TEXT_CLASS}`}
-                  >
-                    {packageInfo}
-                  </p>
-                </div>
-              </div>
-
-              {/* ACTIONS */}
-
-              <div ref={inlineActionsRef} className="mt-6">
-                {renderPurchaseActions()}
-              </div>
-            </div>
+          </div>
+          <div className="shop-product-pickup">
+            <MapPin size={20} strokeWidth={1.6} aria-hidden="true" />
+            <div><strong>Самовивіз з Evergreen</strong><p>Київ, Білицька, 20 · щодня 09:00–21:00</p></div>
           </div>
         </div>
       </section>
 
       {showFloatingActions && (
-        <div className="eg-product-floating-actions fixed z-[80] md:z-[110]">
-          <div className="rounded-[1.45rem] border border-white/75 bg-white/95 p-2 shadow-[0_18px_46px_rgba(6,78,59,0.22)] backdrop-blur-2xl">
-            {renderPurchaseActions(true)}
-          </div>
+        <div className="eg-product-floating-actions shop-product-floating fixed z-[80] md:z-[110]">
+          <div className="shop-product-floating-inner">{renderPurchaseActions(true)}</div>
         </div>
       )}
 
-      {/* CONTENT */}
-
-      <section className="eg-stagger mt-8 grid min-w-0 gap-8 lg:grid-cols-[1fr_0.72fr]">
-        <div className="min-w-0 space-y-8">
-          <section className="eg-glass min-w-0 rounded-[2rem] p-6 lg:p-8">
-            <h2 className="text-2xl font-black text-stone-950">
-              Опис товару
-            </h2>
-
-            <p
-              className={`mt-4 whitespace-pre-line text-base leading-8 text-stone-700 ${SAFE_TEXT_CLASS}`}
-            >
-              {description}
-            </p>
+      <div className={`shop-product-content ${showDescription ? "" : "shop-product-content--single"}`}>
+        {showDescription && (
+          <section className="shop-product-panel" aria-labelledby="product-description-title">
+            <h2 id="product-description-title">Про товар</h2>
+            {description && <p className="shop-product-copy">{description}</p>}
+            {details && details !== description && <p className="shop-product-copy">{details}</p>}
+            {benefits.length > 0 && (
+              <div className="shop-product-benefits">
+                <h3>Особливості</h3>
+                <ul>{benefits.map((item, index) => <li key={index}><Check size={17} aria-hidden="true" /><span>{item}</span></li>)}</ul>
+              </div>
+            )}
           </section>
+        )}
 
-          <section className="eg-glass min-w-0 rounded-[2rem] p-6 lg:p-8">
-            <h2 className="text-2xl font-black text-stone-950">
-              Чому варто обрати
-            </h2>
-
-            <div className="eg-stagger mt-5 grid min-w-0 gap-3 sm:grid-cols-2">
-              {benefitItems.map((item) => (
-                <div
-                  key={item}
-                  className={`eg-card min-w-0 rounded-2xl bg-stone-50/90 p-4 text-sm font-semibold leading-6 text-stone-700 hover:bg-emerald-50/60 ${SAFE_TEXT_CLASS}`}
-                >
-                  ✓ {item}
-                </div>
-              ))}
+        <section className="shop-product-panel" aria-labelledby="product-facts-title">
+          <h2 id="product-facts-title">Характеристики</h2>
+          <dl className="shop-product-facts">
+            <InfoRow label="Бренд" value={product.brand} />
+            <InfoRow label="Обʼєм / кількість" value={unit} />
+            <InfoRow label="Упаковка" value={packageInfo} />
+            <InfoRow label="Країна виробництва" value={product.countryOfOrigin} />
+            <InfoRow label="Тип товару" value={product.productType} />
+            <InfoRow label="Категорія" value={category} />
+            <InfoRow label="Підкатегорія" value={subcategory} />
+          </dl>
+          {additionalInfo.map(([label, value]) => (
+            <div className="shop-product-additional" key={label}>
+              <h3>{label}</h3>
+              <p className="shop-product-copy">{value}</p>
             </div>
-          </section>
-
-          {(product.composition ||
-            product.allergens ||
-            product.storageConditions) && (
-            <section className="eg-glass min-w-0 rounded-[2rem] p-6 lg:p-8">
-              <h2 className="text-2xl font-black text-stone-950">
-                Додаткова інформація
-              </h2>
-
-              {product.composition && (
-                <div className="mt-5 min-w-0">
-                  <h3 className="font-black text-stone-950">Склад</h3>
-
-                  <p
-                    className={`mt-2 whitespace-pre-line leading-7 text-stone-700 ${SAFE_TEXT_CLASS}`}
-                  >
-                    {product.composition}
-                  </p>
-                </div>
-              )}
-
-              {product.allergens && (
-                <div className="mt-5 min-w-0">
-                  <h3 className="font-black text-stone-950">Алергени</h3>
-
-                  <p
-                    className={`mt-2 whitespace-pre-line leading-7 text-stone-700 ${SAFE_TEXT_CLASS}`}
-                  >
-                    {product.allergens}
-                  </p>
-                </div>
-              )}
-
-              {product.storageConditions && (
-                <div className="mt-5 min-w-0">
-                  <h3 className="font-black text-stone-950">
-                    Умови зберігання
-                  </h3>
-
-                  <p
-                    className={`mt-2 whitespace-pre-line leading-7 text-stone-700 ${SAFE_TEXT_CLASS}`}
-                  >
-                    {product.storageConditions}
-                  </p>
-                </div>
-              )}
-            </section>
-          )}
-        </div>
-
-        {/* SIDEBAR */}
-
-        <aside className="min-w-0 space-y-8">
-          <section className="eg-glass min-w-0 rounded-[2rem] p-6 lg:p-8">
-            <h2 className="text-2xl font-black text-stone-950">
-              Характеристики
-            </h2>
-
-            <div className="mt-5 min-w-0">
-              <InfoRow label="Категорія" value={category} />
-              <InfoRow label="Підкатегорія" value={subcategory} />
-              <InfoRow label="Бренд" value={product.brand} />
-              <InfoRow label="Обʼєм / кількість" value={unit} />
-              <InfoRow label="Упаковка" value={packageInfo} />
-              <InfoRow
-                label="Країна виробництва"
-                value={product.countryOfOrigin}
-              />
-              <InfoRow label="Тип товару" value={product.productType} />
-              <InfoRow label="Статус" value={stockLabel} />
-            </div>
-          </section>
-
-        </aside>
-      </section>
+          ))}
+        </section>
+      </div>
 
       {/* SIMILAR PRODUCTS */}
 
@@ -738,7 +485,7 @@ export default function ProductDetailsView({
 
                     window.scrollTo({
                       top: 0,
-                      behavior: "smooth",
+                      behavior: scrollBehavior(),
                     });
                   }}
                 />

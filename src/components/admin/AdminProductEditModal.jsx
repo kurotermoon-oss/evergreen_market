@@ -460,7 +460,7 @@ export default function AdminProductEditModal({
 
             <FormSection
               title="Опис товару"
-              description="Короткий опис, деталі та переваги."
+              description="Опис і деталі — у розділі «Про товар», переваги — у списку «Особливості». Порожні поля не показуються."
               className="xl:col-span-2"
             >
               <div className="grid gap-2 xl:grid-cols-3">
