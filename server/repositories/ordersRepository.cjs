@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { assertOrderAction } = require("../services/orderActionGuard.cjs");
 
 const prisma = require("../database/prisma.cjs");
 const {
@@ -564,6 +565,8 @@ async function updateOrderAction(orderId, action, options = {}) {
   }
 
   return prisma.$transaction(async (tx) => {
+    // Serialize all admin channels before reading state or restoring stock.
+    await tx.$queryRaw`SELECT id FROM orders WHERE id = ${id} FOR UPDATE`;
     const currentOrder = await tx.order.findUnique({
       where: {
         id,
@@ -587,6 +590,8 @@ async function updateOrderAction(orderId, action, options = {}) {
       error.status = 404;
       throw error;
     }
+
+    assertOrderAction(currentOrder, action, options);
 
     if (currentOrder.isFinal) {
       const error = new Error(
@@ -636,7 +641,7 @@ async function updateOrderAction(orderId, action, options = {}) {
         statusHistory: {
           create: {
             type: action,
-            label: update.label,
+            label: options.actor ? `${update.label} · Telegram ID ${options.actor}` : update.label,
             at: now,
           },
         },

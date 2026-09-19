@@ -12,6 +12,7 @@
 | [INTERFACE-BRIEF.md](INTERFACE-BRIEF.md) | Выполненное ТЗ редизайна; не новая очередь работ |
 | [BUSINESS_LOGIC.md](BUSINESS_LOGIC.md) | Заказы, группы корзины и минимумы |
 | [SUPPLIER_AVAILABILITY_SYNC.md](SUPPLIER_AVAILABILITY_SYNC.md) | Синхронизация поставщика |
+| [TELEGRAM_ADMIN.md](TELEGRAM_ADMIN.md) | Административный Telegram Mini App: подключение бота, доступ и проверки |
 | [MARKET_PRICING.md](MARKET_PRICING.md) | Расчёт закупки и сравнение цен Milk Diller / Rozetka / Prom |
 | [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) | Общие принципы бренда; текущие стили перечислены в карте проекта |
 | [UX_COPY.md](UX_COPY.md), [SEO_REQUIREMENTS.md](SEO_REQUIREMENTS.md) | Покупательские тексты и метаданные |

@@ -21,6 +21,7 @@ Paths below are relative to the repository root.
 | Header/mobile navigation | `src/components/Header.jsx`, `src/components/MobileNav.jsx` | `src/components/FloatingCartButton.jsx` |
 | Dialogs/feedback | `src/components/Modal.jsx`, `src/styles/controls.css` | `src/components/FeedbackButton.jsx`, `src/components/OrderRulesModal.jsx` |
 | Mascot/order guidance | `src/components/ShoppingAssistant.jsx`, `src/utils/shoppingAssistant.js` | `src/components/BeanMascot.jsx`, `src/styles/shopping-assistant.css`; selected cart group is passed from `CartView.jsx` through `App.jsx` |
+| Telegram admin Mini App | `src/telegram/AdminApp.jsx`, `docs/TELEGRAM_ADMIN.md` | `server/routes/telegramAdmin.routes.cjs`, `server/telegram/`, `server/services/adminOrderActions.cjs`; separate orders-only auth, customer Mini App not implemented |
 | Admin navigation | `src/views/AdminView.jsx`, `src/styles/admin.css` | `src/hooks/useAdminData.js` |
 | Admin section | Matching `src/components/admin/Admin*Panel.jsx` | Orders, Catalog, Customers, Feedback, Security, Suppliers, SupplierSync, Pricing, Analytics |
 | Market pricing | `src/utils/marketPricing.js`, `src/components/admin/AdminPricingPanel.jsx` | `server/routes/adminPricing.routes.cjs`, `server/services/marketPricing.cjs`, `server/integrations/marketPriceQuote.cjs`; `docs/MARKET_PRICING.md` |

@@ -46,6 +46,7 @@ function sanitizePublicProduct(product) {
 function sanitizeOrderForCustomer(order) {
   return {
     ...order,
+    statusHistory: (order.statusHistory || []).map(event => ({ ...event, label: String(event.label || "").replace(/ · Telegram ID \d+$/, "") })),
 
     items: (order.items || []).map((item) => {
       const { costPrice, costTotal, profit, ...publicItem } = item;

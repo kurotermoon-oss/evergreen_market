@@ -133,7 +133,7 @@ function restoreStockForCancelledOrder(db, order) {
 
   for (const orderItem of order.items || []) {
     const product = db.products.find((item) => {
-      return Number(item.id) === Number(orderItem.productId);
+      return String(item.id) === String(orderItem.productId);
     });
 
     if (!product) continue;

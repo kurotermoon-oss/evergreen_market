@@ -7,6 +7,7 @@
     "sync": "node scripts/sync-workspace.mjs",
     "sync:check": "node scripts/sync-workspace.mjs --check",
     "test:storefront": "node --test scripts/storefront-regressions.test.mjs scripts/preview-safety.test.mjs scripts/shopping-assistant.test.mjs",
+    "test:telegram-admin": "node --test scripts/telegram-admin.test.cjs",
     "test:pricing": "node --test scripts/market-pricing.test.mjs scripts/market-quotes.test.cjs scripts/market-pricing-service.test.cjs",
     "prices:refresh": "node server/scripts/refreshMarketPrices.cjs",
     "dev": "node server/scripts/dev.cjs",

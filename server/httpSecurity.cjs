@@ -83,10 +83,11 @@ function createCorsOptions() {
   };
 }
 
-function buildContentSecurityPolicy() {
+function buildContentSecurityPolicy({ telegramAdmin = false } = {}) {
   const allowedOrigins = [...getAllowedOrigins()];
   const connectSrc = ["'self'", ...allowedOrigins];
   const scriptSrc = ["'self'"];
+  if (telegramAdmin) scriptSrc.push("https://telegram.org/js/telegram-web-app.js");
   const frameSrc = ["'self'", "https://www.google.com", "https://maps.google.com"];
 
   if (!isProductionLike()) {
@@ -105,7 +106,7 @@ function buildContentSecurityPolicy() {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "frame-ancestors 'none'",
+    telegramAdmin ? "frame-ancestors https://web.telegram.org https://*.web.telegram.org" : "frame-ancestors 'none'",
   ];
 
   if (isProductionLike()) {
@@ -117,12 +118,14 @@ function buildContentSecurityPolicy() {
 
 function applySecurityHeaders(req, res, next) {
   res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
+  const telegramAdmin = req.path === "/telegram/admin" || req.path === "/telegram/admin/";
+  if (!telegramAdmin) res.setHeader("X-Frame-Options", "DENY");
+  if (telegramAdmin) { res.setHeader("X-Robots-Tag", "noindex, nofollow"); res.setHeader("Cache-Control", "no-store"); }
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  res.setHeader("Content-Security-Policy", buildContentSecurityPolicy());
+  res.setHeader("Content-Security-Policy", buildContentSecurityPolicy({ telegramAdmin }));
 
   if (isProductionLike()) {
     res.setHeader(

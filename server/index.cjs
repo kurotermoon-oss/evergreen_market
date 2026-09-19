@@ -49,6 +49,9 @@ const {
 } = require("./telegramCustomerNotify.cjs");
 
 const adminAuthRoutes = require("./routes/adminAuth.routes.cjs");
+const { createTelegramAdminRouter } = require("./routes/telegramAdmin.routes.cjs");
+const { createAdminOrderActions } = require("./services/adminOrderActions.cjs");
+const { notifyAdminOrder } = require("./telegram/adminNotify.cjs");
 const adminAnalyticsRoutes = require("./routes/adminAnalytics.routes.cjs");
 const adminCustomersRoutes = require("./routes/adminCustomers.routes.cjs");
 const adminSecurityRoutes = require("./routes/adminSecurity.routes.cjs");
@@ -1219,6 +1222,20 @@ app.use(cookieParser());
 
 app.use("/uploads", uploadsRoutes);
 
+const performAdminOrderAction = createAdminOrderActions({
+  usePostgres: USE_POSTGRES, ordersRepository, readDatabase, writeDatabase,
+  notifyPostgres: notifyPostgresCustomerOrderReady,
+  notifyLocal: (db, order) => notifyCustomerOrderReady(db, order, TELEGRAM_BOT_TOKEN),
+});
+app.use("/api/telegram/admin", createTelegramAdminRouter({
+  listOrders: () => USE_POSTGRES ? ordersRepository.getAdminOrders() : (readDatabase().orders || []),
+  listProducts: () => {
+    if (USE_POSTGRES) return productsRepository.getAdminProducts();
+    const db = readDatabase();
+    return (db.products || []).map(product => decorateLocalProductWithSupplier(db, product, true));
+  },
+  performAction: performAdminOrderAction,
+}));
 app.use("/api/admin", adminAuthRoutes);
 app.use("/api/admin/analytics", adminAnalyticsRoutes);
 app.use("/api/admin/customers", adminCustomersRoutes);
@@ -2510,7 +2527,7 @@ app.get("/api/customer/orders", async (req, res) => {
         const orders = await ordersRepository.getCustomerOrders(customer);
 
         return res.json({
-          orders,
+          orders: orders.map(sanitizeOrderForCustomer),
         });
       }
 
@@ -2533,7 +2550,7 @@ app.get("/api/customer/orders", async (req, res) => {
       : [];
 
     return res.json({
-      orders,
+      orders: orders.map(sanitizeOrderForCustomer),
     });
   } catch (error) {
     console.error("Get customer orders error:", error);
@@ -2830,6 +2847,7 @@ app.post("/api/orders", async (req, res) => {
         total,
       });
 
+      void notifyAdminOrder(order).catch(() => console.warn("[Telegram admin] Notification failed; order is saved."));
       const telegramMessage = formatOrderMessage({
         order,
       });
@@ -3152,6 +3170,7 @@ app.post("/api/orders", async (req, res) => {
 
     writeDatabase(db);
 
+    void notifyAdminOrder(order).catch(() => console.warn("[Telegram admin] Notification failed; order is saved."));
     const telegramMessage = formatOrderMessage({
       order,
     });
@@ -3908,55 +3927,8 @@ app.delete("/api/admin/products/:id", requireAdmin, async (req, res) => {
 
 app.patch("/api/admin/orders/:id/action", requireAdmin, async (req, res) => {
   try {
-    if (USE_POSTGRES) {
-      const updatedOrder = await ordersRepository.updateOrderAction(
-        req.params.id,
-        req.body.action,
-        {
-          reason: req.body.reason,
-        }
-      );
-
-      let customerTelegramResult = null;
-
-      if (req.body.action === "mark_ready" || req.body.action === "ready") {
-        customerTelegramResult = await notifyPostgresCustomerOrderReady(
-          updatedOrder
-        );
-      }
-
-      return res.json({
-        ok: true,
-        order: updatedOrder,
-        customerTelegramResult,
-      });
-    }
-
-    const db = readDatabase();
-
-    const orderId = req.params.id;
-    const order = db.orders.find((item) => item.id === orderId);
-
-    if (!order) {
-      return res.status(404).json({
-        error: "Order not found",
-      });
-    }
-
-    const updatedOrder = applyOrderAction(db, order, req.body.action, {
-      reason: req.body.reason,
-    });
-
-    if (req.body.action === "mark_ready") {
-      await notifyCustomerOrderReady(db, updatedOrder, TELEGRAM_BOT_TOKEN);
-    }
-
-    writeDatabase(db);
-
-    return res.json({
-      ok: true,
-      order: updatedOrder,
-    });
+    const result = await performAdminOrderAction(req.params.id, req.body.action, { reason: req.body.reason });
+    return res.json(result);
   } catch (error) {
     console.error("Update order action error:", error);
 
