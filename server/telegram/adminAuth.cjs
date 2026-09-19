@@ -3,11 +3,12 @@ const jwt = require("jsonwebtoken");
 const { getJwtSecret } = require("../runtimeSecurity.cjs");
 
 const AUDIENCE = "evergreen-telegram-admin";
-function getConfig() {
+function getConfig(env = process.env) {
   return {
-    token: String(process.env.TELEGRAM_ADMIN_BOT_TOKEN || "").trim(),
-    ids: new Set(String(process.env.TELEGRAM_ADMIN_USER_IDS || "").split(",").map(s => s.trim()).filter(s => /^[1-9]\d{0,15}$/.test(s))),
-    url: String(process.env.TELEGRAM_ADMIN_APP_URL || "").trim(),
+    // Reuse the existing bot unless a dedicated admin bot is explicitly configured.
+    token: String(env.TELEGRAM_ADMIN_BOT_TOKEN || "").trim() || String(env.TELEGRAM_BOT_TOKEN || "").trim(),
+    ids: new Set(String(env.TELEGRAM_ADMIN_USER_IDS || "").split(",").map(s => s.trim()).filter(s => /^[1-9]\d{0,15}$/.test(s))),
+    url: String(env.TELEGRAM_ADMIN_APP_URL || "").trim(),
   };
 }
 function authError(message = "Не вдалося підтвердити вхід. Закрийте й відкрийте застосунок через меню бота.", status = 401) {

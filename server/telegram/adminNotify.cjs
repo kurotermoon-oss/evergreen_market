@@ -10,7 +10,7 @@ function appUrl(base, orderId) {
     return url.href;
   } catch { return ""; }
 }
-// The admin bot only sends private notifications. It never consumes customer-bot updates.
+// Admin notifications use the same config as Mini App authentication; no updates are consumed.
 async function notifyAdminOrder(order, { config = getConfig(), fetchImpl = fetch } = {}) {
   const url = appUrl(config.url, order.id);
   if (!config.token || !config.ids.size || !url) return { skipped: true };

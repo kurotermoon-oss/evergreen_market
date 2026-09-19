@@ -4,13 +4,14 @@ const crypto = require("node:crypto");
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const { getJwtSecret } = require("../server/runtimeSecurity.cjs");
-const { validateInitData, issueSession, verifySession } = require("../server/telegram/adminAuth.cjs");
+const { getConfig, validateInitData, issueSession, verifySession } = require("../server/telegram/adminAuth.cjs");
 const { notifyAdminOrder, appUrl } = require("../server/telegram/adminNotify.cjs");
 const { createTelegramAdminRouter } = require("../server/routes/telegramAdmin.routes.cjs");
 const { createAdminOrderActions } = require("../server/services/adminOrderActions.cjs");
 const { applySecurityHeaders } = require("../server/httpSecurity.cjs");
 const { verifyAdminToken } = require("../server/middleware/adminAuth.cjs");
-const config = { token: "test-bot-token-only", ids: new Set(["42"]), url: "https://example.com/telegram/admin" };
+const sharedBotEnv = { TELEGRAM_BOT_TOKEN: "test-bot-token-only", TELEGRAM_ADMIN_USER_IDS: "42", TELEGRAM_ADMIN_APP_URL: "https://example.com/telegram/admin" };
+const config = getConfig(sharedBotEnv);
 function sign(fields = {}, token = config.token) {
   const params = new URLSearchParams({ auth_date: String(Math.floor(Date.now() / 1000)), query_id: "test-query", user: JSON.stringify({ id: 42, first_name: "Тест" }), ...fields });
   const secret = crypto.createHmac("sha256", "WebAppData").update(token).digest();
@@ -18,6 +19,30 @@ function sign(fields = {}, token = config.token) {
   const hash = crypto.createHmac("sha256", secret).update([...params].map(([k, v]) => `${k}=${v}`).join("\n")).digest("hex");
   params.set("hash", hash); return params.toString();
 }
+test("Shared bot configuration requires explicit admin IDs and ignores the notification chat", () => {
+  for (const override of [undefined, "", "   "]) {
+    const shared = getConfig({ ...sharedBotEnv, TELEGRAM_BOT_TOKEN: "  test-bot-token-only  ", TELEGRAM_ADMIN_BOT_TOKEN: override });
+    assert.equal(shared.token, "test-bot-token-only");
+    assert.equal(verifySession(issueSession(sign(), shared).token, shared).id, "42");
+    assert.throws(() => issueSession(sign({ user: JSON.stringify({ id: 99 }) }), shared), { status: 403 });
+  }
+  const noAdmins = getConfig({ ...sharedBotEnv, TELEGRAM_ADMIN_USER_IDS: "", TELEGRAM_CHAT_ID: "42" });
+  assert.throws(() => issueSession(sign(), noAdmins), { status: 503 });
+  assert.throws(() => issueSession(sign(), getConfig({ TELEGRAM_ADMIN_USER_IDS: "42" })), { status: 503 });
+});
+
+test("Dedicated admin token overrides the shared token for authentication and notifications", async () => {
+  const dedicated = getConfig({ ...sharedBotEnv, TELEGRAM_ADMIN_BOT_TOKEN: "  dedicated-test-token  " });
+  assert.throws(() => issueSession(sign(), dedicated), { status: 401 });
+  assert.equal(verifySession(issueSession(sign({}, "dedicated-test-token"), dedicated).token, dedicated).id, "42");
+  const result = await notifyAdminOrder({ id: "test", orderNumber: 1 }, { config: dedicated, fetchImpl: async (url, options) => {
+    assert.equal(url, "https://api.telegram.org/botdedicated-test-token/sendMessage");
+    assert.equal(JSON.parse(options.body).chat_id, "42");
+    return { ok: true, json: async () => ({ ok: true }) };
+  } });
+  assert.equal(result.sent, 1);
+});
+
 test("Telegram verifies signature, time, duplicate fields and user identity", () => {
   assert.equal(validateInitData(sign(), config.token).id, 42);
   for (const data of [sign().replace("test-query", "changed"), sign({}, "customer-bot"), sign({ auth_date: "1" }), sign({ auth_date: String(Math.floor(Date.now() / 1000) + 60) }), sign({ user: "{}" }), sign({ user: JSON.stringify({ id: 42, is_bot: true }) }), sign() + "&auth_date=1"]) {
@@ -150,7 +175,7 @@ test("HTTP routes reject cookies/anonymous requests; list, detail and conflict r
   assert.equal((await patch({ action: "confirm", expectedStatus: "new" })).status, 200);
   assert.equal((await patch({ action: "confirm", expectedStatus: "new" })).status, 409);
 });
-test("Admin notifications are isolated, link to the exact order and tolerate blocked Telegram", async () => {
+test("Shared-bot admin notifications reach only allowed IDs, link to the exact order and tolerate blocked Telegram", async () => {
   let body;
   const result = await notifyAdminOrder({ id: "order/a", orderNumber: 7, total: 120, customerName: "<b>Test</b>" }, { config, fetchImpl: async (url, options) => { assert.match(url, /test-bot-token-only/); body = JSON.parse(options.body); return { ok: true, json: async () => ({ ok: true }) }; } });
   assert.equal(result.sent, 1); assert.equal(body.chat_id, "42"); assert.equal(body.parse_mode, undefined);
