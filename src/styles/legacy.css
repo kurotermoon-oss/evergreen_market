@@ -38,13 +38,9 @@ body {
   --eg-safe-bottom: env(safe-area-inset-bottom, 0px);
   --eg-floating-button-size: 4.9rem;
   --eg-floating-stack-gap: 1rem;
-  --eg-mobile-nav-height: 4.25rem;
-  --eg-mobile-nav-bottom: max(
+  --eg-mobile-floating-bottom: max(
     1rem,
     calc(var(--eg-safe-bottom) + 1rem)
-  );
-  --eg-mobile-floating-bottom: calc(
-    var(--eg-mobile-nav-bottom) + var(--eg-mobile-nav-height) + 0.8rem
   );
   --eg-desktop-floating-bottom: max(
     2.25rem,
@@ -715,12 +711,6 @@ body {
   transform: translateX(-50%);
 }
 
-body.eg-catalog-open .eg-mobile-nav {
-  display: none;
-  opacity: 0 !important;
-  pointer-events: none;
-}
-
 body.eg-catalog-open {
   overscroll-behavior: none;
 }
@@ -761,10 +751,6 @@ body.eg-catalog-open {
 
 .eg-site-header {
   padding-top: env(safe-area-inset-top);
-}
-
-.eg-mobile-nav {
-  bottom: var(--eg-mobile-nav-bottom);
 }
 
 @media (min-width: 768px) {
@@ -1255,8 +1241,7 @@ body.eg-catalog-open {
   }
 
   .eg-site-header,
-  .eg-glass,
-  .eg-mobile-nav {
+  .eg-glass {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
@@ -1277,10 +1262,6 @@ body.eg-catalog-open {
   .eg-glass {
     background: rgba(255, 255, 255, 0.94) !important;
     box-shadow: 0 8px 24px rgba(20, 83, 45, 0.06) !important;
-  }
-
-  .eg-mobile-nav {
-    box-shadow: 0 10px 26px rgba(2, 44, 34, 0.28) !important;
   }
 
   .eg-cart-glow {

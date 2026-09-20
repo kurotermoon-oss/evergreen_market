@@ -752,7 +752,7 @@ export default function CatalogView({
               className="eg-mobile-search-backdrop fixed inset-x-0 z-[100] bg-stone-50/95 backdrop-blur-[6px] md:hidden"
               style={{
                 top: "var(--eg-header-offset, 0px)",
-                bottom: "max(5.75rem, calc(env(safe-area-inset-bottom) + 5.75rem))",
+                bottom: 0,
               }}
               onClick={() => setIsMobileSearchOpen(false)}
             />
@@ -762,7 +762,7 @@ export default function CatalogView({
               style={{
                 top: "calc(var(--eg-header-offset, 0px) + 0.75rem)",
                 maxHeight:
-                  "calc(100dvh - var(--eg-header-offset, 0px) - max(6.8rem, calc(env(safe-area-inset-bottom) + 6.8rem)) - 1rem)",
+                  "calc(100dvh - var(--eg-header-offset, 0px) - env(safe-area-inset-bottom, 0px) - 2rem)",
               }}
               role="dialog"
               aria-modal="true"

@@ -25,7 +25,6 @@ import { useOrderSubmit } from "./hooks/useOrderSubmit.js";
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import ShoppingAssistant from "./components/ShoppingAssistant.jsx";
-import MobileNav from "./components/MobileNav.jsx";
 import FloatingCartButton from "./components/FloatingCartButton.jsx";
 import CartDrawer from "./components/CartDrawer.jsx";
 const AdminProductEditModal = lazy(() => import("./components/admin/AdminProductEditModal.jsx"));
@@ -553,6 +552,13 @@ return (
         onContactsClick={openContacts}
         isAdmin={isAdmin}
         customer={customer}
+        cartCount={cartCount}
+        onSearchOpen={() => {
+          closeCartDrawer();
+          setIsMobileSearchOpen(true);
+        }}
+        onSearchClose={() => setIsMobileSearchOpen(false)}
+        isSearchOpen={isMobileSearchOpen}
       />}
 {!isAdminArea && !isAppLoading && <ShoppingAssistant
       view={view}
@@ -566,7 +572,7 @@ return (
       onSupplier={showSupplierProducts}
     />}
 <div
-  className={`${isAdminArea ? "" : "eg-page pb-24 md:pb-0"} ${
+  className={`${isAdminArea ? "" : "eg-page pb-20 md:pb-0"} ${
     view === "catalog" ? "eg-catalog-page" : ""
   } ${
     view === "product" ? "eg-fixed-actions-page" : ""
@@ -797,24 +803,6 @@ return (
           isProductView={view === "product"}
         />
       )}
-
-      {!isAdminArea && <MobileNav
-        view={view}
-        setView={navigateMain}
-        onContactsClick={openContacts}
-        onCartOpen={openCartDrawer}
-        onSearchOpen={() => {
-          setView("catalog");
-          closeCartDrawer();
-          setIsMobileSearchOpen(true);
-        }}
-        onSearchClose={() => setIsMobileSearchOpen(false)}
-        isSearchOpen={isMobileSearchOpen}
-        isCartOpen={isCartDrawerOpen}
-        cartCount={cartCount}
-        isAdmin={isAdmin}
-        customer={customer}
-      />}
 
       <CartDrawer
         isOpen={isCartDrawerOpen}
