@@ -9,7 +9,7 @@ Source: `https://github.com/kurotermoon-oss/evergreen_market`, `main`; use this 
 - Locate with scoped `rg`; read the relevant function/style, not its whole file. Batch independent reads. Reread only changed lines or to resolve a named uncertainty. Keep tool output focused; summarize successful checks, show failure details when needed.
 - Preserve work when steered. Ask only for materially missing input. No subagents unless requested. Stop iterating when acceptance criteria and required checks pass.
 - Checkpoint: at substantial completion/interruption, replace stale state with done/next/checks/blockers, normally under 250 words. Update other docs only if behavior, contracts or file locations changed; avoid progress-only follow-up commits.
-- For authorized publication, fetch again, review/upload only task files, verify remote main and deployment separately. Reuse the established GitHub/deploy path. End with result, checks and actual limitations.
+- Publish completed, verified changes to GitHub by default unless the user explicitly requests otherwise. Before publication, fetch again, review/upload only task files, verify remote main and deployment separately. Reuse the established GitHub/deploy path. End with result, checks and actual limitations.
 
 ## Verification and tools
 - React/Vite/Tailwind v4; Express `server/index.cjs`; PostgreSQL/Prisma. `npm run dev` uses real backend. `npm run preview:design` is read-only, port 5180; private demos: `/preview/account`, `/preview/admin`.

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import { ArrowUpRight, X } from "lucide-react";
 import BeanMascot from "./BeanMascot.jsx";
 import Modal from "./Modal.jsx";
@@ -7,31 +7,29 @@ import "../styles/shopping-assistant.css";
 
 const stages = ["Товари", "Замовлення", "Самовивіз"];
 
-export default function ShoppingAssistant({ view, product, groups, groupId, cartCount, catalogCount, completed, onNavigate, onSupplier }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const tip = getShoppingTip({ view, product, groups, groupId, cartCount, catalogCount, completed });
+export default function ShoppingAssistant({ view, product, groups, groupId, cartCount, catalogCount, completed, onNavigate, onSupplier, isOpen, onOpen, onClose }) {
+  const tip = getShoppingTip({ view, product, groups, groupId, cartCount, catalogCount, completed })
+    || (isOpen ? getShoppingTip({ view: "home" }) : null);
+  useEffect(() => {
+    if (isOpen) saveGuideMode(window, "active");
+  }, [isOpen]);
   if (!tip) return null;
 
-  function open() {
-    saveGuideMode(window, "active");
-    setIsOpen(true);
-  }
   function close() {
     saveGuideMode(window, "closed");
-    setIsOpen(false);
+    onClose();
   }
   function followAction() {
-    setIsOpen(false);
+    onClose();
     if (tip.action.supplierId) onSupplier(tip.action.supplierId);
     else onNavigate(tip.action.view);
   }
 
   return (
     <div className="eg-assistant-wrap" data-view={view}>
-      <button className="eg-assistant-trigger" type="button" onClick={open} aria-expanded={isOpen} aria-haspopup="dialog" aria-label="Зернятко — допомога із замовленням">
+      <button className="eg-assistant-trigger" type="button" onClick={onOpen} aria-expanded={isOpen} aria-haspopup="dialog" aria-label="Зернятко — допомога із замовленням">
         <BeanMascot />
-        <span className="eg-assistant-trigger-desktop">Потрібна допомога?</span>
-        <span className="eg-assistant-trigger-mobile">Допомога</span>
+        <span>Потрібна допомога?</span>
       </button>
       {isOpen && (
         <Modal className="eg-storefront eg-assistant-dialog" maxWidth={460} label="Підказки Зернятка" onClose={close}>

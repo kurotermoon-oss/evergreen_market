@@ -4,7 +4,6 @@
 .eg-assistant-trigger { display: flex; align-items: center; gap: 9px; min-height: 48px; max-width: calc(100vw - 32px); padding: 5px 15px 5px 8px; border: 1px solid #cbd8c3; border-radius: 999px; background: #fbfcf7; color: #3e5b42; box-shadow: 0 3px 14px #233c2310; font: 500 13px/1.3 "Segoe UI", Arial, sans-serif; cursor: pointer; }
 .eg-assistant-trigger:hover { background: #eef3e8; border-color: #93aa85; }
 .eg-assistant-trigger .eg-bean { width: 32px; flex-shrink: 0; }
-.eg-assistant-trigger-mobile { display: none; }
 .eg-assistant { padding: 26px; color: #2b4031; }
 .eg-assistant-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
 .eg-assistant-character { width: 52px; flex-shrink: 0; }
@@ -26,13 +25,8 @@
 .eg-assistant-primary svg { flex-shrink: 0; }
 .eg-assistant-secondary { background: transparent; color: #65715d; }
 .eg-assistant-secondary:hover { background: #f1f4ec; }
-@media (max-width: 767px) {
-  .eg-assistant-wrap { left: max(12px, env(safe-area-inset-left, 0px)); bottom: var(--eg-mobile-floating-bottom); }
-  .eg-assistant-wrap[data-view="product"] { bottom: calc(var(--eg-mobile-floating-bottom) + var(--eg-floating-button-size) + var(--eg-floating-stack-gap)); }
-  .eg-assistant-trigger { min-height: 44px; gap: 6px; padding-right: 12px; font-size: 12px; }
-  .eg-assistant-trigger .eg-bean { width: 28px; }
-  .eg-assistant-trigger-desktop { display: none; }
-  .eg-assistant-trigger-mobile { display: inline; }
+@media (max-width: 1023px) {
+  .eg-assistant-trigger { display: none; }
 }
 @media (max-width: 479px) {
   .eg-assistant { padding: 20px; }

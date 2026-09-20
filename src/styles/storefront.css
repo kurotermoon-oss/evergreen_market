@@ -306,6 +306,11 @@
 }
 .shop-navigation-footer { margin-top: 16px; padding: 12px 4px 0; border-top: 1px solid #dfe4da; }
 .shop-navigation-footer a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; color: #627068; font-size: 14px; }
+.shop-navigation-support { display: grid; gap: 4px; margin-bottom: 8px; }
+.shop-navigation-support button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 10px 12px; border: 0; border-radius: 12px; background: #f1f4ec; color: #385d48; font: inherit; font-size: 14px; line-height: 1.4; text-align: left; cursor: pointer; }
+.shop-navigation-support button:hover { background: #e7eddf; }
+.shop-navigation-support svg { flex-shrink: 0; }
+.shop-navigation-support span { min-width: 0; overflow-wrap: anywhere; }
 
 .shop-home-intro {
   display: grid;
@@ -531,6 +536,7 @@
 }
 
 @media(max-width:1023px) {
+  .eg-storefront button.eg-floating-feedback { display: none; }
   .shop-desktop-nav {
     display: none;
   }

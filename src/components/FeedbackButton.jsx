@@ -63,8 +63,11 @@ export default function FeedbackButton({
   customer = null,
   setView,
   isProductView = false,
+  isOpen,
+  onOpen,
+  onClose,
+  showTrigger = true,
 }) {
-  const [isOpen, setIsOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [fieldErrors, setFieldErrors] = useState({});
   const [formMessage, setFormMessage] = useState("");
@@ -74,7 +77,7 @@ export default function FeedbackButton({
   function closeModal() {
     if (isSubmitting) return;
 
-    setIsOpen(false);
+    onClose();
     setFieldErrors({});
     setFormMessage("");
     setIsSent(false);
@@ -143,9 +146,9 @@ export default function FeedbackButton({
 
   return (
     <>
-      <button
+      {showTrigger && <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={onOpen}
         className={`${inline ? "eg-feedback-inline" : ""} eg-floating-feedback eg-button group fixed z-[85] flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.2rem] border text-white shadow-2xl ring-4 ring-white/70 md:z-[155] md:h-[4.9rem] md:w-[4.9rem] md:rounded-[1.55rem] ${
           isProductView ? "eg-floating-feedback-product" : ""
         } ${
@@ -165,7 +168,7 @@ export default function FeedbackButton({
           strokeWidth={2.1}
         />
         {inline && <span>Зворотний зв’язок</span>}
-      </button>
+      </button>}
 
       {isOpen && (
         <Modal className="eg-storefront" maxWidth={672} label="Зворотний зв’язок" onClose={closeModal}>

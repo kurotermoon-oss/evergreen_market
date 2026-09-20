@@ -86,6 +86,7 @@ export default function App() {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [guideGroupId, setGuideGroupId] = useState("");
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [supportDialog, setSupportDialog] = useState(null);
   const [isDesktopViewport, setIsDesktopViewport] = useState(() => {
     return window.matchMedia("(min-width: 768px)").matches;
   });
@@ -559,8 +560,13 @@ return (
         }}
         onSearchClose={() => setIsMobileSearchOpen(false)}
         isSearchOpen={isMobileSearchOpen}
+        onHelpOpen={() => setSupportDialog("help")}
+        onFeedbackOpen={() => setSupportDialog("feedback")}
       />}
 {!isAdminArea && !isAppLoading && <ShoppingAssistant
+      isOpen={supportDialog === "help"}
+      onOpen={() => setSupportDialog("help")}
+      onClose={() => setSupportDialog(null)}
       view={view}
       product={selectedProduct}
       groups={cartOrderGroups}
@@ -795,8 +801,12 @@ return (
       />
       )}
 
-      {!isAdminArea && shouldShowFeedbackButton && (
+      {!isAdminArea && (
         <FeedbackButton
+          isOpen={supportDialog === "feedback"}
+          onOpen={() => setSupportDialog("feedback")}
+          onClose={() => setSupportDialog(null)}
+          showTrigger={shouldShowFeedbackButton}
           inline={isCartRoute(view) || ["customer-auth", "account", "account-preview"].includes(view)}
           customer={customer}
           setView={setView}

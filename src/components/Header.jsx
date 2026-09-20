@@ -7,6 +7,7 @@ import MobileNav from "./MobileNav.jsx";
 export default function Header({
   view, setView, onContactsClick, isAdmin = false, customer = null,
   cartCount = 0, onSearchOpen, onSearchClose, isSearchOpen = false,
+  onHelpOpen, onFeedbackOpen,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const headerRef = useRef(null);
@@ -72,7 +73,10 @@ export default function Header({
           </button>
         </div>
       </div>
-      {menuOpen && <MobileNav view={view} onNavigate={navigate} onClose={() => setMenuOpen(false)} cartCount={cartCount} customer={customer} isAdmin={isAdmin} />}
+      {menuOpen && <MobileNav view={view} onNavigate={navigate} onClose={() => setMenuOpen(false)} cartCount={cartCount} customer={customer} isAdmin={isAdmin}
+        onHelpOpen={() => { setMenuOpen(false); onHelpOpen?.(); }}
+        onFeedbackOpen={() => { setMenuOpen(false); onFeedbackOpen?.(); }}
+      />}
     </header>
   );
 }

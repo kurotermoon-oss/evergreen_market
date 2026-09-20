@@ -1,10 +1,20 @@
-# Evergreen: checkpoint
+# Текущее состояние — 20.09.2026
 
-Updated 20.09.2026 (Kyiv/Moscow). Base: `kurotermoon-oss/evergreen_market`, `main`, `66024c6`. Preserve unrelated untracked `docs/CATALOG-QUALITY-PRICING.md`.
+## Готово
+- Чистая локальная main обновлена fast-forward с 2c1cae3 до GitHub origin/main 05e2d20; просмотрены три новых коммита, подробно — перенос мобильной навигации.
+- На экранах до 1023 px помощь и обратная связь перенесены в отдельный блок мобильного меню перед Telegram. Плавающие триггеры скрыты; широкая версия сохранена.
+- Диалоги используют единое состояние в App. Помощь сохраняет контекст товара/корзины, для входа и кабинета по запросу показывает общую подсказку. Отзыв сохраняет требование авторизации.
+- Обновлено описание поведения в docs/REDESIGN.md.
 
-- Owner confirmed current MilkDiller procurement, zero additional costs, and cost pricing when competitors are substantially cheaper. Applied 227 product updates through the admin API: 223 price reductions, four retail prices retained, 88 cost updates, all 227 manual mode. No increases. Cost-priced anchors: Jacobs Monarch 899, oat Alpro 141, Alpine Meadow Hello Tea 81. Other prices mostly 8–15% markup, Red Black 0.7L line 110; already competitive prices retained up to 18% markup.
-- Refreshed 227 supplier prices before writing. Competitor sample: 23 offers / 15 candidate products / ten channels, not exhaustive. Rozetka Jacobs 743 became unavailable and was excluded; available Prom 880 still justified cost pricing. Resolved pack multipliers; cheeses use nominal weight. Integer cost fields rounded up; exact cents retained privately.
-- Verified all 227 values in admin and public API; no unexpected field changes. 509 total / 237 public remain. 282 untouched: 272 hidden plus ten public without verified supplier prices. No code, orders, messages, migrations or supplier sync changes.
-- Private results: `server/backups/pricing-audit-2026-09-19/APPLIED.md`, `APPLIED-PRICES.md`; timestamped apply subfolder contains pre/post snapshots, exact plan, write log, verification and rollback data. Gitignored; never upload credentials/private snapshots. Earlier REPORT/PRICE-PLAN are marked historical.
-- Next unresolved: obtain current MilkDiller quotes for ten skipped products listed in APPLIED.md. Future procurement changes require repricing; no automation added. Cached origin/main matched HEAD; no code publication.
-- Telegram carryover, not reverified: shared-token update had 12 passing tests; confirm release/configuration state via `docs/TELEGRAM_ADMIN.md`. Actual authorized/unauthorized Telegram sign-in remains unverified.
+## Проверки
+- npm run build — успешно на окончательном коде.
+- npm run test:storefront — 24/24.
+- Визуальная проверка 320/390/768/1280 px: меню, диалог отзыва, прокрутка товара, отсутствие горизонтального переполнения и мобильных плавающих кнопок.
+- Проверены помощь для товара и корзины, переход из подсказки в корзину, отзыв гостя → вход, помощь на входе, Escape, цикл Tab, возврат фокуса на меню и восстановление прокрутки. Ошибок консоли нет.
+- Локальный read-only preview: http://127.0.0.1:5180/; реальные заказы и отзывы не отправлялись.
+
+## Далее / ограничения
+- Пользователь разрешил публикацию текущей правки и всех следующих проверенных изменений по умолчанию, если не сказано обратного; правило сохранено в AGENTS.md.
+- Путь публикации: GitHub main → Railway; подтверждать remote main и работающий публичный сайт отдельно. Перед текущей публикацией origin/main повторно проверен: 05e2d20, новых коммитов нет.
+- Форма отправки отзыва авторизованным клиентом не проверялась: предпросмотр намеренно без входа и записей.
+- Блокеров нет.

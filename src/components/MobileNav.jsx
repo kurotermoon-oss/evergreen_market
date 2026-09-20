@@ -1,9 +1,9 @@
-import { ArrowUpRight, Home, LayoutGrid, MapPin, CircleHelp, Settings, ShoppingBasket, UserRound, X } from "lucide-react";
+import { ArrowUpRight, Home, LayoutGrid, MapPin, CircleHelp, MessageSquare, Settings, ShoppingBasket, UserRound, X } from "lucide-react";
 import Modal from "./Modal.jsx";
 import { getPathForView } from "../utils/routes.js";
 
 /** Sections are available only after an intentional menu tap, away from the scroll area. */
-export default function MobileNav({ view, onNavigate, onClose, cartCount = 0, customer = null, isAdmin = false }) {
+export default function MobileNav({ view, onNavigate, onClose, onHelpOpen, onFeedbackOpen, cartCount = 0, customer = null, isAdmin = false }) {
   const items = [
     { view: "catalog", label: "Каталог товарів", Icon: LayoutGrid },
     { view: "cart", label: "Кошик", Icon: ShoppingBasket, count: cartCount },
@@ -33,6 +33,14 @@ export default function MobileNav({ view, onNavigate, onClose, cartCount = 0, cu
         ))}
       </nav>
       <div className="shop-navigation-footer">
+        <div className="shop-navigation-support" role="group" aria-label="Допомога та відгуки">
+          <button type="button" onClick={onHelpOpen} aria-haspopup="dialog">
+            <CircleHelp size={20} aria-hidden="true" /><span>Допомога із замовленням</span>
+          </button>
+          <button type="button" onClick={onFeedbackOpen} aria-haspopup="dialog">
+            <MessageSquare size={20} aria-hidden="true" /><span>Залишити відгук</span>
+          </button>
+        </div>
         <a href="https://t.me/EvergreeenCofee" target="_blank" rel="noopener noreferrer">
           Написати в Telegram <ArrowUpRight size={17} aria-hidden="true" />
         </a>
