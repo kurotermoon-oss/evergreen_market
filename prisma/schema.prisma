@@ -23,6 +23,33 @@ model Category {
   @@map("categories")
 }
 
+// Small, versioned aggregate for the café's shared purchasing workspace.
+model SupplyWorkspace {
+  id        String   @id
+  data      Json
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+  @@map("supply_workspace")
+}
+
+model SupplyNotification {
+  eventKey      String    @id @map("event_key")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  sentAt        DateTime? @map("sent_at") @db.Timestamptz(6)
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime? @map("next_attempt_at") @db.Timestamptz(6)
+  lastError     String?   @map("last_error")
+  @@index([createdAt], map: "supply_notifications_created_at_idx")
+  @@map("supply_notifications")
+}
+
+model SupplyWorkerStatus {
+  id         String    @id
+  lastTickAt DateTime?  @map("last_tick_at") @db.Timestamptz(6)
+  lastSentAt DateTime?  @map("last_sent_at") @db.Timestamptz(6)
+  lastError  String?    @map("last_error")
+  @@map("supply_worker_status")
+}
+
 model Subcategory {
   id         String   @id
   categoryId String
