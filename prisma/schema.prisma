@@ -23,7 +23,9 @@ model Category {
   @@map("categories")
 }
 
-// Small, versioned aggregate for the café's shared purchasing workspace.
+// Legacy supply tables retained solely to preserve existing database data/history.
+// Runtime moved to kurotermoon-oss/evergreen_supply_bot. Do not drop these until
+// any existing data is exported and a separate cleanup is explicitly authorized.
 model SupplyWorkspace {
   id        String   @id
   data      Json

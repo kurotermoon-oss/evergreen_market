@@ -118,7 +118,7 @@ function buildContentSecurityPolicy({ telegramAdmin = false } = {}) {
 
 function applySecurityHeaders(req, res, next) {
   res.setHeader("X-Content-Type-Options", "nosniff");
-  const telegramAdmin = ["/telegram/admin", "/telegram/admin/", "/telegram/supply", "/telegram/supply/"].includes(req.path);
+  const telegramAdmin = req.path === "/telegram/admin" || req.path === "/telegram/admin/";
   if (!telegramAdmin) res.setHeader("X-Frame-Options", "DENY");
   if (telegramAdmin) { res.setHeader("X-Robots-Tag", "noindex, nofollow"); res.setHeader("Cache-Control", "no-store"); }
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");

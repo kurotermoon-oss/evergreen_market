@@ -52,9 +52,6 @@ const adminAuthRoutes = require("./routes/adminAuth.routes.cjs");
 const { createTelegramAdminRouter } = require("./routes/telegramAdmin.routes.cjs");
 const { createAdminOrderActions } = require("./services/adminOrderActions.cjs");
 const { notifyAdminOrder } = require("./telegram/adminNotify.cjs");
-const { createSupplyRouter } = require("./supply/routes.cjs");
-const { createRepository: createSupplyRepository } = require("./supply/repository.cjs");
-const { startWorker: startSupplyWorker } = require("./supply/worker.cjs");
 const adminAnalyticsRoutes = require("./routes/adminAnalytics.routes.cjs");
 const adminCustomersRoutes = require("./routes/adminCustomers.routes.cjs");
 const adminSecurityRoutes = require("./routes/adminSecurity.routes.cjs");
@@ -1218,6 +1215,11 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
 app.use(applySecurityHeaders);
+// The standalone supply bot no longer runs in the storefront service.
+app.use(["/telegram/supply", "/api/telegram/supply"], (req, res) => {
+  res.set({ "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" });
+  res.status(410).json({ message: "Закупівлі перенесено до окремого застосунку. Відкрийте актуальну кнопку в боті закупівель після його підключення." });
+});
 app.use(cors(createCorsOptions()));
 
 app.use(express.json({ limit: "8mb" }));
@@ -1240,9 +1242,6 @@ app.use("/api/telegram/admin", createTelegramAdminRouter({
   performAction: performAdminOrderAction,
 }));
 app.use("/api/admin", adminAuthRoutes);
-const supplyRepository = USE_POSTGRES ? createSupplyRepository(require("./database/pool.cjs").pool) : null;
-if (supplyRepository) app.use("/api/telegram/supply", createSupplyRouter({ repository: supplyRepository }));
-else app.use("/api/telegram/supply", (req, res) => res.status(503).json({ message: "Закупівлі потребують підключення PostgreSQL." }));
 app.use("/api/admin/analytics", adminAnalyticsRoutes);
 app.use("/api/admin/customers", adminCustomersRoutes);
 app.use("/api/admin/security", adminSecurityRoutes);
@@ -3984,8 +3983,4 @@ const server = app.listen(PORT, (error) => {
     address && typeof address === "object" ? address.port : PORT;
 
   console.log(`Evergreen backend running on port ${runningPort}`);
-  if (supplyRepository && process.env.SUPPLY_REMINDERS_ENABLED === "true") {
-    const stopSupplyWorker = startSupplyWorker(supplyRepository);
-    server.once("close", stopSupplyWorker);
-  }
 });

@@ -187,7 +187,7 @@ test("Only the Mini App page allows the Telegram SDK and Telegram framing", () =
   for (const path of ["/", "/admin", "/telegram/admin", "/telegram/admin/", "/telegram/supply", "/telegram/supply/", "/telegram/supply/unknown"]) {
     const headers = {};
     applySecurityHeaders({ path }, { setHeader: (k, v) => { headers[k] = v; } }, () => {});
-    if (["/telegram/admin", "/telegram/admin/", "/telegram/supply", "/telegram/supply/"].includes(path)) { assert.equal(headers["X-Frame-Options"], undefined); assert.match(headers["Content-Security-Policy"], /frame-ancestors https:\/\/web.telegram.org/); assert.equal(headers["X-Robots-Tag"], "noindex, nofollow"); }
+    if (["/telegram/admin", "/telegram/admin/"].includes(path)) { assert.equal(headers["X-Frame-Options"], undefined); assert.match(headers["Content-Security-Policy"], /frame-ancestors https:\/\/web.telegram.org/); assert.equal(headers["X-Robots-Tag"], "noindex, nofollow"); }
     else { assert.equal(headers["X-Frame-Options"], "DENY"); assert.doesNotMatch(headers["Content-Security-Policy"], /telegram/); }
   }
 });
